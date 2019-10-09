@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "data-utils"
+version = "0.1.0"
+description = "A set of generic, useful data science and machine learning methods."
+authors = ["AndreCNF <andrecnf@gmail.com>"]
+homepage = "https://github.com/andrecnf/data_utils"
+repository = "https://github.com/andrecnf/data_utils"
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+torch = "^1.2"
+pandas = "^0.25.1"
+dask = "^2.5"
+distributed = "^2.5"
+
+[tool.poetry.dev-dependencies]
+pytest = "^3.0"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
