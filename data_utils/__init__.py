@@ -4,6 +4,7 @@ from comet_ml import Experiment                         # Comet.ml can log train
 import torch                                            # PyTorch to create and apply deep learning models
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 
+# [TODO] Check if the random seed is working properly
 # Random seed used in PyTorch and NumPy's random operations (such as weight initialization)
 # Automatic seed
 random_seed = np.random.get_state()

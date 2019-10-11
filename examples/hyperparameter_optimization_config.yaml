@@ -1,0 +1,23 @@
+algorithm: bayes
+spec:
+  metric: val_auc
+  objective: minimize
+  maxCombo: 100
+  seed: 42
+  retryLimit: 20
+parameters:
+  momentum:
+    type: float
+    min: 0.0
+    max: 0.9
+    scalingType: uniform
+  learning-rate:
+    type: float
+    min: 0.001
+    max: 1.0
+    scalingType: loguniform
+  dropout:
+    type: float
+    mu: 0.5
+    sigma: 0.1
+    scalingType: normal

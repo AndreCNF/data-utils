@@ -9,18 +9,6 @@ from sklearn.metrics import roc_auc_score               # ROC AUC model performa
 import utils                                            # Generic and useful methods
 import padding                                          # Padding and variable sequence length related methods
 
-# Random seed used in PyTorch and NumPy's random operations (such as weight initialization)
-random_seed = utils.random_seed
-
-if isinstance(random_seed, int):
-    # Set user specified random seed
-    np.random.seed(random_seed)
-    torch.manual_seed(random_seed)
-else:
-    # Set completely random seed from utils
-    np.random.set_state(random_seed)
-    torch.manual_seed(random_seed[1][0])
-
 # Ignore Dask's 'meta' warning
 warnings.filterwarnings("ignore", message="`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.")
 
@@ -406,7 +394,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader, seq_len_dict
     model_path : string, default 'models/'
         Path where the model will be saved. By default, it saves in
         the directory named "models".
-    padding_value : numeric
+    padding_value : numeric, default 999999
         Value to use in the padding, to fill the sequences.
     do_test : bool, default True
         If true, evaluates the model on the test set, after completing

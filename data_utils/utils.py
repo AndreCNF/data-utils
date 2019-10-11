@@ -4,35 +4,7 @@ import numpy as np                                      # NumPy to handle numeri
 from tqdm.auto import tqdm                              # tqdm allows to track code execution progress
 import numbers                                          # numbers allows to check if data is numeric
 
-# [TODO] Make the random seed a user option (randomly generated or user defined)
-# Random seed used in PyTorch and NumPy's random operations (such as weight initialization)
-# Automatic seed
-random_seed = np.random.get_state()
-np.random.set_state(random_seed)
-torch.manual_seed(random_seed[1][0])
-
 # Methods
-
-def set_random_seed(num):
-    '''Set a user specified seed to use in stochastic (i.e. random) processes.
-    This method should be called before importing packages which use a
-    random seed.
-
-    Parameters
-    ----------
-    num : int
-        Number that will serve as the random seed.
-
-    Returns
-    -------
-    None
-    '''
-    global random_seed
-    random_seed = num
-    np.random.seed(random_seed)
-    torch.manual_seed(random_seed)
-    return
-
 
 def apply_dict_convertion(x, conv_dict, nan_value=0):
     '''Safely apply a convertion through a dictionary.
