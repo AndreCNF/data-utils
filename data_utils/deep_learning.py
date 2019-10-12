@@ -4,7 +4,6 @@ import numpy as np                                      # NumPy to handle numeri
 import warnings                                         # Print warnings for bad practices
 from datetime import datetime                           # datetime to use proper date and time formats
 import sys                                              # Identify types of exceptions
-from NeuralNetwork import NeuralNetwork                 # Import the neural network model class
 from sklearn.metrics import roc_auc_score               # ROC AUC model performance metric
 import utils                                            # Generic and useful methods
 import padding                                          # Padding and variable sequence length related methods
@@ -14,27 +13,32 @@ warnings.filterwarnings("ignore", message="`meta` is not specified, inferred fro
 
 # Methods
 
-def load_checkpoint(filepath):
+def load_checkpoint(filepath, Model, *args):
     '''Load a model from a specified path and name.
 
     Parameters
     ----------
     filepath : str
         Path to the model being loaded, including it's own file name.
+    Model : torch.nn.Module (any deep learning model)
+        Class constructor for the desired deep learning model.
+    args : list of str
+        Names of the neural network's parameters that need to be
+        loaded.
 
     Returns
     -------
     model : nn.Module
         The loaded model with saved weight values.
     '''
+    # Load the saved data
     checkpoint = torch.load(filepath)
-    model = NeuralNetwork(checkpoint['n_inputs'],
-                          checkpoint['n_hidden'],
-                          checkpoint['n_outputs'],
-                          checkpoint['n_layers'],
-                          checkpoint['p_dropout'])
+    # Retrieve the parameters' values and integrate them in
+    # a dictionary
+    params = dict(zip(args, [checkpoint[param] for param in args]))
+    # Create a model with the saved parameters
+    model = Model(params)
     model.load_state_dict(checkpoint['state_dict'])
-
     return model
 
 
@@ -359,7 +363,7 @@ def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=['l
 
 def train(model, train_dataloader, val_dataloader, test_dataloader, seq_len_dict,
           batch_size=32, n_epochs=50, lr=0.001, model_path='models/',
-          padding_value=999999, do_test=True, log_comet_ml=False,
+          ModelClass=None, padding_value=999999, do_test=True, log_comet_ml=False,
           comet_ml_api_key=None, comet_ml_project_name=None,
           comet_ml_workspace=None, comet_ml_save_model=False, experiment=None,
           features_list=None, get_val_loss_min=False):
@@ -394,6 +398,11 @@ def train(model, train_dataloader, val_dataloader, test_dataloader, seq_len_dict
     model_path : string, default 'models/'
         Path where the model will be saved. By default, it saves in
         the directory named "models".
+    ModelClass : object, default None
+        Sets the class which corresponds to the machine learning 
+        model type. It will be needed if test inference is 
+        performed (do_test set to True), as we need to know
+        the model type so as to load the best scored model.
     padding_value : numeric, default 999999
         Value to use in the padding, to fill the sequences.
     do_test : bool, default True
@@ -445,13 +454,13 @@ def train(model, train_dataloader, val_dataloader, test_dataloader, seq_len_dict
         experiment.log_other("random_seed", random_seed)
 
         # Report hyperparameters to Comet.ml
-        hyper_params = {"batch_size": batch_size,
-                        "n_epochs": n_epochs,
-                        "n_hidden": model.n_hidden,
-                        "n_layers": model.n_layers,
-                        "learning_rate": lr,
-                        "p_dropout": model.p_dropout,
-                        "random_seed": random_seed}
+        hyper_params_names = [name for name, _ in model.named_parameters()]
+        hyper_params = dict(zip(hyper_params_names, [getattr(model, param)
+                                                     for param in hyper_params_names]))
+        hyper_params.update({"batch_size": batch_size,
+                             "n_epochs": n_epochs,
+                             "learning_rate": lr,
+                             "random_seed": random_seed})
         experiment.log_parameters(hyper_params)
 
         if features_list is not None:
@@ -480,7 +489,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader, seq_len_dict
                     features, labels = features.cuda(), labels.cuda()           # Move data to GPU
 
                 features, labels = features.float(), labels.float()             # Make the data have type float instead of double, as it would cause problems
-                features, labels, x_lengths = sort_by_seq_len(features, seq_len_dict, labels) # Sort the data by sequence length
+                features, labels, x_lengths = padding.sort_by_seq_len(features, seq_len_dict, labels) # Sort the data by sequence length
                 scores = model.forward(features[:, :, 2:], x_lengths)           # Feedforward the data through the model
                                                                                 # (the 2 is there to avoid using the identifier features in the predictions)
 
@@ -513,7 +522,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader, seq_len_dict
                     # Turn off gradients for validation, saves memory and computations
                     with torch.no_grad():
                         features, labels = features.float(), labels.float()             # Make the data have type float instead of double, as it would cause problems
-                        features, labels, x_lengths = sort_by_seq_len(features, seq_len_dict, labels) # Sort the data by sequence length
+                        features, labels, x_lengths = padding.sort_by_seq_len(features, seq_len_dict, labels) # Sort the data by sequence length
                         scores = model.forward(features[:, :, 2:], x_lengths)           # Feedforward the data through the model
                                                                                         # (the 2 is there to avoid using the identifier features in the predictions)
 
@@ -557,12 +566,8 @@ def train(model, train_dataloader, val_dataloader, test_dataloader, seq_len_dict
                     print(f'Saving model in {model_filename}')
 
                     # Save the best performing model so far, a long with additional information to implement it
-                    checkpoint = {'n_inputs': model.n_inputs,
-                                  'n_hidden': model.n_hidden,
-                                  'n_outputs': model.n_outputs,
-                                  'n_layers': model.n_layers,
-                                  'p_dropout': model.p_dropout,
-                                  'state_dict': model.state_dict()}
+                    checkpoint = hyper_params
+                    checkpoint['state_dict'] = model.state_dict()
                     torch.save(checkpoint, model_filename)
 
                     if log_comet_ml is True and comet_ml_save_model is True:
@@ -594,7 +599,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader, seq_len_dict
     try:
         if do_test is True and model_filename is not None:
             # Load the model with the best validation performance
-            model = load_checkpoint(model_filename)
+            model = load_checkpoint(model_filename, ModelClass)
 
             # Run inference on the test data
             model_inference(model, seq_len_dict, dataloader=test_dataloader , experiment=experiment)

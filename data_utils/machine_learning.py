@@ -1,10 +1,11 @@
-from comet_ml                                           # Comet.ml can log training metrics, parameters, do version control and parameter optimization
+import comet_ml                                         # Comet.ml can log training metrics, parameters, do version control and parameter optimization
 import torch                                            # PyTorch to create and apply deep learning models
 from torch.utils.data.sampler import SubsetRandomSampler
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import warnings                                         # Print warnings for bad practices
 import yaml                                             # Save and load YAML files
 import deep_learning                                    # Common and generic deep learning related methods
+import padding                                          # Padding and variable sequence length related methods
 
 # Ignore Dask's 'meta' warning
 warnings.filterwarnings("ignore", message="`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.")
@@ -183,10 +184,11 @@ def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
 
     Returns
     -------
-    suggestion :
-        The last suggested hyperparameters values from the optimization. For a
-        full overview of the optimization process, check the comet.ml account
-        that was associated to this optimization process.
+    val_loss_min : float
+        Minimum validation loss over all the optimization process.
+    exp_name_min : str
+        Name of the comet ml experiment with the overall minimum validation
+        loss.
 
     [TODO] Write a small tutorial on how to write the YAML configuration file,
     based on this: https://www.comet.ml/docs/python-sdk/introduction-optimizer/
@@ -238,7 +240,7 @@ def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
         params_values = dict(zip(params_names, [param_optimizer.get_parameter(param)
                                                 for param in params_names]))
         # Instantiate the model (removing the two identifier columns and the labels from the input size)
-        model = Model(n_input, n_output, **params_values, **kwargs)
+        model = Model(n_inputs, n_outputs, **params_values, **kwargs)
         # Check if GPU (CUDA) is available
         train_on_gpu = torch.cuda.is_available()
         if train_on_gpu:
@@ -249,15 +251,20 @@ def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
             p.register_hook(lambda grad: torch.clamp(grad, -clip_value, clip_value))
         print('Training the model...')
         # Train the model and get the minimum validation loss
-        model, val_loss_min = train(model, train_dataloader, val_dataloader,
-                                    test_dataloader, seq_len_dict, batch_size,
-                                    n_epochs, lr, model_path='models/',
-                                    padding_value=padding_value, do_test=True,
-                                    log_comet_ml=True,
-                                    comet_ml_save_model=comet_ml_save_model,
-                                    experiment=experiment,
-                                    features_list=list(df.columns).remove(label_column),
-                                    get_val_loss_min=True)
+        model, val_loss = train(model, train_dataloader, val_dataloader,
+                                test_dataloader, seq_len_dict, batch_size,
+                                n_epochs, lr, model_path='models/',
+                                padding_value=padding_value, do_test=True,
+                                log_comet_ml=True,
+                                comet_ml_save_model=comet_ml_save_model,
+                                experiment=experiment,
+                                features_list=list(df.columns).remove(label_column),
+                                get_val_loss_min=True)
+        if val_loss < val_loss_min:
+            # Update optimization minimum validation loss and the corresponding
+            # experiment name 
+            val_loss_min = val_loss
+            exp_name_min = experiment.get_key()
         # Log optimization parameters
         experiment.log_metric('n_inputs', n_inputs)
         experiment.log_metric('n_outputs', n_outputs)
@@ -270,7 +277,7 @@ def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
         experiment.log_metric('validation_ratio', validation_ratio)
         experiment.log_asset(f'{config_path}config_name', config_name)
         experiment.log_asset(param_optimizer.status(), 'param_optimizer_status')
-    return
+    return val_loss_min, exp_name_min
 
 
 # [TODO] Create a generic inference method that can run inference with any relevant machine learning model on the input data

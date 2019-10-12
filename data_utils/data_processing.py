@@ -384,8 +384,8 @@ def apply_zscore_norm(value, df=None, mean=None, std=None, categories_means=None
         raise Exception(f'ERROR: Input value should be a number, not an object of type {type(value)}.')
     if mean is not None and std is not None:
         return (value - mean) / std
-    elif df is not None and categories_means is not None
-         and categories_stds is not None and groupby_columns is not None:
+    elif (df is not None and categories_means is not None
+          and categories_stds is not None and groupby_columns is not None):
         try:
             if isinstance(groupby_columns, list):
                 return ((value - categories_means[tuple(df[groupby_columns])])
@@ -484,8 +484,8 @@ def apply_zscore_denorm(value, df=None, mean=None, std=None, categories_means=No
         raise Exception(f'ERROR: Input value should be a number, not an object of type {type(value)}.')
     if mean is not None and std is not None:
         return value * std + mean
-    elif df is not None and categories_means is not None
-         and categories_stds is not None and groupby_columns is not None:
+    elif (df is not None and categories_means is not None
+          and categories_stds is not None and groupby_columns is not None):
         try:
             if isinstance(groupby_columns, list):
                 return (value * categories_stds[tuple(df[groupby_columns])]
@@ -535,8 +535,8 @@ def apply_minmax_denorm(value, df=None, min=None, max=None, categories_mins=None
         raise Exception(f'ERROR: Input value should be a number, not an object of type {type(value)}.')
     if min is not None and max is not None:
         return value * (max - min) + min
-    elif df is not None and categories_mins is not None
-         and categories_maxs is not None and groupby_columns is not None:
+    elif (df is not None and categories_mins is not None
+          and categories_maxs is not None and groupby_columns is not None):
         try:
             if isinstance(groupby_columns, list):
                 return (value * (categories_maxs[tuple(df[groupby_columns])]
@@ -1050,7 +1050,7 @@ def set_dosage_and_units(df, orig_column='dosage'):
                 x[0] = float(x[0])
             except Exception:
                 return dosage, unit
-            if is_definitely_string(x[1]):
+            if utils.is_definitely_string(x[1]):
                 # Add correctly formated dosage and unit values
                 dosage = x[0]
                 unit = x[1]
