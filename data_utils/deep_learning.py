@@ -5,8 +5,8 @@ import warnings                                         # Print warnings for bad
 from datetime import datetime                           # datetime to use proper date and time formats
 import sys                                              # Identify types of exceptions
 from sklearn.metrics import roc_auc_score               # ROC AUC model performance metric
-import utils                                            # Generic and useful methods
-import padding                                          # Padding and variable sequence length related methods
+from . import utils                                     # Generic and useful methods
+from . import padding                                   # Padding and variable sequence length related methods
 
 # Ignore Dask's 'meta' warning
 warnings.filterwarnings("ignore", message="`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.")

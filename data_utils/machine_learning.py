@@ -4,8 +4,8 @@ from torch.utils.data.sampler import SubsetRandomSampler
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import warnings                                         # Print warnings for bad practices
 import yaml                                             # Save and load YAML files
-import deep_learning                                    # Common and generic deep learning related methods
-import padding                                          # Padding and variable sequence length related methods
+from . import deep_learning                             # Common and generic deep learning related methods
+from . import padding                                   # Padding and variable sequence length related methods
 
 # Ignore Dask's 'meta' warning
 warnings.filterwarnings("ignore", message="`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.")
@@ -13,7 +13,7 @@ warnings.filterwarnings("ignore", message="`meta` is not specified, inferred fro
 # Methods
 
 def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch_size=32,
-                      get_indeces=True, random_seed=random_seed, shuffle_dataset=True):
+                      get_indeces=True, shuffle_dataset=True):
     '''Distributes the data into train, validation and test sets and returns the respective data loaders.
 
     Parameters
@@ -35,33 +35,40 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
         If set to True, the function returns the dataloader objects of
         the train, validation and test sets and also the indices of the
         sets' data. Otherwise, it only returns the data loaders.
-    random_seed : int or tuple, default random_seed
-        Seed used when shuffling the data.
     shuffle_dataset : bool, default True
-        If set to True, the data of which set is shuffled.
+        If set to True, the data of each set is shuffled.
 
     Returns
     -------
-    train_data : torch.Tensor
-        Data which will be used during training.
-    val_data : torch.Tensor
-        Data which will be used to evaluate the model's performance
-        on a validation set during training.
-    test_data : torch.Tensor
-        Data which will be used to evaluate the model's performance
-        on a test set, after finishing the training process.
+    train_dataloader : torch.utils.data.DataLoader
+        Dataloader for getting batches of data which will be used 
+        during training.
+    val_dataloader : torch.utils.data.DataLoader
+        Dataloader for getting batches of data which will be used to 
+        evaluate the model's performance on a validation set during 
+        training.
+    test_dataloader : torch.utils.data.DataLoader
+        Dataloader for getting batches of data which will be used to 
+        evaluate the model's performance on a test set, after 
+        finishing the training process.
+
+    If get_indeces is True:
+
+    train_indices : torch.utils.data.DataLoader
+        Indices of the data which will be used during training.
+    val_indices : torch.utils.data.DataLoader
+        Indices of the data which will be used to evaluate the 
+        model's performance on a validation set during training.
+    test_indices : torch.utils.data.DataLoader
+        Indices of the data which will be used to evaluate the 
+        model's performance on a test set, after finishing the 
+        training process.
     '''
     # Create data indices for training and test splits
     dataset_size = len(dataset)
     indices = list(range(dataset_size))
     test_split = int(np.floor(test_train_ratio * dataset_size))
     if shuffle_dataset is True:
-        if type(random_seed) is int:
-            np.random.seed(random_seed)
-        elif type(random_seed) is tuple:
-            np.random.set_state(random_seed)
-        else:
-            raise(f'ERROR: {type(random_seed)} is an incorrect random seed type. It should either be an integer or a random state tuple.')
         np.random.shuffle(indices)
     train_indices, test_indices = indices[test_split:], indices[:test_split]
 

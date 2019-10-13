@@ -7,8 +7,8 @@ import numbers                                          # numbers allows to chec
 from functools import reduce                            # Parallelize functions
 import re                                               # Methods for string editing and searching, regular expression matching operations
 import warnings                                         # Print warnings for bad practices
-import utils                                            # Generic and useful methods
-import data_processing                                  # Data processing and dataframe operations
+from . import utils                                     # Generic and useful methods
+from . import data_processing                           # Data processing and dataframe operations
 
 # Ignore Dask's 'meta' warning
 warnings.filterwarnings("ignore", message="`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.")

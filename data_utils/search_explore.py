@@ -2,7 +2,7 @@ import pandas as pd                                     # Pandas to handle the d
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import numbers                                          # numbers allows to check if data is numeric
 import warnings                                         # Print warnings for bad practices
-import utils                                            # Generic and useful methods
+from . import utils                                     # Generic and useful methods
 
 # Ignore Dask's 'meta' warning
 warnings.filterwarnings("ignore", message="`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.")

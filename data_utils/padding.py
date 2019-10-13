@@ -2,7 +2,7 @@ from comet_ml import Experiment                         # Comet.ml can log train
 import torch                                            # PyTorch to create and apply deep learning models
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import warnings                                         # Print warnings for bad practices
-import utils                                            # Generic and useful methods
+from . import utils                                     # Generic and useful methods
 
 # Ignore Dask's 'meta' warning
 warnings.filterwarnings("ignore", message="`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.")

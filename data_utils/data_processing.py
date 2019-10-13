@@ -5,8 +5,8 @@ import dask.dataframe as dd                             # Dask to handle big dat
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import numbers                                          # numbers allows to check if data is numeric
 import warnings                                         # Print warnings for bad practices
-import utils                                            # Generic and useful methods
-import search_explore                                   # Methods to search and explore data
+from . import utils                                     # Generic and useful methods
+from . import search_explore                            # Methods to search and explore data
 
 # Ignore Dask's 'meta' warning
 warnings.filterwarnings("ignore", message="`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.")
