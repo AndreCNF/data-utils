@@ -313,7 +313,7 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
     # See if there is a timestamp column on the dataframe (only considering as a
     # timestamp column those that are named 'ts')
     if has_timestamp is None:
-        if 'ts' in id_columns:
+        if 'ts' in data_df.columns:
             has_timestamp = True
         else:
             has_timestamp = False

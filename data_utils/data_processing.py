@@ -95,7 +95,36 @@ def standardize_missing_values_df(df, see_progress=True):
     return df
 
 
-def clean_naming(df, column, clean_missing_values=True):
+def clean_naming(x):
+    '''Change strings to only have lower case letters and underscores.
+
+    Parameters
+    ----------
+    x : string or list of strings
+        String(s) on which to clean the naming, standardizing it.
+
+    Returns
+    -------
+    x : string or list of strings
+        Cleaned string(s).
+    '''
+    if isinstance(x, list):
+        x = [string.lower().replace('  ', '')
+                           .replace(' ', '_')
+                           .replace(',', '_and') for string in x]
+    elif (isinstance(x, pd.DataFrame)
+    or isinstance(x, pd.Series)
+    or isinstance(x, dd.DataFrame)
+    or isinstance(x, dd.Series)):
+        raise Exception('ERROR: Wrong method. When using dataframes or series, use clean_categories_naming() method instead.')
+    else:
+        x = (str(x).lower().replace('  ', '')
+                           .replace(' ', '_')
+                           .replace(',', '_and'))
+    return x
+
+
+def clean_categories_naming(df, column, clean_missing_values=True):
     '''Change categorical values to only have lower case letters and underscores.
 
     Parameters
@@ -115,15 +144,11 @@ def clean_naming(df, column, clean_missing_values=True):
         Dataframe with its string column already cleaned.
     '''
     if 'dask' in str(type(df)):
-        df[column] = (df[column].map(lambda x: str(x).lower().replace('  ', '')
-                                                             .replace(' ', '_')
-                                                             .replace(',', '_and'), meta=('x', str)))
+        df[column] = (df[column].map(clean_naming, meta=('x', str)))
         if clean_missing_values is True:
             df[column] = df[column].apply(standardize_missing_values, meta=df[column]._meta.dtypes)
     else:
-        df[column] = (df[column].map(lambda x: str(x).lower().replace('  ', '')
-                                                             .replace(' ', '_')
-                                                             .replace(',', '_and')))
+        df[column] = (df[column].map(clean_naming))
         if clean_missing_values is True:
             df[column] = df[column].apply(standardize_missing_values)
     return df
