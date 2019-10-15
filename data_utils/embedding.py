@@ -83,7 +83,7 @@ def enum_categorical_feature(df, feature, nan_value=0, clean_name=True,
     '''
     if clean_name is True:
         # Clean the column's string values to have the same, standard format
-        df = data_processing.clean_naming(df, feature)
+        df = data_processing.clean_categories_naming(df, feature)
     # Get the unique values of the cateforical feature
     unique_values = df[feature].unique()
     if 'dask' in str(type(df)):
@@ -357,7 +357,7 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
     return data_df
 
 
-def prepare_embed_bag(df, feature):
+def prepare_embed_bag(df, feature, append_offset_df=False):
     '''Prepare a categorical feature for embedding bag, i.e. split category
     enumerations into separate numbers, combine them into a single list and set
     the appropriate offsets as to when each row's group of categories end.
@@ -368,17 +368,20 @@ def prepare_embed_bag(df, feature):
         Dataframe that contains the categorical feature that will be embedded.
     feature : string
         Name of the categorical feature on which embedding bag will be applied.
+    append_offset_df : bool, default False
+        If set to True, the embedding bag offset will become a column in the 
+        dataframe.
 
     Returns
     -------
-    embed_num : torch.Tensor
+    enum_list : torch.Tensor
         List of all categorical enumerations, i.e. the numbers corresponding to
         each of the feature's categories, contained in the input series.
     offset : torch.Tensor
         List of when each row's categorical enumerations start, considering the
-        embed_num list.
+        enum_list list.
     '''
-    embed_num = []
+    enum_list = []
     count = 0
     offset = [count]
     for i in range(len(df)):
@@ -391,16 +394,118 @@ def prepare_embed_bag(df, feature):
         else:
             raise Exception(f'ERROR: `df` should either be a Pandas or Dask dataframe, not {type(df)}.')
         digits_list = feature_val_i.split(';')
-        embed_num.append(digits_list)
+        enum_list.append(digits_list)
         # Set the end of the current list
         count += len(digits_list)
         offset.append(count)
     # Flatten list
-    embed_num = [int(item) for sublist in embed_num for item in sublist]
+    enum_list = [int(item) for sublist in enum_list for item in sublist]
+    if append_offset_df:
+        # Add the embedding offset list to the dataframe as a column
+        if 'dask' in str(type(df)):
+            df[f'{feature}_embed_offset'] = dd.from_pandas(pd.Series(offset, index=df.index, dtype=int), npartitions=df.npartitions)
+        else:
+            df[f'{feature}_embed_offset'] = pd.Series(offset, index=df.index, dtype=int)
+        # Remove the original feature column
+        df = df.drop(feature, axis=1)
     # Convert to PyTorch tensor
-    embed_num = torch.tensor(embed_num)
+    enum_list = torch.tensor(enum_list)
     offset = torch.tensor(offset)
-    return embed_num, offset
+    return enum_list, offset
+
+
+def run_embed_bag(offset, enum_list, offset_list, embedding_layer):
+
+    # Get the index of the offset list corresponding to the input value
+    start_idx = search_explore.find_val_idx(offset_list, offset)
+    # Get the index of the end of the current row's encondings list
+    end_idx = offset_list[start_idx+1]
+    # Fetch the now delimited list of encodings corresponding to the current row
+    encodings = enum_list[start_idx:end_idx].unsqueeze(0)
+    # Run the embedding bag layer on the current encodings
+    embeddings = embedding_layer(encodings)
+    return embeddings
+
+
+def run_embed_bag_on_col(enum_list, offset_list, data, offset_col, embedding_layer,
+                         see_progress=True):
+    '''Run an embedding bag layer through on an offset column, corresponding
+    to a categorical feature. New columns will be added to the data tensor,
+    replacing the offset column with the ones that contain the retrieved
+    embedding values.
+
+    Parameters
+    ----------
+    enum_list : torch.Tensor or list or numpy.Array or dask.Array
+        List of all categorical enumerations, i.e. the numbers corresponding to
+        each of the feature's categories, contained in the original categorical
+        series.
+    offset_list : torch.Tensor or list or numpy.Array or dask.Array
+        List of all offsets ordered according to the enumerations list `enum_list`
+        i.e. the indeces of when a row's categorical encodings start.
+    data : torch.Tensor
+        Data tensor which contains all the features to be used in a machine
+        learning model.
+    offset_col : int
+        Index of the column in the data tensor that corresponds to the offset
+        information being analyzed (i.e. the categorical feature being embedded).
+    embedding_layer : torch.nn.EmbeddingBag
+        PyTorch layer that applies the embedding bag, i.e. calculates the 
+        average embedding based on multiple encoded values.
+    see_progress : bool, default True
+        If set to True, a progress bar will show up indicating the execution
+        of the calculations.
+
+    Returns
+    -------
+    data : torch.Tensor
+        Data tensor with the new embedding columns and without the input offset
+        column.
+    '''
+    # Create embeddings tensor
+    embeddings = torch.FloatTensor(len(data[:, offset_col], embedding_layer.embedding_dim)
+    for i in utils.iterations_loop(range(len(data[:, offset_col])), see_progress=see_progress):
+        embeddings[i, :] = run_embed_bag(data[i, offset_col], enum_list, offset_list, embedding_layer)
+    # Join the embeddings columns to the data tensor
+    data = torch.cat((data, embeddings), dim=1)
+    # [TODO] Analyze the options for removing the offset column. It might be better to just remove
+    # all offset columns after creating all the respective embedding columns, so as to avoid issues
+    # with changing column indeces.
+    # Drop the offset column
+    # 
+    return data
+
+# The idea of the method bellow would be to integrate the embedding values in the
+# dataframe, but that won't make sense if the embedding layer isn't trained yet.
+# def create_embed_bag_features(df, features, embedding_bag):
+#     '''Add embedding columns to a dataframe, based on the resulting average
+#     embedding values (embedding bag) retrieved for each categorical feature.
+
+#     Parameters
+#     ----------
+#     df : pandas.DataFrame or dask.DataFrame
+#         Dataframe that contains the categorical feature(s) that will be embedded.
+#     features : list of string
+#         Name(s) of the categorical feature(s) on which embedding bag will be 
+#         applied.
+#     embedding_bag : torch.nn.EmbeddingBag
+#         PyTorch layer that applies the embedding bag, i.e. calculates the 
+#         average embedding based on multiple encoded values.
+
+#     Returns
+#     -------
+#     df : pandas.DataFrame or dask.DataFrame
+#         Dataframe with the added embedding columns.
+#     '''
+#     if isinstance(features, str):
+#         # Get the full encoded list and the offset needed for the embedding bag
+#         embed_num, offset = prepare_embed_bag(df, features)
+#         # Apply the embedding bag
+#         embedding_bag(embed_num, offset)[:-1]
+#     elif isinstance(features, list):
+
+#     else:
+#         raise Exception(f'ERROR: The features must be specified either as a single string or as a list of strings, not {type(features)}.')
 
 
 # [TODO] Create a function that takes a set of embeddings (which will be used in

@@ -94,6 +94,37 @@ def list_one_hot_encoded_columns(df):
     return [col for col in df.columns if is_one_hot_encoded_column(df, col)]
 
 
+def find_val_idx(data, value, column=None):
+    '''Find the index that corresponds to a given unique value in a data tensor.
+
+    Parameters
+    ----------
+    data : torch.Tensor
+        PyTorch tensor containing the data on which the desired value will
+        be searched for.
+    value : numeric
+        Unique value whose index on the data tensor one wants to find out.
+    column : int, default None
+        The number of the column in the data tensor that will be searched.
+
+    Returns
+    -------
+    idx : int
+        Index where the specified value appears in the data tensor.'''
+    if len(data.size()) == 1:
+        return (data == value).nonzero().item()
+    elif column is not None:
+        if len(data.size()) == 2:
+            return (data[:, column] == value).nonzero().item()
+        elif len(data.size()) == 3:
+            return (data[:, :, column] == value).nonzero().item()
+        else:
+            raise Exception(
+                f'ERROR: Currently this method only supports up to tree-dimensional data. User submitted data with {len(data.size())} dimensions.')
+    else:
+        raise Exception('ERROR: If multidimensional data is being used, the column to search for must be specified in the `column` parameter.')
+
+
 def find_subject_idx(data, subject_id, subject_id_col=0):
     '''Find the index that corresponds to a given subject in a data tensor.
 

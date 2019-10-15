@@ -10,5 +10,5 @@ Project-URL: homepage, https://github.com/andrecnf/data_utils
 Project-URL: repository, https://github.com/andrecnf/data_utils
 Description: UNKNOWN
 Platform: UNKNOWN
-Requires-Python: ==3.*,>=3.7.0
+Requires-Python: ==3.*,>=3.6.0
 Provides-Extra: dev
