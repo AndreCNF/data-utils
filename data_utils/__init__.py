@@ -3,13 +3,13 @@ __version__ = '0.1.0'
 from comet_ml import Experiment                         # Comet.ml can log training metrics, parameters, do version control and parameter optimization
 import torch                                            # PyTorch to create and apply deep learning models
 import numpy as np                                      # NumPy to handle numeric and NaN operations
-from . import utils
-from . import search_explore
-from . import data_processing
-from . import padding
-from . import embedding
-from . import deep_learning
-from . import machine_learning
+from . import utils                                     # Generic and useful methods
+from . import search_explore                            # Methods to search and explore data
+from . import data_processing                           # Data processing and dataframe operations
+from . import padding                                   # Padding and variable sequence length related methods
+from . import embedding                                 # Embeddings and other categorical features handling methods
+from . import deep_learning                             # Common and generic deep learning related methods
+from . import machine_learning                          # Machine learning focused pipeline methods
 
 # [TODO] Check if the random seed is working properly
 # Random seed used in PyTorch and NumPy's random operations (such as weight initialization)

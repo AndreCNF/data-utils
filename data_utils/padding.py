@@ -3,6 +3,7 @@ import torch                                            # PyTorch to create and 
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import warnings                                         # Print warnings for bad practices
 from . import utils                                     # Generic and useful methods
+from . import embedding                                 # Embeddings and other categorical features handling methods
 
 # Ignore Dask's 'meta' warning
 warnings.filterwarnings("ignore", message="`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.")
@@ -11,7 +12,8 @@ warnings.filterwarnings("ignore", message="`meta` is not specified, inferred fro
 
 def dataframe_to_padded_tensor(df, seq_len_dict, n_ids, n_inputs,
                                id_column='subject_id', data_type='PyTorch',
-                               padding_value=999999):
+                               padding_value=999999, cat_feat=None,
+                               inplace=False):
     '''Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
 
     Parameters
@@ -35,6 +37,15 @@ def dataframe_to_padded_tensor(df, seq_len_dict, n_ids, n_inputs,
         the function outputs a PyTorch tensor.
     padding_value : numeric
         Value to use in the padding, to fill the sequences.
+    cat_feat : string or list of strings, default None
+        Name(s) of the categorical encoded feature(s) which will have their
+        semicolon separators converted into its binary ASCII code. If not
+        specified, the method will look through all columns, processing
+        the ones that might have semicolons.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
 
     Returns
     -------
@@ -43,28 +54,24 @@ def dataframe_to_padded_tensor(df, seq_len_dict, n_ids, n_inputs,
         padded with the specified padding value to have a fixed sequence
         length.
     '''
+    # Make sure that all possible categorical encoded columns are in numeric format
+    data_df = embedding.string_encod_to_numeric(df, cat_feat, inplace)
     # Max sequence length (e.g. patient with the most temporal events)
     max_seq_len = seq_len_dict[max(seq_len_dict, key=seq_len_dict.get)]
-
     # Making a padded numpy array version of the dataframe (all index has the same sequence length as the one with the max)
     arr = np.ones((n_ids, max_seq_len, n_inputs)) * padding_value
-
     # Iterator that outputs each unique identifier (e.g. each patient in the dataset)
-    id_iter = iter(df[id_column].unique())
-
+    id_iter = iter(data_df[id_column].unique())
     # Count the iterations of ids
     count = 0
-
     # Assign each value from the dataframe to the numpy array
     for idt in id_iter:
-        arr[count, :seq_len_dict[idt], :] = df[df[id_column] == idt].to_numpy()
+        arr[count, :seq_len_dict[idt], :] = data_df[data_df[id_column] == idt].to_numpy()
         arr[count, seq_len_dict[idt]:, :] = padding_value
         count += 1
-
     # Make sure that the data type asked for is a string
     if not isinstance(data_type, str):
         raise Exception('ERROR: Please provide the desirable data type in a string format.')
-
     if data_type.lower() == 'numpy':
         return arr
     elif data_type.lower() == 'pytorch':
@@ -104,9 +111,7 @@ def sort_by_seq_len(data, seq_len_dict, labels=None, id_column=0):
     '''
     # Get the original lengths of the sequences, for the input data
     x_lengths = [seq_len_dict[id] for id in list(data[:, 0, id_column].numpy())]
-
     is_sorted = all(x_lengths[i] >= x_lengths[i+1] for i in range(len(x_lengths)-1))
-
     if is_sorted is True:
         # Do nothing if it's already sorted
         sorted_data = data
@@ -114,17 +119,13 @@ def sort_by_seq_len(data, seq_len_dict, labels=None, id_column=0):
     else:
         # Sorted indeces to get the data sorted by sequence length
         data_sorted_idx = list(np.argsort(x_lengths)[::-1])
-
         # Sort the x_lengths array by descending sequence length
         x_lengths = [x_lengths[idx] for idx in data_sorted_idx]
-
         # Sort the data by descending sequence length
         sorted_data = data[data_sorted_idx, :, :]
-
         if labels is not None:
             # Sort the labels by descending sequence length
             sorted_labels = labels[data_sorted_idx, :]
-
     if labels is None:
         return sorted_data, x_lengths
     else:

@@ -197,48 +197,43 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, has_nan=False,
     new_column_names : list of strings
         List of the new, one hot encoded columns' names.
     '''
-    data = df.copy()
-
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
+    else:
+        # Use the original dataframe
+        data_df = df
     for col in columns:
         # Check if the column exists
         if col not in df.columns:
             raise Exception('ERROR: Column name not found in the dataframe.')
-
         if has_nan is True:
             # Fill NaN with "missing_value" name
             data[col] = data[col].fillna(value='missing_value')
-
         if clean_name is True:
             # Clean the column's string values to have the same, standard format
             data = clean_naming(data, col)
-
         # Cast the variable into the built in pandas Categorical data type
         if 'pandas' in str(type(data)):
             data[col] = pd.Categorical(data[col])
     if 'dask' in str(type(data)):
         data = data.categorize(columns)
-
     if get_new_column_names is True:
         # Find the previously existing column names
         old_column_names = data.columns
-
     # Apply the one hot encoding to the specified columns
     if 'dask' in str(type(data)):
         ohe_df = dd.get_dummies(data, columns=columns)
     else:
         ohe_df = pd.get_dummies(data, columns=columns)
-
     if join_rows is True:
         # Columns which are one hot encoded
         ohe_columns = search_explore.list_one_hot_encoded_columns(ohe_df)
-
         # Group the rows that have the same identifiers
         ohe_df = ohe_df.groupby(join_by).sum(min_count=1).reset_index()
-
         # Clip the one hot encoded columns to a maximum value of 1
         # (there might be duplicates which cause values bigger than 1)
         ohe_df.loc[:, ohe_columns] = ohe_df[ohe_columns].clip(upper=1)
-
     if get_new_column_names is True:
         # Find the new column names and output them
         new_column_names = list(set(ohe_df.columns) - set(old_column_names))
@@ -247,7 +242,8 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, has_nan=False,
         return ohe_df
 
 
-def category_to_feature(df, categories_feature, values_feature, min_len=None):
+def category_to_feature(df, categories_feature, values_feature, min_len=None,
+                        inplace=False):
     '''Convert a categorical column and its corresponding values column into
     new features, one for each category.
     WARNING: Currently not working properly on a Dask dataframe. Apply .compute()
@@ -266,14 +262,22 @@ def category_to_feature(df, categories_feature, values_feature, min_len=None):
     min_len : int, default None
         If defined, only the categories that appear on at least `min_len` rows
         are converted to features.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
 
     Returns
     -------
     data_df : pandas.DataFrame or dask.DataFrame
         Dataframe with the newly created features.
     '''
-    # Copy the dataframe to avoid potentially unwanted inplace changes
-    data_df = df.copy()
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
+    else:
+        # Use the original dataframe
+        data_df = df
     # Find the unique categories
     categories = data_df[categories_feature].unique()
     if 'dask' in str(type(df)):
@@ -581,7 +585,7 @@ def apply_minmax_denorm(value, df=None, min=None, max=None, categories_mins=None
 def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                    normalization_method='z-score', columns_to_normalize=None,
                    columns_to_normalize_cat=None, embed_columns=None,
-                   see_progress=True):
+                   see_progress=True, inplace=False):
     '''Performs data normalization to a continuous valued tensor or dataframe,
        changing the scale of the data.
 
@@ -626,6 +630,10 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
     see_progress : bool, default True
         If set to True, a progress bar will show up indicating the execution
         of the normalization calculations.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
 
     Returns
     -------
@@ -677,8 +685,12 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
 
         # Check if the data being normalized is directly the dataframe
         if data is None:
-            # Treat the dataframe as the data being normalized
-            data = df.copy()
+            if not inplace:
+                # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+                data = df.copy()
+            else:
+                # Use the original dataframe
+                data = df
 
             # Normalize the right columns
             if columns_to_normalize is not False:
@@ -744,8 +756,12 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
 
         # Check if the data being normalized is directly the dataframe
         if data is None:
-            # Treat the dataframe as the data being normalized
-            data = df.copy()
+            if not inplace:
+                # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+                data = df.copy()
+            else:
+                # Use the original dataframe
+                data = df
 
             if columns_to_normalize is not False:
                 # Normalize the right columns
@@ -807,7 +823,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
 def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                    denormalization_method='z-score', columns_to_denormalize=None,
                    columns_to_denormalize_cat=None, embed_columns=None,
-                   see_progress=True):
+                   see_progress=True, inplace=False):
     '''Performs data denormalization to a continuous valued tensor or dataframe,
        changing the scale of the data.
 
@@ -852,6 +868,10 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
     see_progress : bool, default True
         If set to True, a progress bar will show up indicating the execution
         of the denormalization calculations.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
 
     Returns
     -------
@@ -903,8 +923,12 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
 
         # Check if the data being denormalized is directly the dataframe
         if data is None:
-            # Treat the dataframe as the data being denormalized
-            data = df.copy()
+            if not inplace:
+                # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+                data = df.copy()
+            else:
+                # Use the original dataframe
+                data = df
 
             # Normalize the right columns
             if columns_to_denormalize is not False:
@@ -970,8 +994,12 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
 
         # Check if the data being denormalized is directly the dataframe
         if data is None:
-            # Treat the dataframe as the data being denormalized
-            data = df.copy()
+            if not inplace:
+                # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+                data = df.copy()
+            else:
+                # Use the original dataframe
+                data = df
 
             if columns_to_denormalize is not False:
                 # Normalize the right columns
