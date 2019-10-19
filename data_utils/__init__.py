@@ -17,6 +17,8 @@ from . import machine_learning                          # Machine learning focus
 random_seed = np.random.get_state()
 np.random.set_state(random_seed)
 torch.manual_seed(random_seed[1][0])
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
 
 # Methods
 

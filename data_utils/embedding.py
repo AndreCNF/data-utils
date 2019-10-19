@@ -377,9 +377,9 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
 def string_encod_to_numeric(df, cat_feat=None, inplace=False):
     '''Convert the string encoded columns that represent lists of categories, 
     separated by semicolons, into numeric columns through the replacement of 
-    the semicolon character by its binary ASCII code, with an added zero at
-    the right for better readability 001110110. This allows the dataframe to 
-    be adequately converted into a PyTorch or TensorFlow tensor.
+    the semicolon character by its binary ASCII code, 00111011. This allows 
+    the dataframe to be adequately converted into a PyTorch or TensorFlow 
+    tensor.
 
     Parameters
     ----------
@@ -415,14 +415,14 @@ def string_encod_to_numeric(df, cat_feat=None, inplace=False):
                 # Make sure that all values are in string format
                 data_df[feature] = data_df[feature].astype(str)
                 # Replace semicolon characters by its binary ASCII code
-                data_df[feature] = data_df[feature].str.replace(';', '001110110')
+                data_df[feature] = data_df[feature].str.replace(';', '00111011')
                 # Convert column to an integer format
                 data_df[feature] = data_df[feature].astype(float)
     elif isinstance(cat_feat, str):
         # Make sure that all values are in string format
         data_df[cat_feat] = data_df[cat_feat].astype(str)
         # Replace semicolon characters by its binary ASCII code
-        data_df[cat_feat] = data_df[cat_feat].str.replace(';', '001110110')
+        data_df[cat_feat] = data_df[cat_feat].str.replace(';', '00111011')
         # Convert column to an integer format
         data_df[cat_feat] = data_df[cat_feat].astype(float)
     elif isinstance(cat_feat, list):
@@ -430,7 +430,7 @@ def string_encod_to_numeric(df, cat_feat=None, inplace=False):
             # Make sure that all values are in string format
             data_df[feature] = data_df[feature].astype(str)
             # Replace semicolon characters by its binary ASCII code
-            data_df[feature] = data_df[feature].str.replace(';', '001110110')
+            data_df[feature] = data_df[feature].str.replace(';', '00111011')
             # Convert column to an integer format
             data_df[feature] = data_df[feature].astype(float)
     else:
@@ -464,38 +464,109 @@ def prepare_embed_bag(data, feature=None):
     count = 0
     offset = [count]
     # Calculate the total amount of data to go through
-    if len(data.shape) == 1:
-        data_length = data.shape[0]
-    elif len(data.shape) == 2:
-        data_length = data.shape[0]
+    if len(data.shape) < 3:
+        for i in range(data.shape[0]):
+            # Separate digits in the same string
+            if len(data.shape) == 1:
+                feature_val_i = data[i]
+            else:
+                if feature is None:
+                    raise Exception(
+                        'ERROR: If multidimensional data is passed in the input, the feature from which to get the full list of categorical encodings must be defined.')
+                feature_val_i = data[i, feature]
+            digits_list = str(feature_val_i).split('00111011')
+            enum_list.append(digits_list)
+            # Set the end of the current list
+            count += len(digits_list)
+            offset.append(count)
+        # Flatten list
+        enum_list = [int(item) for sublist in enum_list for item in sublist]
     elif len(data.shape) == 3:
-        data_length = data.shape[0] * data.shape[1]
-    for i in range(data_length):
-        # Separate digits in the same string
-        if len(data.shape) == 1:
-            feature_val_i = data[i]
-        elif len(data.shape) == 2:
-            feature_val_i = data[i, feature]
-        elif len(data.shape) == 3:
-            feature_val_i = data[:, :, feature].reshape(-1)[i]
-        else:
-            raise Exception(f'ERROR: Data with more than 3 dimensions is not supported. Input data has {len(data.shape)} dimensions.')
-        digits_list = str(feature_val_i).split('001110110')
-        enum_list.append(digits_list)
-        # Set the end of the current list
-        count += len(digits_list)
-        offset.append(count)
-    # Flatten list
-    enum_list = [int(item) for sublist in enum_list for item in sublist]
+        # Process each sequence separately, creating 2D categorical encodings and offset lists 
+        for i in range(data.shape[0]):
+            # Reset lists and offset counting
+            ith_enum_list = []
+            ith_offset = []
+            count = 0
+            for j in range(data.shape[1]):
+                # Separate digits in the same string
+                feature_val_i = data[i, j, feature]
+                digits_list = str(feature_val_i).split('00111011')
+                ith_enum_list.append(digits_list)
+                # Set the end of the current list
+                count += len(digits_list)
+                ith_offset.append(count)
+            # Flatten list
+            ith_enum_list = [int(item) for sublist in ith_enum_list for item in sublist]
+            enum_list.append(ith_enum_list)
+            offset.append(ith_offset)
+    else:
+        raise Exception(f'ERROR: Data with more than 3 dimensions is not supported. Input data has {len(data.shape)} dimensions.')
     # Convert to PyTorch tensor
     enum_list = torch.tensor(enum_list)
     offset = torch.tensor(offset)
     return enum_list, offset
 
 
-# [TODO] Create function that runs the embedding bag layer on a PyTorch tensor,
-# using prepare_embed_bag to get the separated categories and offsets, calculate
-# the embedding values and put them on the tensor.
+def run_embed_bag(data, embedding_layer, enum_list, offset=None, inplace=False):
+    '''Run an embedding bag layer on a list(s) of encoded categories, adding 
+    the new embedding columns to the data tensor.
+
+    Parameters
+    ----------
+    data : torch.Tensor
+        Data tensor that contains the categorical feature that will be embedded.
+    embedding_layer : torch.nn.EmbeddingBag
+        PyTorch layer that applies the embedding bag, i.e. calculates the 
+        average embedding based on multiple encoded values.
+    enum_list : torch.Tensor
+        List of all categorical enumerations, i.e. the numbers corresponding to
+        each of the feature's categories, contained in the input series.
+    offset : torch.Tensor
+        List of when each row's categorical enumerations start, considering the
+        enum_list list.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
+
+    Returns
+    -------
+    data : torch.Tensor
+        Data tensor with the new embedding features added.
+    '''
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_tensor = data.copy()
+    else:
+        # Use the original dataframe
+        data_tensor = data
+    if len(data_tensor.shape) < 3:
+        # Get a tensor with the embedding values retrieved from the embedding bag layer
+        embed_data = embedding_layer(enum_list, offset)[:-1]
+    elif len(data_tensor.shape) == 3:
+        if len(enum_list.shape) != 2 and len(offset.shape) != 2:
+            raise Exception(f'ERROR: When using three-dimensional data, the list of categorical encodings and offsets must be 2D. \
+                              The input `enum_list` and `offset` tensors have shapes {len(enum_list.shape)} and {len(offset.shape)}, respectively.')
+        else:
+            embed_data_list = []
+            for i in range(data_tensor.shape[0]):
+                # Get a tensor with the embedding values retrieved from the embedding bag layer
+                ith_embed_data = embedding_layer(enum_list[i], offset[i])[:-1]
+                embed_data_list.append(ith_embed_data.unsqueeze(0))
+            # Join all the sequences embedding values in the same 3D tensor 
+            embed_data = torch.cat(embed_data_list)
+    else:
+        raise Exception(f'ERROR: Data with more than 3 dimensions is not supported. Input data has {len(data_tensor.shape)} dimensions.')
+    # Add the new embedding columns to the data tensor
+    data_tensor = torch.cat((data_tensor, embed_data), dim=1)
+    return data_tensor
+
+
+# [TODO] Create a method that runs the embedding bag layer on all required features,
+# using prepare_embed_bag to get the separated categories and offsets, then finally
+# running the layer and adding the new embedding values to the tensor, while also
+# removing the old categorical encoding columns.
 
 
 # [TODO] Create a function that takes a set of embeddings (which will be used in
