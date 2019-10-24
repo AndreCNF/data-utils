@@ -94,6 +94,24 @@ def list_one_hot_encoded_columns(df):
     return [col for col in df.columns if is_one_hot_encoded_column(df, col)]
 
 
+def find_col_idx(df, feature):
+    '''Find the index that corresponds to a given feature's column number on 
+    a dataframe.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe on which to search for the feature idx
+    feature : string
+        Name of the feature whose index we want to find.
+
+    Returns
+    -------
+    idx : int
+        Index where the specified feature appears in the dataframe.'''
+    return df.columns.get_loc(feature)
+
+
 def find_val_idx(data, value, column=None):
     '''Find the index that corresponds to a given unique value in a data tensor.
 

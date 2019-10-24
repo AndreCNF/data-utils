@@ -10,9 +10,37 @@ warnings.filterwarnings("ignore", message="`meta` is not specified, inferred fro
 
 # Methods
 
-def dataframe_to_padded_tensor(df, seq_len_dict, n_ids, n_inputs,
-                               id_column='subject_id', data_type='PyTorch',
-                               padding_value=999999, cat_feat=None,
+def get_sequence_length_dict(df, id_column='subject_id', ts_column='ts'):
+    '''Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Data in a Pandas dataframe format which will be padded and converted
+        to the requested data type.
+    id_column : string, default 'subject_id'
+        Name of the column which corresponds to the subject identifier in the
+        dataframe.
+    ts_column : string, default 'ts'
+        Name of the column which corresponds to the timestamp in the
+        dataframe.
+
+    Returns
+    -------
+    seq_len_dict : dictionary, default None
+        Dictionary containing the original sequence lengths of the dataframe.
+        The keys should be the sequence identifiers (the numbers obtained from
+        the id_column) and the values should be the length of each sequence.
+    '''
+    # Dictionary containing the sequence length (number of temporal events) of each sequence (patient)
+    seq_len_df = df.groupby(id_column)[ts_column].count().to_frame().sort_values(by=ts_column, ascending=False)
+    seq_len_dict = dict([(idx, val[0]) for idx, val in list(zip(seq_len_df.index, seq_len_df.values))])
+    return seq_len_dict
+
+
+def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id', 
+                               ts_column='ts', data_type='PyTorch', 
+                               padding_value=999999, cat_feat=None, 
                                inplace=False):
     '''Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
 
@@ -21,15 +49,15 @@ def dataframe_to_padded_tensor(df, seq_len_dict, n_ids, n_inputs,
     df : pandas.DataFrame or dask.DataFrame
         Data in a Pandas dataframe format which will be padded and converted
         to the requested data type.
-    seq_len_dict : dictionary
+    seq_len_dict : dictionary, default None
         Dictionary containing the original sequence lengths of the dataframe.
-    n_ids : int
-        Total number of subject identifiers in a dataframe.
-        Example: Total number of patients in a health dataset.
-    n_inputs : int
-        Total number of input features present in the dataframe.
+        The keys should be the sequence identifiers (the numbers obtained from
+        the id_column) and the values should be the length of each sequence.
     id_column : string, default 'subject_id'
         Name of the column which corresponds to the subject identifier in the
+        dataframe.
+    ts_column : string, default 'ts'
+        Name of the column which corresponds to the timestamp in the
         dataframe.
     data_type : string, default 'PyTorch'
         Indication of what kind of output data type is desired. In case it's
@@ -56,6 +84,16 @@ def dataframe_to_padded_tensor(df, seq_len_dict, n_ids, n_inputs,
     '''
     # Make sure that all possible categorical encoded columns are in numeric format
     data_df = embedding.string_encod_to_numeric(df, cat_feat, inplace)
+    if seq_len_dict is None:
+        # Find the sequence lengths and store them in a dictionary
+        seq_len_dict = get_sequence_length_dict(data_df, id_column, ts_column)
+    # Fetch the number of unique sequence IDs
+    n_ids = data_df[id_column].nunique()
+    if 'dask' in str(type(df)):
+        # Make sure that the number of unique values are computed, in case we're using Dask
+        n_ids = n_ids.compute()
+    # Get the number of columns in the dataframe
+    n_inputs = len(data_df.columns)
     # Max sequence length (e.g. patient with the most temporal events)
     max_seq_len = seq_len_dict[max(seq_len_dict, key=seq_len_dict.get)]
     # Making a padded numpy array version of the dataframe (all index has the same sequence length as the one with the max)

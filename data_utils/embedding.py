@@ -15,16 +15,71 @@ warnings.filterwarnings("ignore", message="`meta` is not specified, inferred fro
 
 # Methods
 
-def create_enum_dict(unique_values, nan_value=0):
+def remove_digit_from_dict(enum_dict, forbidden_digit=0, inplace=False):
+    '''Convert an enumeration dictionary to a representation that doesn't
+    include any value with a specific digit.
+
+    Parameters
+    ----------
+    enum_dict : dict
+        Dictionary containing the mapping between the original values and a
+        numbering.
+    forbidden_digit : int, default 0
+        Digit that we want to prevent from appearing in any enumeration
+        encoding.
+    inplace : bool, default False
+        If set to True, the original dictionary will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dictionary.
+
+    Returns
+    -------
+    enum_dict : dict
+        Dictionary containing the mapping between the original values and a
+        numbering. Now without any occurence of the specified digit.
+    '''
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dictionary
+        new_enum_dict = enum_dict.copy()
+    else:
+        # Use the original dictionary
+        new_enum_dict = enum_dict
+    # Create a sequence of enumeration encoding values
+    enum_seq = []
+    # Value that represents the current sequence number
+    num = 1
+    # Digit to be used when replacing the forbidden digit
+    alt_digit = forbidden_digit + 1
+    for i in range(len(enum_dict)):
+        # Replace undesired digit with the alternative one
+        num = str(num).replace(str(forbidden_digit), str(alt_digit))
+        # Add to the enumeration sequence
+        num = int(num)
+        enum_seq.append(num)
+        # Increment to the following number
+        num += 1
+    # Create a dictionary to convert regular enumeration into the newly created
+    # sequence
+    old_to_new_dict = dict(enumerate(enum_seq, start=1))
+    # Convert the enumeration dictionary to the new encoding scheme
+    for key, val in enum_dict.items():
+        new_enum_dict[key] = old_to_new_dict[val]
+    return new_enum_dict
+
+
+def create_enum_dict(unique_values, nan_value=0, forbidden_digit=0):
     '''Enumerate all categories in a specified categorical feature, while also
     attributing a specific number to NaN and other unknown values.
 
     Parameters
     ----------
-    unique_values : list of strings, default None
+    unique_values : list of strings
         Specifies all the unique values to be enumerated.
     nan_value : int, default 0
         Integer number that gets assigned to NaN and NaN-like values.
+    forbidden_digit : int, default 0
+        Digit that we want to prevent from appearing in any enumeration
+        encoding.
 
     Returns
     -------
@@ -36,6 +91,9 @@ def create_enum_dict(unique_values, nan_value=0):
     enum_dict = dict(enumerate(unique_values, start=1))
     # Invert the dictionary to have the unique categories as keys and the numbers as values
     enum_dict = utils.invert_dict(enum_dict)
+    if forbidden_digit is not None:
+        # Change the enumeration to prevent it from including undesired digits
+        enum_dict = remove_digit_from_dict(enum_dict, forbidden_digit, inplace=True)
     # Move NaN to key 0
     enum_dict[np.nan] = nan_value
     # Search for NaN-like categories
@@ -52,7 +110,7 @@ def create_enum_dict(unique_values, nan_value=0):
 
 
 def enum_categorical_feature(df, feature, nan_value=0, clean_name=True,
-                             apply_on_df=True):
+                             forbidden_digit=0, apply_on_df=True):
     '''Enumerate all categories in a specified categorical feature, while also
     attributing a specific number to NaN and other unknown values.
 
@@ -68,6 +126,9 @@ def enum_categorical_feature(df, feature, nan_value=0, clean_name=True,
         If set to True, the method assumes that the feature is of type string
         and it will make sure that all the feature's values are in lower case,
         to reduce duplicate information.
+    forbidden_digit : int, default 0
+        Digit that we want to prevent from appearing in any enumeration
+        encoding.
     apply_on_df : bool, default True
         If set to True, the original column of the dataframe will be converted
         to the new enumeration encoding.
@@ -90,7 +151,7 @@ def enum_categorical_feature(df, feature, nan_value=0, clean_name=True,
         # Make sure that the unique values are computed, in case we're using Dask
         unique_values = unique_values.compute()
     # Enumerate the unique values in the categorical feature and put them in a dictionary
-    enum_dict = create_enum_dict(unique_values)
+    enum_dict = create_enum_dict(unique_values, nan_value, forbidden_digit)
     if apply_on_df is False:
         return enum_dict
     else:
@@ -335,6 +396,10 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
         else:
             has_timestamp = False
     print('Concatenating categorical encodings...')
+    if isinstance(cat_feat, str):
+        # Make sure that the categorical feature names are in a list format,
+        # even if it's just one feature name
+        cat_feat = [cat_feat]
     for feature in utils.iterations_loop(cat_feat):
         # Convert to string format
         data_df[feature] = data_df[feature].astype(str)
@@ -374,12 +439,11 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
     return data_df
 
 
-def string_encod_to_numeric(df, cat_feat=None, inplace=False):
+def string_encod_to_numeric(df, cat_feat=None, separator_num=0, inplace=False):
     '''Convert the string encoded columns that represent lists of categories, 
     separated by semicolons, into numeric columns through the replacement of 
-    the semicolon character by its binary ASCII code, 00111011. This allows 
-    the dataframe to be adequately converted into a PyTorch or TensorFlow 
-    tensor.
+    the semicolon character by a given number. This allows the dataframe to 
+    be adequately converted into a PyTorch or TensorFlow tensor.
 
     Parameters
     ----------
@@ -390,6 +454,9 @@ def string_encod_to_numeric(df, cat_feat=None, inplace=False):
         semicolon separators converted into its binary ASCII code. If not
         specified, the method will look through all columns, processing
         the ones that might have semicolons.
+    separator_num : int, default 0
+        Number to use as a representation of the semicolon encoding
+        separator.
     inplace : bool, default False
         If set to True, the original dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -410,35 +477,29 @@ def string_encod_to_numeric(df, cat_feat=None, inplace=False):
     if cat_feat is None:
         # Go through all the features processing the ones that might have semicolons
         for feature in df.columns:
+            cat_feat = []
             # Only analyze the feature if it has string values
             if df[feature].dtype == 'object':
-                # Make sure that all values are in string format
-                data_df[feature] = data_df[feature].astype(str)
-                # Replace semicolon characters by its binary ASCII code
-                data_df[feature] = data_df[feature].str.replace(';', '00111011')
-                # Convert column to an integer format
-                data_df[feature] = data_df[feature].astype(float)
+                cat_feat.append(feature)
     elif isinstance(cat_feat, str):
-        # Make sure that all values are in string format
-        data_df[cat_feat] = data_df[cat_feat].astype(str)
-        # Replace semicolon characters by its binary ASCII code
-        data_df[cat_feat] = data_df[cat_feat].str.replace(';', '00111011')
-        # Convert column to an integer format
-        data_df[cat_feat] = data_df[cat_feat].astype(float)
-    elif isinstance(cat_feat, list):
+        # Make sure that the categorical feature names are in a list format,
+        # even if it's just one feature name
+        cat_feat = [cat_feat]
+    if isinstance(cat_feat, list):
         for feature in cat_feat:
             # Make sure that all values are in string format
             data_df[feature] = data_df[feature].astype(str)
             # Replace semicolon characters by its binary ASCII code
-            data_df[feature] = data_df[feature].str.replace(';', '00111011')
+            data_df[feature] = data_df[feature].str.replace(';', str(separator_num))
             # Convert column to an integer format
             data_df[feature] = data_df[feature].astype(float)
     else:
-        raise Exception(f'ERROR: When specified, the categorical features `cat_feat` must be in string or list of strings format, not {type(cat_feat)}.')
+        raise Exception(f'ERROR: When specified, the categorical features `cat_feat` must \
+                         be in string or list of strings format, not {type(cat_feat)}.')
     return data_df
 
 
-def prepare_embed_bag(data, feature=None):
+def prepare_embed_bag(data, feature=None, separator_num=0):
     '''Prepare a categorical feature for embedding bag, i.e. split category
     enumerations into separate numbers, combine them into a single list and set
     the appropriate offsets as to when each row's group of categories end.
@@ -447,68 +508,83 @@ def prepare_embed_bag(data, feature=None):
     ----------
     data : torch.Tensor
         Data tensor that contains the categorical feature that will be embedded.
-    feature : string or int, default None
-        Name or index of the categorical feature on which embedding bag will be 
+    feature : int, default None
+        Index of the categorical feature on which embedding bag will be 
         applied. Can only be left undefined if the data is one dimensional.
+    separator_num : int, default 0
+        Number to use as a representation of the semicolon encoding
+        separator.
 
     Returns
     -------
     enum_list : torch.Tensor
         List of all categorical enumerations, i.e. the numbers corresponding to
         each of the feature's categories, contained in the input series.
-    offset : torch.Tensor
+    offset_list : torch.Tensor
         List of when each row's categorical enumerations start, considering the
         enum_list list.
     '''
     enum_list = []
     count = 0
-    offset = [count]
-    # Calculate the total amount of data to go through
+    offset_list = [count]
+    if feature is None and len(data.shape) > 1:
+        raise Exception('ERROR: If multidimensional data is passed in the input, the \
+                        feature from which to get the full list of categorical \
+                        encodings must be defined.')
     if len(data.shape) < 3:
         for i in range(data.shape[0]):
-            # Separate digits in the same string
+            # Get the full list of digits of the current value
             if len(data.shape) == 1:
-                feature_val_i = data[i]
+                feature_val_i = utils.get_full_number_string(data[i].item())
             else:
-                if feature is None:
-                    raise Exception(
-                        'ERROR: If multidimensional data is passed in the input, the feature from which to get the full list of categorical encodings must be defined.')
-                feature_val_i = data[i, feature]
-            digits_list = str(feature_val_i).split('00111011')
+                feature_val_i = utils.get_full_number_string(data[i, feature].item())
+            if len(feature_val_i) > 1:
+                # Separate digits in the same string
+                digits_list = feature_val_i.split(str(separator_num))
+            else:
+                # Just use append the single encoding value
+                digits_list = feature_val_i
+            # Add the digits to the enumeration encodings list
             enum_list.append(digits_list)
             # Set the end of the current list
             count += len(digits_list)
-            offset.append(count)
+            offset_list.append(count)
         # Flatten list
-        enum_list = [int(item) for sublist in enum_list for item in sublist]
+        enum_list = [int(value) for sublist in enum_list for value in sublist]
     elif len(data.shape) == 3:
-        # Process each sequence separately, creating 2D categorical encodings and offset lists 
+        # Process each sequence separately, creating 2D categorical encodings and offset lists
         for i in range(data.shape[0]):
-            # Reset lists and offset counting
+            # Reset list
             ith_enum_list = []
-            ith_offset = []
-            count = 0
             for j in range(data.shape[1]):
-                # Separate digits in the same string
-                feature_val_i = data[i, j, feature]
-                digits_list = str(feature_val_i).split('00111011')
+                # Get the full list of digits of the current value
+                feature_val_i = utils.get_full_number_string(data[i, j, feature].item())
+                if len(feature_val_i) > 1:
+                    # Separate digits in the same string
+                    digits_list = feature_val_i.split(str(separator_num))
+                else:
+                    # Just use append the single encoding value
+                    digits_list = feature_val_i
+                # Add the digits to the current enumeration encodings list
                 ith_enum_list.append(digits_list)
                 # Set the end of the current list
                 count += len(digits_list)
-                ith_offset.append(count)
-            # Flatten list
-            ith_enum_list = [int(item) for sublist in ith_enum_list for item in sublist]
+                offset_list.append(count)
+            # Flatten list in the current sequence
+            ith_enum_list = [int(value) for sublist in ith_enum_list for value in sublist]
+            # Add the digits to the enumeration encodings list
             enum_list.append(ith_enum_list)
-            offset.append(ith_offset)
+        # Flatten full list
+        enum_list = [value for sublist in enum_list for value in sublist]
     else:
         raise Exception(f'ERROR: Data with more than 3 dimensions is not supported. Input data has {len(data.shape)} dimensions.')
     # Convert to PyTorch tensor
     enum_list = torch.tensor(enum_list)
-    offset = torch.tensor(offset)
-    return enum_list, offset
+    offset_list = torch.tensor(offset_list)
+    return enum_list, offset_list
 
 
-def run_embed_bag(data, embedding_layer, enum_list, offset=None, inplace=False):
+def run_embed_bag(data, embedding_layer, enum_list, offset, inplace=False):
     '''Run an embedding bag layer on a list(s) of encoded categories, adding 
     the new embedding columns to the data tensor.
 
@@ -567,6 +643,8 @@ def run_embed_bag(data, embedding_layer, enum_list, offset=None, inplace=False):
 # using prepare_embed_bag to get the separated categories and offsets, then finally
 # running the layer and adding the new embedding values to the tensor, while also
 # removing the old categorical encoding columns.
+# [TODO] Must convert the embedding values tensor from shape 
+# [total_samples, n_inputs] to a *view* of shape [n_ids, max_seq_len, n_inputs]
 
 
 # [TODO] Create a function that takes a set of embeddings (which will be used in

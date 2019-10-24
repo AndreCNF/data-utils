@@ -43,7 +43,7 @@ def get_clean_label(orig_label, clean_labels, column_name=None):
         return 'missing_value'
 
 
-def standardize_missing_values(x):
+def standardize_missing_values(x, specific_nan_strings=[]):
     '''Apply function to be used in replacing missing value representations with
     the standard NumPy NaN value.
 
@@ -52,14 +52,17 @@ def standardize_missing_values(x):
     x : str, int or float
         Value to be analyzed and replaced with NaN, if it has a missing value
         representation.
+    specific_nan_strings : list of strings, default []
+        Parameter where the user can specify additional strings that
+        should correspond to missing values.
 
     Returns
     -------
     x : str, int or float
         Corrected value, with standardized missing value representation.
     '''
-    if type(x) is str:
-        if utils.is_string_nan(x):
+    if isinstance(x, str):
+        if utils.is_string_nan(x, specific_nan_strings):
             return np.nan
         else:
             return x
@@ -67,7 +70,7 @@ def standardize_missing_values(x):
         return x
 
 
-def standardize_missing_values_df(df, see_progress=True):
+def standardize_missing_values_df(df, see_progress=True, specific_nan_strings=[]):
     '''Replace all elements in a dataframe that have a missing value
     representation with the standard NumPy NaN value.
 
@@ -79,6 +82,9 @@ def standardize_missing_values_df(df, see_progress=True):
     see_progress : bool, default True
         If set to True, a progress bar will show up indicating the execution
         of the normalization calculations.
+    specific_nan_strings : list of strings, default []
+        Parameter where the user can specify additional strings that
+        should correspond to missing values.
 
     Returns
     -------
@@ -87,9 +93,10 @@ def standardize_missing_values_df(df, see_progress=True):
     '''
     for feature in utils.iterations_loop(df.columns, see_progress=see_progress):
         if 'dask' in str(type(df)):
-            df[feature] = df[feature].apply(standardize_missing_values, meta=df[feature]._meta.dtypes)
+            df[feature] = df[feature].apply(lambda x: standardize_missing_values(x, specific_nan_strings), 
+                                            meta=df[feature]._meta.dtypes)
         elif 'pandas' in str(type(df)):
-            df[feature] = df[feature].apply(standardize_missing_values)
+            df[feature] = df[feature].apply(lambda x: standardize_missing_values(x, specific_nan_strings))
         else:
             raise Exception(f'ERROR: Input "df" should either be a pandas dataframe or a dask dataframe, not type {type(df)}.')
     return df
@@ -124,7 +131,8 @@ def clean_naming(x):
     return x
 
 
-def clean_categories_naming(df, column, clean_missing_values=True):
+def clean_categories_naming(df, column, clean_missing_values=True,
+                            specific_nan_strings=[]):
     '''Change categorical values to only have lower case letters and underscores.
 
     Parameters
@@ -137,6 +145,9 @@ def clean_categories_naming(df, column, clean_missing_values=True):
     clean_missing_values : bool, default True
         If set to True, the algorithm will search for missing value
         representations and replace them with the standard, NumPy NaN value.
+    specific_nan_strings : list of strings, default []
+        Parameter where the user can specify additional strings that
+        should correspond to missing values.
 
     Returns
     -------
@@ -146,17 +157,19 @@ def clean_categories_naming(df, column, clean_missing_values=True):
     if 'dask' in str(type(df)):
         df[column] = (df[column].map(clean_naming, meta=('x', str)))
         if clean_missing_values is True:
-            df[column] = df[column].apply(standardize_missing_values, meta=df[column]._meta.dtypes)
+            df[column] = df[column].apply(lambda x: standardize_missing_values(x, specific_nan_strings),
+                                          meta=df[column]._meta.dtypes)
     else:
         df[column] = (df[column].map(clean_naming))
         if clean_missing_values is True:
-            df[column] = df[column].apply(standardize_missing_values)
+            df[column] = df[column].apply(lambda x: standardize_missing_values(x, specific_nan_strings))
     return df
 
 
-def one_hot_encoding_dataframe(df, columns, clean_name=True, has_nan=False,
-                               join_rows=True, join_by=['patientunitstayid', 'ts'],
-                               get_new_column_names=False):
+def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_values=True,
+                               specific_nan_strings=[], has_nan=False, join_rows=True,
+                               join_by=['patientunitstayid', 'ts'],
+                               get_new_column_names=False, inplace=False):
     '''Transforms specified column(s) from a dataframe into a one hot encoding
     representation.
 
@@ -170,6 +183,12 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, has_nan=False,
     clean_name : bool, default True
         If set to true, changes the name of the categorical values into lower
         case, with words separated by an underscore instead of space.
+    clean_missing_values : bool, default True
+        If set to True, the algorithm will search for missing value
+        representations and replace them with the standard, NumPy NaN value.
+    specific_nan_strings : list of strings, default []
+        Parameter where the user can specify additional strings that
+        should correspond to missing values.
     has_nan : bool, default False
         If set to true, will first fill the missing values (NaN) with the string
         f'{column}_missing_value'.
@@ -183,6 +202,10 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, has_nan=False,
         list of strings (multiple columns).
     get_new_column_names : bool, default False
         If set to True, the names of the new columns will also be outputed.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
 
     Raises
     ------
@@ -205,27 +228,27 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, has_nan=False,
         data_df = df
     for col in columns:
         # Check if the column exists
-        if col not in df.columns:
+        if col not in data_df.columns:
             raise Exception('ERROR: Column name not found in the dataframe.')
         if has_nan is True:
             # Fill NaN with "missing_value" name
-            data[col] = data[col].fillna(value='missing_value')
+            data_df[col] = data_df[col].fillna(value='missing_value')
         if clean_name is True:
             # Clean the column's string values to have the same, standard format
-            data = clean_naming(data, col)
+            data_df = clean_categories_naming(data_df, col, clean_missing_values, specific_nan_strings)
         # Cast the variable into the built in pandas Categorical data type
-        if 'pandas' in str(type(data)):
-            data[col] = pd.Categorical(data[col])
-    if 'dask' in str(type(data)):
-        data = data.categorize(columns)
+        if 'pandas' in str(type(data_df)):
+            data_df[col] = pd.Categorical(data_df[col])
+    if 'dask' in str(type(data_df)):
+        data_df = data_df.categorize(columns)
     if get_new_column_names is True:
         # Find the previously existing column names
-        old_column_names = data.columns
+        old_column_names = data_df.columns
     # Apply the one hot encoding to the specified columns
-    if 'dask' in str(type(data)):
-        ohe_df = dd.get_dummies(data, columns=columns)
+    if 'dask' in str(type(data_df)):
+        ohe_df = dd.get_dummies(data_df, columns=columns)
     else:
-        ohe_df = pd.get_dummies(data, columns=columns)
+        ohe_df = pd.get_dummies(data_df, columns=columns)
     if join_rows is True:
         # Columns which are one hot encoded
         ohe_columns = search_explore.list_one_hot_encoded_columns(ohe_df)
@@ -248,6 +271,8 @@ def category_to_feature(df, categories_feature, values_feature, min_len=None,
     new features, one for each category.
     WARNING: Currently not working properly on a Dask dataframe. Apply .compute()
     to the dataframe to convert it to Pandas, before passing it to this method.
+    If the data is too big to run on Pandas, use the category_to_feature_big_data
+    method.
 
     Parameters
     ----------

@@ -3,6 +3,7 @@ import torch                                            # PyTorch to create and 
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 from tqdm.auto import tqdm                              # tqdm allows to track code execution progress
 import numbers                                          # numbers allows to check if data is numeric
+import warnings                                         # Print warnings for bad practices
 
 # Methods
 
@@ -73,7 +74,7 @@ def is_definitely_string(x):
         return isinstance(x, str)
 
 
-def is_string_nan(x):
+def is_string_nan(x, specific_nan_strings=[]):
     '''Indicates if a string corresponds to a missing value.
 
     Parameters
@@ -81,6 +82,9 @@ def is_string_nan(x):
     x : string
         A string that will be compared with possible missing value
         representations.
+    specific_nan_strings : list of strings, default []
+        Parameter where the user can specify additional strings that
+        should correspond to missing values.
 
     Returns
     -------
@@ -88,22 +92,55 @@ def is_string_nan(x):
         Returns a boolean, being it True if the string corresponds to a missing
         value representation or False if it doesn't.
     '''
-    # Considering the possibility of just 3 more random characters in NaN-like strings
-    if (('other' in x.lower() and len(x) < 9)
-        or ('null' in x.lower() and len(x) < 7)
-        or ('nan' in x.lower() and len(x) < 6)
-        or ('discrepancy' in x.lower() and len(x) < 14)
-        or all([char == ' ' for char in x])
-        or all([char == '_' for char in x])
-        or ('unknown' in x.lower())
-        or ('not obtainable' in x.lower())
-        or ('not obtained' in x.lower())
-        or ('not applicable' in x.lower())
-        or ('not available' in x.lower())
-        or ('not evaluated' in x.lower())):
-        return True
+    # Only considering strings for the missing values search
+    if isinstance(x, str):
+        # Considering the possibility of just 3 more random extra characters 
+        # in NaN-like strings
+        if (('other' in x.lower() and len(x) < 9)
+            or ('null' in x.lower() and len(x) < 7)
+            or ('nan' in x.lower() and len(x) < 6)
+            or ('discrepancy' in x.lower() and len(x) < 14)
+            or all([char == ' ' for char in x])
+            or all([char == '_' for char in x])
+            or ('unknown' in x.lower())
+            or ('not obtainable' in x.lower())
+            or ('not obtained' in x.lower())
+            or ('not applicable' in x.lower())
+            or ('not available' in x.lower())
+            or ('not evaluated' in x.lower())
+            or (x in specific_nan_strings)):
+            return True
+        else:
+            return False
     else:
-        return False
+        warnings.warn(f'Found a non string value of type {type(x)}. As we\'re \
+                        expecting a string, any other format will be considered \
+                        a missing value.')
+        return True
+
+
+def get_full_number_string(x, decimal_digits=0):
+    '''Gets a full number's representation in a string.
+    Particularly useful when one has very large float values,
+    possibly too big to be represented as an integer.
+
+    Parameters
+    ----------
+    x : float or double or int
+        A numeric value that one wants to represent in a string,
+        with all it's numbers visible.
+    decimal_digits : int, default 0
+        Number of decimal digits to account for in the number.
+        Considering the value as a natural number, without
+        decimals, by default.
+
+    Returns
+    -------
+    x : string
+        A numeric value that one wants to represent in a string,
+        with all it's numbers visible.
+    '''
+    return f'{x:.{decimal_digits}f}'
 
 
 def in_ipynb():

@@ -7,6 +7,7 @@ import sys                                              # Identify types of exce
 from sklearn.metrics import roc_auc_score               # ROC AUC model performance metric
 from . import utils                                     # Generic and useful methods
 from . import padding                                   # Padding and variable sequence length related methods
+import data_utils as du
 
 # Ignore Dask's 'meta' warning
 warnings.filterwarnings("ignore", message="`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.")
@@ -451,7 +452,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader, seq_len_dict
             # Create a new Comet.ml experiment
             experiment = Experiment(api_key=comet_ml_api_key, project_name=comet_ml_project_name, workspace=comet_ml_workspace)
         experiment.log_other("completed", False)
-        experiment.log_other("random_seed", random_seed)
+        experiment.log_other("random_seed", du.random_seed)
 
         # Report hyperparameters to Comet.ml
         hyper_params_names = [name for name, _ in model.named_parameters()]
@@ -460,7 +461,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader, seq_len_dict
         hyper_params.update({"batch_size": batch_size,
                              "n_epochs": n_epochs,
                              "learning_rate": lr,
-                             "random_seed": random_seed})
+                             "random_seed": du.random_seed})
         experiment.log_parameters(hyper_params)
 
         if features_list is not None:
