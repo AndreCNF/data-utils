@@ -9,6 +9,7 @@ import re                                               # Methods for string edi
 import warnings                                         # Print warnings for bad practices
 from . import utils                                     # Generic and useful methods
 from . import data_processing                           # Data processing and dataframe operations
+from . import deep_learning                                    # Common and generic deep learning related methods
 
 # Ignore Dask's 'meta' warning
 warnings.filterwarnings("ignore", message="`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.")
@@ -602,9 +603,9 @@ def run_embed_bag(data, embedding_layer, enum_list, offset, inplace=False):
         List of when each row's categorical enumerations start, considering the
         enum_list list.
     inplace : bool, default False
-        If set to True, the original dataframe will be used and modified
+        If set to True, the original tensor will be used and modified
         directly. Otherwise, a copy will be created and returned, without
-        changing the original dataframe.
+        changing the original tensor.
 
     Returns
     -------
@@ -613,38 +614,81 @@ def run_embed_bag(data, embedding_layer, enum_list, offset, inplace=False):
     '''
     if not inplace:
         # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
-        data_tensor = data.copy()
+        data_tensor = data.clone()
     else:
         # Use the original dataframe
         data_tensor = data
-    if len(data_tensor.shape) < 3:
-        # Get a tensor with the embedding values retrieved from the embedding bag layer
-        embed_data = embedding_layer(enum_list, offset)[:-1]
+    # Get a tensor with the embedding values retrieved from the embedding bag layer
+    embed_data = embedding_layer(enum_list, offset)[:-1]
+    if len(data_tensor.shape) == 1:
+        # Add the new embedding columns to the data tensor
+        data_tensor = torch.cat((data_tensor.double(), embed_data.double()))
+    elif len(data_tensor.shape) == 2:
+        # Add the new embedding columns to the data tensor
+        data_tensor = torch.cat((data_tensor.double(), embed_data.double()), dim=1)
     elif len(data_tensor.shape) == 3:
-        if len(enum_list.shape) != 2 and len(offset.shape) != 2:
-            raise Exception(f'ERROR: When using three-dimensional data, the list of categorical encodings and offsets must be 2D. \
-                              The input `enum_list` and `offset` tensors have shapes {len(enum_list.shape)} and {len(offset.shape)}, respectively.')
-        else:
-            embed_data_list = []
-            for i in range(data_tensor.shape[0]):
-                # Get a tensor with the embedding values retrieved from the embedding bag layer
-                ith_embed_data = embedding_layer(enum_list[i], offset[i])[:-1]
-                embed_data_list.append(ith_embed_data.unsqueeze(0))
-            # Join all the sequences embedding values in the same 3D tensor 
-            embed_data = torch.cat(embed_data_list)
+        # Change shape of the embeddings tensor to match the original data
+        embed_data = embed_data.view(data_tensor.shape[0], data_tensor.shape[1], embedding_layer.embedding_dim)
+        # Add the new embedding columns to the data tensor
+        data_tensor = torch.cat((data_tensor.double(), embed_data.double()), dim=2)
     else:
         raise Exception(f'ERROR: Data with more than 3 dimensions is not supported. Input data has {len(data_tensor.shape)} dimensions.')
-    # Add the new embedding columns to the data tensor
-    data_tensor = torch.cat((data_tensor, embed_data), dim=1)
     return data_tensor
 
 
-# [TODO] Create a method that runs the embedding bag layer on all required features,
-# using prepare_embed_bag to get the separated categories and offsets, then finally
-# running the layer and adding the new embedding values to the tensor, while also
-# removing the old categorical encoding columns.
-# [TODO] Must convert the embedding values tensor from shape 
-# [total_samples, n_inputs] to a *view* of shape [n_ids, max_seq_len, n_inputs]
+def embedding_bag_pipeline(data, embedding_layer, features, inplace=False):
+    '''Run the complete pipeline that gets from a data tensor with categorical
+    features, i.e. columns with lists of encodings as values, into a data tensor
+    with embedding columns.
+
+    Parameters
+    ----------
+    data : torch.Tensor
+        Data tensor that contains the categorical feature(s) that will be embedded.
+    embedding_layer : torch.nn.EmbeddingBag or list of torch.nn.EmbeddingBag
+        PyTorch layer(s) that applies the embedding bag, i.e. calculates the 
+        average embedding based on multiple encoded values.
+    features : int or list of int
+        Index (or indeces) of the categorical column(s) that will be ran through
+        its (or their) respective embedding layer(s). This feature(s) is (are) 
+        removed from the data tensor after the embedding columns are added.
+    inplace : bool, default False
+        If set to True, the original tensor will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original tensor.
+
+    Returns
+    -------
+    data : torch.Tensor
+        Data tensor with the new embedding features added and the old categorical
+        features removed.
+    '''
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_tensor = data.clone()
+    else:
+        # Use the original dataframe
+        data_tensor = data
+    # Check if it's only a single categorical feature or more
+    if isinstance(embedding_layer, torch.nn.EmbeddingBag) and isinstance(features, int):
+        # Get the list of all the encodings and their offsets
+        enum_list, offset_list = prepare_embed_bag(data_tensor, features)
+        # Run the embedding bag and add the embedding columns to the tensor
+        data_tensor = run_embed_bag(data_tensor, embedding_layer, enum_list, offset_list, inplace)
+    elif isinstance(embedding_layer, list) and isinstance(features, list):
+        for i in range(len(features)):
+            # Get the list of all the encodings and their offsets
+            enum_list, offset_list = prepare_embed_bag(data_tensor, features[i])
+            # Run the embedding bag and add the embedding columns to the tensor
+            data_tensor = run_embed_bag(data_tensor, embedding_layer[i], enum_list, offset_list, inplace)
+    else:
+        raise Exception(f'ERROR: The user must either a single embedding bag and \
+                          feature index or lists of embedding bag layers and \
+                          feature indeces. The input `embedding_layer` has type \
+                          {type(embedding_layer)} while `feature` has type {type(features)}.')
+    # Remove the old categorical feature(s)
+    data_tensor = deep_learning.remove_tensor_column(data_tensor, features, inplace)
+    return data_tensor
 
 
 # [TODO] Create a function that takes a set of embeddings (which will be used in

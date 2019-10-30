@@ -14,6 +14,54 @@ warnings.filterwarnings("ignore", message="`meta` is not specified, inferred fro
 
 # Methods
 
+def remove_tensor_column(data, col_idx, inplace=False):
+    '''Remove a column(s) from a PyTorch tensor.
+
+    Parameters
+    ----------
+    data : torch.Tensor
+        Data tensor that contains the column(s) that will be removed.
+    col_idx : int or list of int
+        Index (or indices) or the column(s) to remove.
+    inplace : bool, default False
+        If set to True, the original tensor will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original tensor.
+
+    Returns
+    -------
+    data : torch.Tensor
+        Data tensor with the undesired column(s) removed.
+    '''
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_tensor = data.clone()
+    else:
+        # Use the original dataframe
+        data_tensor = data
+    if isinstance(col_idx, int):
+        # Turn the column index into a list, for ease of coding
+        col_idx = [col_idx]
+    if not isinstance(col_idx, list):
+        raise Exception(f'ERROR: The `col_idx` parameter must either specify a \
+                          single int of a column to remove or a list of ints in the \
+                          case of multiple columns to remove. Received input `col_idx` \
+                          of type {type(col_idx)}.')
+    for col in col_idx:
+        # Make a list of the indices of the columns that we want to keep, 
+        # without the unwanted one
+        columns_to_keep = list(range(col)) + list(range(col + 1, data_tensor.shape[-1]))
+        # Remove the current column
+        if len(data_tensor.shape) == 2:
+            data_tensor = data_tensor[:, columns_to_keep]
+        elif len(data_tensor.shape) == 3:
+            data_tensor = data_tensor[:, :, columns_to_keep]
+        else:
+            raise Exception(f'ERROR: Currently only supporting either 2D or 3D data. \
+                              Received data tensor with {len(data_tensor.shape)} dimensions.')
+    return data_tensor
+
+
 def load_checkpoint(filepath, Model, *args):
     '''Load a model from a specified path and name.
 
