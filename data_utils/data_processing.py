@@ -266,7 +266,7 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_value
 
 
 def category_to_feature(df, categories_feature, values_feature, min_len=None,
-                        inplace=False):
+                        see_progress=True, inplace=False):
     '''Convert a categorical column and its corresponding values column into
     new features, one for each category.
     WARNING: Currently not working properly on a Dask dataframe. Apply .compute()
@@ -287,6 +287,9 @@ def category_to_feature(df, categories_feature, values_feature, min_len=None,
     min_len : int, default None
         If defined, only the categories that appear on at least `min_len` rows
         are converted to features.
+    see_progress : bool, default True
+        If set to True, a progress bar will show up indicating the execution
+        of the normalization calculations.
     inplace : bool, default False
         If set to True, the original dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -308,7 +311,7 @@ def category_to_feature(df, categories_feature, values_feature, min_len=None,
     if 'dask' in str(type(df)):
         categories = categories.compute()
     # Create a feature for each category
-    for category in categories:
+    for category in utils.iterations_loop(categories, see_progress=see_progress):
         if min_len is not None:
             # Check if the current category has enough data to be worth it to convert to a feature
             if len(data_df[data_df[categories_feature] == category]) < min_len:
@@ -351,15 +354,19 @@ def category_to_feature_big_data(df, categories_feature, values_feature,
     # Create a list with Pandas dataframe versions of each partition of the
     # original Dask dataframe
     df_list = []
+    print('Converting categories to features in each partition...')
     for n in utils.iterations_loop(range(df.npartitions), see_progress=see_progress):
         # Process each partition separately in Pandas
         tmp_df = df.get_partition(n).compute()
         tmp_df = category_to_feature(tmp_df, categories_feature=categories_feature,
-                                     values_feature=values_feature, min_len=min_len)
+                                     values_feature=values_feature, min_len=min_len, 
+                                     see_progress=see_progress)
         df_list.append(tmp_df)
     # Rejoin all the partitions into a Dask dataframe with the same number of
     # partitions it originally had
+    print('Rejoining partitions into a Dask dataframe...')
     data_df = dd.from_pandas(pd.concat(df_list, sort=False), npartitions=df.npartitions)
+    print('Done!')
     return data_df
 
 

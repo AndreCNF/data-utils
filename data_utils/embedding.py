@@ -645,7 +645,7 @@ def embedding_bag_pipeline(data, embedding_layer, features, inplace=False):
     ----------
     data : torch.Tensor
         Data tensor that contains the categorical feature(s) that will be embedded.
-    embedding_layer : torch.nn.EmbeddingBag or list of torch.nn.EmbeddingBag
+    embedding_layer : torch.nn.EmbeddingBag or torch.nn.ModuleList or torch.nn.ModuleDict
         PyTorch layer(s) that applies the embedding bag, i.e. calculates the 
         average embedding based on multiple encoded values.
     features : int or list of int
@@ -675,12 +675,18 @@ def embedding_bag_pipeline(data, embedding_layer, features, inplace=False):
         enum_list, offset_list = prepare_embed_bag(data_tensor, features)
         # Run the embedding bag and add the embedding columns to the tensor
         data_tensor = run_embed_bag(data_tensor, embedding_layer, enum_list, offset_list, inplace)
-    elif isinstance(embedding_layer, list) and isinstance(features, list):
+    elif isinstance(embedding_layer, torch.nn.ModuleList) and isinstance(features, list):
         for i in range(len(features)):
             # Get the list of all the encodings and their offsets
             enum_list, offset_list = prepare_embed_bag(data_tensor, features[i])
             # Run the embedding bag and add the embedding columns to the tensor
             data_tensor = run_embed_bag(data_tensor, embedding_layer[i], enum_list, offset_list, inplace)
+    elif isinstance(embedding_layer, torch.nn.ModuleDict) and isinstance(features, list):
+        for feature in features:
+            # Get the list of all the encodings and their offsets
+            enum_list, offset_list = prepare_embed_bag(data_tensor, feature)
+            # Run the embedding bag and add the embedding columns to the tensor
+            data_tensor = run_embed_bag(data_tensor, embedding_layer[feature], enum_list, offset_list, inplace)
     else:
         raise Exception(f'ERROR: The user must either a single embedding bag and \
                           feature index or lists of embedding bag layers and \
