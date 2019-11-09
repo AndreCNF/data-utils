@@ -410,7 +410,7 @@ def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=['l
     return output, metrics_vals
 
 
-def train(model, train_dataloader, val_dataloader, test_dataloader, seq_len_dict,
+def train(model, train_dataloader, val_dataloader, seq_len_dict, test_dataloader=None,
           batch_size=32, n_epochs=50, lr=0.001, model_path='models/',
           ModelClass=None, padding_value=999999, do_test=True, log_comet_ml=False,
           comet_ml_api_key=None, comet_ml_project_name=None,
@@ -428,7 +428,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader, seq_len_dict
     val_dataloader : torch.utils.data.DataLoader
         Data loader which will be used to get data batches when evaluating
         the model's performance on a validation set during training.
-    test_dataloader : torch.utils.data.DataLoader
+    test_dataloader : torch.utils.data.DataLoader, default None
         Data loader which will be used to get data batches whe evaluating
         the model's performance on a test set, after finishing the
         training process.

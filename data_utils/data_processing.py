@@ -393,20 +393,17 @@ def remove_rows_unmatched_key(df, key, columns):
         in the right dataframe's features.
     '''
     for k in utils.iterations_loop(df[key].unique()):
-        # Variable that count the number of columns which don't have any value
+        # Variable that counts the number of columns which don't have any value
         # (i.e. all rows are missing values) for a given identifier 'k'
         num_empty_columns = 0
-
         for col in columns:
             if df[df[key] == k][col].isnull().sum() == len(df[df[key] == k]):
                 # Found one more column which is full of missing values for identifier 'k'
                 num_empty_columns += 1
-
         if num_empty_columns == len(columns):
             # Eliminate all rows corresponding to the analysed key if all the columns
             # are empty for the identifier 'k'
             df = df[~(df[key] == k)]
-
     return df
 
 
@@ -551,7 +548,6 @@ def apply_zscore_denorm(value, df=None, mean=None, std=None, categories_means=No
             if isinstance(groupby_columns, list):
                 return (value * categories_stds[tuple(df[groupby_columns])]
                         + categories_means[tuple(df[groupby_columns])])
-
             else:
                 return (value * categories_stds[df[groupby_columns]]
                         + categories_means[df[groupby_columns]])
@@ -1105,7 +1101,6 @@ def missing_values_imputation(tensor):
     '''
     # Replace NaN's with zeros
     tensor = torch.where(tensor != tensor, torch.zeros_like(tensor), tensor)
-
     return tensor
 
 
@@ -1269,7 +1264,6 @@ def threshold_outlier_detect(s, max_thrs=None, min_thrs=None, threshold_type='ab
             signal = signal / signal_idx_derivative(signal, time_scale, periods)
     else:
         raise Exception('ERROR: Invalid signal type. It must be "value", "derivative", "speed", "second derivative" or "acceleration", not {signal}.')
-
     if threshold_type.lower() == 'absolute':
         signal = signal
     elif threshold_type.lower() == 'mean' or threshold_type.lower() == 'average':
@@ -1358,7 +1352,6 @@ def slopes_outlier_detect(s, max_thrs=4, bidir_sens=0.5, threshold_type='std',
         # Derivate by the index values
         bckwrds_deriv = bckwrds_deriv / signal_idx_derivative(bckwrds_deriv, time_scale, periods=1)
         frwrds_deriv = frwrds_deriv / signal_idx_derivative(frwrds_deriv, time_scale, periods=-1)
-
     if threshold_type.lower() == 'absolute':
         bckwrds_deriv = bckwrds_deriv
         frwrds_deriv = frwrds_deriv

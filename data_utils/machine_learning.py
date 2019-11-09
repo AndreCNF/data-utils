@@ -20,7 +20,7 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
     ----------
     dataset : torch.utils.data.Dataset
         Dataset object which will be used to train, validate and test the model.
-    test_train_ratio : float, default 0.8
+    test_train_ratio : float, default 0.2
         Number from 0 to 1 which indicates the percentage of the data
         which will be used as a test set. The remaining percentage
         is used in the training and validation sets.
@@ -98,18 +98,19 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
 
 
 # [TODO] Create a generic train method that can train any relevant machine learning model on the input data
-def train(model, train_dataloader, val_dataloader, test_dataloader,
+def train(model, train_dataloader, val_dataloader, seq_len_dict, test_dataloader=None,
           batch_size=32, n_epochs=50, lr=0.001, model_path='models/',
           do_test=True, log_comet_ml=False, comet_ml_api_key=None,
           comet_ml_project_name=None, comet_ml_workspace=None,
           comet_ml_save_model=False, experiment=None, features_list=None,
           get_val_loss_min=False, **kwargs):
-    model = deep_learning.train(model, train_dataloader, val_dataloader, test_dataloader,
-                                batch_size=32, n_epochs=50, lr=0.001, model_path='models/',
-                                do_test=True, log_comet_ml=False, comet_ml_api_key=None,
-                                comet_ml_project_name=None, comet_ml_workspace=None,
-                                comet_ml_save_model=False, experiment=None, features_list=None,
-                                get_val_loss_min=False, **kwargs)
+    model = deep_learning.train(model, train_dataloader, val_dataloader, seq_len_dict=seq_len_dict, 
+                                test_dataloader=test_dataloader, batch_size=batch_size, n_epochs=n_epochs, 
+                                lr=lr, model_path=model_path, do_test=do_test, log_comet_ml=log_comet_ml, 
+                                comet_ml_api_key=comet_ml_api_key, comet_ml_project_name=comet_ml_project_name,
+                                comet_ml_workspace=comet_ml_workspace, comet_ml_save_model=comet_ml_save_model,
+                                experiment=experiment, features_list=features_list, 
+                                get_val_loss_min=get_val_loss_min, **kwargs)
     return model
 
 

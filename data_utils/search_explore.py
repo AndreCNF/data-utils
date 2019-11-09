@@ -176,9 +176,8 @@ def find_row_contains_word(df, feature, words):
     feature : string
         Name of the feature through which the method will search if strings
         contain any of the specified words.
-    words : list of strings
-        List of the words to search for in the feature's rows. Even if searching
-        for the existence of a single word, it should be specified inside a list.
+    words : list of strings or string
+        List of the words to search for in the feature's rows.
 
     Returns
     -------
@@ -188,6 +187,9 @@ def find_row_contains_word(df, feature, words):
     row_contains_word = None
     if not df[feature].dtype == 'object':
         raise Exception(f'ERROR: The specified feature should have type "object", not type {df[feature].dtype}.')
+    if isinstance(words, str):
+        # Make sure that the words are in a list format, even if it's just one word
+        words = [words]
     if any([not isinstance(word, str) for word in words]):
         raise Exception('ERROR: All words in the specified words list should be strings.')
     if 'dask' in str(type(df)):

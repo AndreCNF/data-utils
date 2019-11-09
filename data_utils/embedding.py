@@ -352,7 +352,7 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
     ----------
     df : pandas.DataFrame or dask.DataFrame
         Dataframe which will be processed.
-    cat_feat : string, default []
+    cat_feat : string or list of strings, default []
         Name(s) of the categorical feature(s) which will have their values
         concatenated along the ID's.
     id_columns : list of strings, default ['patientunitstayid', 'ts']
@@ -417,6 +417,12 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
     remaining_feat = list(set(data_df.columns) - set(cat_feat) - set(id_columns))
     print('Averaging continuous features...')
     for feature in utils.iterations_loop(remaining_feat):
+        if data_df[feature].dtype == 'object':
+            raise Exception(f'ERROR: There is at least one non-numeric feature in the dataframe. \
+                              This method requires all columns to be numeric, either integer or floats. \
+                              In case there are categorical features still in string format, consider \
+                              using the `string_encod_to_numeric` method first. The column {feature} is \
+                              of type {df[feature].dtype}.')
         # Join remaining features through their average, min or max value
         # (just to be sure that there aren't missing or different values)
         if cont_join_method.lower() == 'mean':
@@ -476,9 +482,9 @@ def string_encod_to_numeric(df, cat_feat=None, separator_num=0, inplace=False):
         # Use the original dataframe
         data_df = df
     if cat_feat is None:
+        cat_feat = []
         # Go through all the features processing the ones that might have semicolons
         for feature in df.columns:
-            cat_feat = []
             # Only analyze the feature if it has string values
             if df[feature].dtype == 'object':
                 cat_feat.append(feature)

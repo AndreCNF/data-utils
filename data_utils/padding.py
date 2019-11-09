@@ -83,7 +83,7 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
         length.
     '''
     # Make sure that all possible categorical encoded columns are in numeric format
-    data_df = embedding.string_encod_to_numeric(df, cat_feat, inplace)
+    data_df = embedding.string_encod_to_numeric(df, cat_feat=cat_feat, inplace=inplace)
     if seq_len_dict is None:
         # Find the sequence lengths and store them in a dictionary
         seq_len_dict = get_sequence_length_dict(data_df, id_column, ts_column)
