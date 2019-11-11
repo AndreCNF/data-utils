@@ -4,13 +4,14 @@ import numpy as np                                      # NumPy to handle numeri
 import warnings                                         # Print warnings for bad practices
 from datetime import datetime                           # datetime to use proper date and time formats
 import sys                                              # Identify types of exceptions
+import inspect                                          # Inspect methods and their arguments
 from sklearn.metrics import roc_auc_score               # ROC AUC model performance metric
 from . import utils                                     # Generic and useful methods
 from . import padding                                   # Padding and variable sequence length related methods
 import data_utils as du
 
 # Ignore Dask's 'meta' warning
-warnings.filterwarnings("ignore", message="`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.")
+warnings.filterwarnings('ignore', message='`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.')
 
 # Methods
 
@@ -256,9 +257,9 @@ def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=['l
         labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
         labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
 
-        mask = (labels <= 1).view_as(scores).float()                    # Create a mask by filtering out all labels that are not a padding value
-        unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask.byte()) # Completely remove the padded values from the labels using the mask
-        unpadded_scores = torch.masked_select(scores, mask.byte())      # Completely remove the padded values from the scores using the mask
+        mask = (labels <= 1).view_as(scores)                            # Create a mask by filtering out all labels that are not a padding value
+        unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask) # Completely remove the padded values from the labels using the mask
+        unpadded_scores = torch.masked_select(scores, mask)             # Completely remove the padded values from the scores using the mask
         pred = torch.round(unpadded_scores)                             # Get the predictions
 
         if output_rounded is True:
@@ -278,10 +279,10 @@ def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=['l
 
         if any(mtrc in metrics for mtrc in ['precision', 'recall', 'F1']):
             # Calculate the number of true positives, false negatives, true negatives and false positives
-            true_pos = int(sum(torch.masked_select(pred, unpadded_labels.byte())))
-            false_neg = int(sum(torch.masked_select(pred == 0, unpadded_labels.byte())))
-            true_neg = int(sum(torch.masked_select(pred == 0, (unpadded_labels == 0).byte())))
-            false_pos = int(sum(torch.masked_select(pred, (unpadded_labels == 0).byte())))
+            true_pos = int(sum(torch.masked_select(pred, unpadded_labels.bool())))
+            false_neg = int(sum(torch.masked_select(pred == 0, unpadded_labels.bool())))
+            true_neg = int(sum(torch.masked_select(pred == 0, (unpadded_labels == 0).bool())))
+            false_pos = int(sum(torch.masked_select(pred, (unpadded_labels == 0).bool())))
 
         if 'loss' in metrics:
             metrics_vals['loss'] = model.loss(scores, labels, x_lengths).item() # Add the loss of the current batch
@@ -328,9 +329,9 @@ def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=['l
             labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
             labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
 
-            mask = (labels <= 1).view_as(scores).float()                    # Create a mask by filtering out all labels that are not a padding value
-            unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask.byte()) # Completely remove the padded values from the labels using the mask
-            unpadded_scores = torch.masked_select(scores, mask.byte())      # Completely remove the padded values from the scores using the mask
+            mask = (labels <= 1).view_as(scores)                            # Create a mask by filtering out all labels that are not a padding value
+            unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask) # Completely remove the padded values from the labels using the mask
+            unpadded_scores = torch.masked_select(scores, mask)             # Completely remove the padded values from the scores using the mask
             pred = torch.round(unpadded_scores)                             # Get the predictions
 
             if output_rounded is True:
@@ -349,10 +350,10 @@ def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=['l
 
             if any(mtrc in metrics for mtrc in ['precision', 'recall', 'F1']):
                 # Calculate the number of true positives, false negatives, true negatives and false positives
-                true_pos = int(sum(torch.masked_select(pred, unpadded_labels.byte())))
-                false_neg = int(sum(torch.masked_select(pred == 0, unpadded_labels.byte())))
-                true_neg = int(sum(torch.masked_select(pred == 0, (unpadded_labels == 0).byte())))
-                false_pos = int(sum(torch.masked_select(pred, (unpadded_labels == 0).byte())))
+                true_pos = int(sum(torch.masked_select(pred, unpadded_labels.bool())))
+                false_neg = int(sum(torch.masked_select(pred == 0, unpadded_labels.bool())))
+                true_neg = int(sum(torch.masked_select(pred == 0, (unpadded_labels == 0).bool())))
+                false_pos = int(sum(torch.masked_select(pred, (unpadded_labels == 0).bool())))
 
             if 'loss' in metrics:
                 loss += model.loss(scores, labels, x_lengths)               # Add the loss of the current batch
@@ -495,23 +496,22 @@ def train(model, train_dataloader, val_dataloader, seq_len_dict, test_dataloader
         If get_val_loss_min is set to True, the method also returns the minimum
         validation loss found during training.
     '''
+    # Register all the hyperparameters
+    model_args = inspect.getfullargspec(model.__init__).args[1:]
+    hyper_params = dict([(param, getattr(model, param))
+                         for param in model_args])
+    hyper_params.update({"batch_size": batch_size,
+                         "n_epochs": n_epochs,
+                         "learning_rate": lr,
+                         "random_seed": du.random_seed})
     if log_comet_ml is True:
         if experiment is None:
             # Create a new Comet.ml experiment
             experiment = Experiment(api_key=comet_ml_api_key, project_name=comet_ml_project_name, workspace=comet_ml_workspace)
         experiment.log_other("completed", False)
         experiment.log_other("random_seed", du.random_seed)
-
         # Report hyperparameters to Comet.ml
-        hyper_params_names = [name for name, _ in model.named_parameters()]
-        hyper_params = dict(zip(hyper_params_names, [getattr(model, param)
-                                                     for param in hyper_params_names]))
-        hyper_params.update({"batch_size": batch_size,
-                             "n_epochs": n_epochs,
-                             "learning_rate": lr,
-                             "random_seed": du.random_seed})
         experiment.log_parameters(hyper_params)
-
         if features_list is not None:
             # Log the names of the features being used
             experiment.log_other("features_list", features_list)
@@ -551,9 +551,9 @@ def train(model, train_dataloader, val_dataloader, seq_len_dict, test_dataloader
                 loss.backward()                                                 # Backpropagate the loss
                 optimizer.step()                                                # Update the model's weights
                 train_loss += loss                                              # Add the training loss of the current batch
-                mask = (labels <= 1).view_as(scores).float()                    # Create a mask by filtering out all labels that are not a padding value
-                unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask.byte()) # Completely remove the padded values from the labels using the mask
-                unpadded_scores = torch.masked_select(scores, mask.byte())      # Completely remove the padded values from the scores using the mask
+                mask = (labels <= 1).view_as(scores)                            # Create a mask by filtering out all labels that are not a padding value
+                unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask) # Completely remove the padded values from the labels using the mask
+                unpadded_scores = torch.masked_select(scores, mask)             # Completely remove the padded values from the scores using the mask
                 pred = torch.round(unpadded_scores)                             # Get the predictions
                 correct_pred = pred == unpadded_labels                          # Get the correct predictions
                 train_acc += torch.mean(correct_pred.type(torch.FloatTensor))   # Add the training accuracy of the current batch, ignoring all padding values
@@ -581,9 +581,9 @@ def train(model, train_dataloader, val_dataloader, seq_len_dict, test_dataloader
                         labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
 
                         val_loss += model.loss(scores, labels, x_lengths)               # Calculate and add the validation loss of the current batch
-                        mask = (labels <= 1).view_as(scores).float()                    # Create a mask by filtering out all labels that are not a padding value
-                        unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask.byte()) # Completely remove the padded values from the labels using the mask
-                        unpadded_scores = torch.masked_select(scores, mask.byte())      # Completely remove the padded values from the scores using the mask
+                        mask = (labels <= 1).view_as(scores)                            # Create a mask by filtering out all labels that are not a padding value
+                        unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask) # Completely remove the padded values from the labels using the mask
+                        unpadded_scores = torch.masked_select(scores, mask)             # Completely remove the padded values from the scores using the mask
                         pred = torch.round(unpadded_scores)                             # Get the predictions
                         correct_pred = pred == unpadded_labels                          # Get the correct predictions
                         val_acc += torch.mean(correct_pred.type(torch.FloatTensor))     # Add the validation accuracy of the current batch, ignoring all padding values
@@ -614,7 +614,7 @@ def train(model, train_dataloader, val_dataloader, seq_len_dict, test_dataloader
 
                     print(f'Saving model in {model_filename}')
 
-                    # Save the best performing model so far, a long with additional information to implement it
+                    # Save the best performing model so far, along with additional information to implement it
                     checkpoint = hyper_params
                     checkpoint['state_dict'] = model.state_dict()
                     torch.save(checkpoint, model_filename)
