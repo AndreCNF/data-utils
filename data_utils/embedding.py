@@ -626,7 +626,7 @@ def run_embed_bag(data, embedding_layer, enum_list, offset, inplace=False):
         Data tensor with the new embedding features added.
     '''
     if not inplace:
-        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        # Make a copy of the data to avoid potentially unwanted changes to the original tensor
         data_tensor = data.clone()
     else:
         # Use the original dataframe

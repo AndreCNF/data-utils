@@ -43,6 +43,31 @@ def get_clean_label(orig_label, clean_labels, column_name=None):
         return 'missing_value'
 
 
+def rename_index(df, name):
+    '''Renames the dataframe's index to a desired name. Specially important
+    for dask dataframes, as they don't support any elegant, one-line method
+    for this.
+
+    Parameters
+    ----------
+    df : dask.DataFrame
+        Dataframe whose index column will be renamed.
+    name : string
+        The new name for the index column.
+
+    Returns
+    -------
+    df : dask.DataFrame
+        Dataframe with a renamed index column.
+    '''
+    feat_names = set(df.columns)
+    df = df.reset_index()
+    orig_idx_name = set(df.columns) - feat_names
+    df.rename(columns={orig_idx_name: name})
+    df = df.set_index(name)
+    return df
+
+
 def standardize_missing_values(x, specific_nan_strings=[]):
     '''Apply function to be used in replacing missing value representations with
     the standard NumPy NaN value.
@@ -100,6 +125,43 @@ def standardize_missing_values_df(df, see_progress=True, specific_nan_strings=[]
         else:
             raise Exception(f'ERROR: Input "df" should either be a pandas dataframe or a dask dataframe, not type {type(df)}.')
     return df
+
+
+def remove_cols_with_many_nans(df, nan_percent_thrsh=40, inplace=False):
+    '''Remove columns that have too many NaN's (missing values).
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe that will be processed, to remove columns with high
+        percentages of missing values.
+    nan_percent_thrsh : int or float, default 40
+        Threshold value above which it's considered a column with too
+        many missing values. Measured in percentage of missing values,
+        in 100% format.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
+
+    Returns
+    -------
+    df : pandas.DataFrame or dask.DataFrame
+        Corrected dataframe, with columns removed that had too many 
+        missing values.
+    '''
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
+    else:
+        # Use the original dataframe
+        data_df = df
+    # Find each column's missing values percentage
+    nan_percent_df = search_explore.dataframe_missing_values(data_df)
+    # Remove columns that exceed the missing values percentage threshold
+    many_nans_cols = list(nan_percent_df[nan_percent_df.percent_missing > nan_percent_thrsh].column_name)
+    data_df = data_df.drop(many_nans_cols, axis = 1)
+    return data_df
 
 
 def clean_naming(x):
@@ -675,10 +737,22 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
         # Normalize all non identifier continuous columns, ignore one hot encoded ones
         columns_to_normalize = feature_columns
 
+        # Make sure that the id_columns is a list
+        if isinstance(id_columns, str):
+            id_columns = [id_columns]
+        if not isinstance(id_columns, list):
+            raise Exception(f'ERROR: The `id_columns` argument must be specified as either a single \
+                              string or a list of strings. Received input with type {type(id_columns)}.')
         # List of all columns in the dataframe, except the ID columns
         [columns_to_normalize.remove(col) for col in id_columns]
 
         if embed_columns is not None:
+            # Make sure that the id_columns is a list
+            if isinstance(embed_columns, str):
+                embed_columns = [embed_columns]
+            if not isinstance(embed_columns, list):
+                raise Exception(f'ERROR: The `embed_columns` argument must be specified as either a single \
+                                string or a list of strings. Received input with type {type(embed_columns)}.')
             # Prevent all features that will be embedded from being normalized
             [columns_to_normalize.remove(col) for col in embed_columns]
 
@@ -688,6 +762,10 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
         if binary_cols is not None:
             # Prevent binary features from being normalized
             [columns_to_normalize.remove(col) for col in binary_cols]
+
+        # Remove all non numeric columns that could be left
+        columns_to_normalize = [col for col in columns_to_normalize 
+                                if df[col].dtype == np.number]
 
         if columns_to_normalize is None:
             print('No columns to normalize, returning the original dataframe.')
@@ -1086,22 +1164,117 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
     return data
 
 
-def missing_values_imputation(tensor):
+def transpose_dataframe(df, column_to_transpose=None, inplace=False):
+    '''Transpose a dataframe, either by its original index or through a specific
+    column, which will be converted to the new column names (i.e. the header).
+
+    Parameters
+    ----------
+    data : pandas.DataFrame or dask.DataFrame
+        Dataframe that will be transposed.
+    column_to_transpose : string, default None
+        If specified, the given column will be used as the new column names, with
+        its unique values forming the new dataframe's header. Otherwise, the
+        dataframe will be transposed on its original index.
+    inplace : bool, default False
+        If set to True, the original tensor or dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original tensor or dataframe.
+
+    Returns
+    -------
+    data : pandas.DataFrame or dask.DataFrame
+        Transposed dataframe.
+    '''
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
+    else:
+        # Use the original dataframe
+        data_df = df
+    if column_to_transpose is not None:
+        # Set as index the column that has the desired column names as values
+        data_df = data_df.set_index(column_to_transpose)
+    if isinstance(data_df, pd.DataFrame):
+        data_df = dd.from_pandas(data_df.transpose())
+    elif isinstance(data_df, dd.DataFrame):
+        data_df = (dd.from_pandas(data_df.compute().transpose(), 
+                                  npartitions=data_df.npartitions))
+    else:
+        raise Exception(f'ERROR: The input data must either be a Pandas dataframe \
+                          or a Dask dataframe, not {type(df)}.')
+    return data_df
+
+
+def missing_values_imputation(data, method='zero', id_column='subject_id', inplace=False):
     '''Performs missing values imputation to a tensor corresponding to a single column.
 
     Parameters
     ----------
-    tensor : torch.Tensor
-        PyTorch tensor corresponding to a single column which will be imputed.
+    data : torch.Tensor or pandas.DataFrame or dask.DataFrame
+        PyTorch tensor corresponding to a single column or a dataframe which will 
+        be imputed.
+    method : string, default 'zero'
+        Imputation method to be used. If user inputs 'zero', it will just fill all
+        missing values with zero. If the user chooses 'zigzag', it will do a 
+        forward fill, a backward fill and then replace all remaining missing values
+        with zero (this option is only available for dataframes, not tensors).
+    id_column : string, default 'subject_id'
+        Name of the column which corresponds to the sequence or subject identifier
+        in the dataframe. Only used if the chosen imputation method is 'zigzag'.
+    inplace : bool, default False
+        If set to True, the original tensor or dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original tensor or dataframe.
 
     Returns
     -------
     tensor : torch.Tensor
         Imputed PyTorch tensor.
     '''
-    # Replace NaN's with zeros
-    tensor = torch.where(tensor != tensor, torch.zeros_like(tensor), tensor)
-    return tensor
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original data
+        if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
+            data_copy = data.copy()
+        elif isinstance(data, torch.tensor):
+            data_copy = data.clone()
+        else:
+            raise Exception(f'ERROR: The input data must either be a PyTorch tensor, a \
+                              Pandas dataframe or a Dask dataframe, not {type(data)}.')
+    else:
+        # Use the original data object
+        data_copy = data
+        if ((not isinstance(data, pd.DataFrame))
+            and (not isinstance(data, dd.DataFrame))
+            and (not isinstance(data, torch.tensor))):
+            raise Exception(f'ERROR: The input data must either be a PyTorch tensor, a \
+                              Pandas dataframe or a Dask dataframe, not {type(data)}.')
+    if method.lower() == 'zero':
+        # Replace NaN's with zeros
+        if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
+            data_copy = data_copy.fillna(value=0)
+        elif isinstance(data, torch.tensor):
+            data_copy = torch.where(data_copy != data_copy, 
+                                    torch.zeros_like(data_copy), data_copy)
+    elif method.lower() == 'zigzag':
+        # Replace NaN's with zeros
+        if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
+            # Forward fill
+            data_copy = (data_copy.set_index('subject_id', append=True).groupby('subject_id')
+                        .fillna(method='ffill').reset_index(level=1))
+            # Backward fill
+            data_copy = (data_copy.set_index('subject_id', append=True).groupby('subject_id')
+                        .fillna(method='bfill').reset_index(level=1))
+            # Replace remaining missing values with zero
+            data_copy = data_copy.fillna(value=0)
+        elif isinstance(data, torch.tensor):
+            raise Exception('ERROR: PyTorch tensors aren\'t supported in the zigzag\
+                             imputation method. Please use a dataframe instead.')
+    else:
+        raise Exception(f'ERROR: Unsupported {method} imputation method. Currently \
+                          available options are `zero` and `zigzag`.')
+    # [TODO] Add other, more complex imputation methods, like a denoising autoencoder
+    return data_copy
 
 
 def set_dosage_and_units(df, orig_column='dosage'):

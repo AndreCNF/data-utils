@@ -98,10 +98,11 @@ def is_string_nan(x, specific_nan_strings=[]):
         # in NaN-like strings
         if (('other' in x.lower() and len(x) < 9)
             or ('null' in x.lower() and len(x) < 7)
-            or ('nan' in x.lower() and len(x) < 6)
+            or (x.lower() == 'nan')
             or ('discrepancy' in x.lower() and len(x) < 14)
             or all([char == ' ' for char in x])
             or all([char == '_' for char in x])
+            or all([char == '.' for char in x])
             or ('unknown' in x.lower())
             or ('not obtainable' in x.lower())
             or ('not obtained' in x.lower())
