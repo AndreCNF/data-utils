@@ -89,7 +89,7 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
         seq_len_dict = get_sequence_length_dict(data_df, id_column, ts_column)
     # Fetch the number of unique sequence IDs
     n_ids = data_df[id_column].nunique()
-    if 'dask' in str(type(df)):
+    if isinstance(df, dd.DataFrame):
         # Make sure that the number of unique values are computed, in case we're using Dask
         n_ids = n_ids.compute()
     # Get the number of columns in the dataframe

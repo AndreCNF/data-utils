@@ -1,12 +1,18 @@
 from comet_ml import Experiment                         # Comet.ml can log training metrics, parameters, do version control and parameter optimization
 import torch                                            # PyTorch to create and apply deep learning models
-import pandas as pd                                     # Pandas to handle the data in dataframes
 import dask.dataframe as dd                             # Dask to handle big data in dataframes
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import numbers                                          # numbers allows to check if data is numeric
 import warnings                                         # Print warnings for bad practices
 from . import utils                                     # Generic and useful methods
 from . import search_explore                            # Methods to search and explore data
+import data_utils as du
+
+# Pandas to handle the data in dataframes
+if du.use_modin is True:
+    import modin.pandas as pd
+else:
+    import pandas as pd
 
 # Ignore Dask's 'meta' warning
 warnings.filterwarnings("ignore", message="`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.")
@@ -63,7 +69,8 @@ def rename_index(df, name):
     feat_names = set(df.columns)
     df = df.reset_index()
     orig_idx_name = set(df.columns) - feat_names
-    df.rename(columns={orig_idx_name: name})
+    orig_idx_name = orig_idx_name.pop()
+    df = df.rename(columns={orig_idx_name: name})
     df = df.set_index(name)
     return df
 
@@ -117,10 +124,10 @@ def standardize_missing_values_df(df, see_progress=True, specific_nan_strings=[]
         Corrected dataframe, with standardized missing value representation.
     '''
     for feature in utils.iterations_loop(df.columns, see_progress=see_progress):
-        if 'dask' in str(type(df)):
+        if isinstance(df, dd.DataFrame):
             df[feature] = df[feature].apply(lambda x: standardize_missing_values(x, specific_nan_strings), 
                                             meta=df[feature]._meta.dtypes)
-        elif 'pandas' in str(type(df)):
+        elif isinstance(df, pd.DataFrame):
             df[feature] = df[feature].apply(lambda x: standardize_missing_values(x, specific_nan_strings))
         else:
             raise Exception(f'ERROR: Input "df" should either be a pandas dataframe or a dask dataframe, not type {type(df)}.')
@@ -216,7 +223,7 @@ def clean_categories_naming(df, column, clean_missing_values=True,
     df : pandas.DataFrame or dask.DataFrame
         Dataframe with its string column already cleaned.
     '''
-    if 'dask' in str(type(df)):
+    if isinstance(df, dd.DataFrame):
         df[column] = (df[column].map(clean_naming, meta=('x', str)))
         if clean_missing_values is True:
             df[column] = df[column].apply(lambda x: standardize_missing_values(x, specific_nan_strings),
@@ -301,13 +308,13 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_value
         # Cast the variable into the built in pandas Categorical data type
         if 'pandas' in str(type(data_df)):
             data_df[col] = pd.Categorical(data_df[col])
-    if 'dask' in str(type(data_df)):
+    if isinstance(data_df, dd.DataFrame):
         data_df = data_df.categorize(columns)
     if get_new_column_names is True:
         # Find the previously existing column names
         old_column_names = data_df.columns
     # Apply the one hot encoding to the specified columns
-    if 'dask' in str(type(data_df)):
+    if isinstance(data_df, dd.DataFrame):
         ohe_df = dd.get_dummies(data_df, columns=columns)
     else:
         ohe_df = pd.get_dummies(data_df, columns=columns)
@@ -370,7 +377,7 @@ def category_to_feature(df, categories_feature, values_feature, min_len=None,
         data_df = df
     # Find the unique categories
     categories = data_df[categories_feature].unique()
-    if 'dask' in str(type(df)):
+    if isinstance(df, dd.DataFrame):
         categories = categories.compute()
     # Create a feature for each category
     for category in utils.iterations_loop(categories, see_progress=see_progress):
@@ -732,41 +739,38 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
     '''
     # Check if specific columns have been specified for normalization
     if columns_to_normalize is None:
+        # [TODO] This search for columns part is very slow (in some cases slower than the 
+        # actual normalization process); try to make it more efficient
         # List of all columns in the dataframe
         feature_columns = list(df.columns)
         # Normalize all non identifier continuous columns, ignore one hot encoded ones
         columns_to_normalize = feature_columns
-
-        # Make sure that the id_columns is a list
-        if isinstance(id_columns, str):
-            id_columns = [id_columns]
-        if not isinstance(id_columns, list):
-            raise Exception(f'ERROR: The `id_columns` argument must be specified as either a single \
-                              string or a list of strings. Received input with type {type(id_columns)}.')
-        # List of all columns in the dataframe, except the ID columns
-        [columns_to_normalize.remove(col) for col in id_columns]
-
+        if id_columns is not None:
+            # Make sure that the id_columns is a list
+            if isinstance(id_columns, str):
+                id_columns = [id_columns]
+            if not isinstance(id_columns, list):
+                raise Exception(f'''ERROR: The `id_columns` argument must be specified as either a single 
+                                    string or a list of strings. Received input with type {type(id_columns)}.''')
+            # List of all columns in the dataframe, except the ID columns
+            [columns_to_normalize.remove(col) for col in id_columns]
         if embed_columns is not None:
             # Make sure that the id_columns is a list
             if isinstance(embed_columns, str):
                 embed_columns = [embed_columns]
             if not isinstance(embed_columns, list):
-                raise Exception(f'ERROR: The `embed_columns` argument must be specified as either a single \
-                                string or a list of strings. Received input with type {type(embed_columns)}.')
+                raise Exception(f'''ERROR: The `embed_columns` argument must be specified as either a single
+                                    string or a list of strings. Received input with type {type(embed_columns)}.''')
             # Prevent all features that will be embedded from being normalized
             [columns_to_normalize.remove(col) for col in embed_columns]
-
         # List of binary or one hot encoded columns
         binary_cols = search_explore.list_one_hot_encoded_columns(df[columns_to_normalize])
-
         if binary_cols is not None:
             # Prevent binary features from being normalized
             [columns_to_normalize.remove(col) for col in binary_cols]
-
         # Remove all non numeric columns that could be left
         columns_to_normalize = [col for col in columns_to_normalize 
                                 if df[col].dtype == np.number]
-
         if columns_to_normalize is None:
             print('No columns to normalize, returning the original dataframe.')
             return df
@@ -781,13 +785,10 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             means = df[columns_to_normalize].mean()
             stds = df[columns_to_normalize].std()
 
-            if 'dask' in str(type(df)):
+            if isinstance(df, dd.DataFrame):
                 # Make sure that the values are computed, in case we're using Dask
                 means = means.compute()
                 stds = stds.compute()
-
-            column_means = dict(means)
-            column_stds = dict(stds)
 
         # Check if the data being normalized is directly the dataframe
         if data is None:
@@ -801,8 +802,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             # Normalize the right columns
             if columns_to_normalize is not False:
                 print(f'z-score normalizing columns {columns_to_normalize}...')
-                for col in utils.iterations_loop(columns_to_normalize, see_progress=see_progress):
-                    data[col] = (data[col] - column_means[col]) / column_stds[col]
+                data = (data - means) / stds
 
             if columns_to_normalize_cat is not None:
                 print(f'z-score normalizing columns {columns_to_normalize_cat} by their associated categories...')
@@ -811,7 +811,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                     means = df.groupby(col_tuple[0])[col_tuple[1]].mean()
                     stds = df.groupby(col_tuple[0])[col_tuple[1]].std()
 
-                    if 'dask' in str(type(df)):
+                    if isinstance(df, dd.DataFrame):
                         # Make sure that the values are computed, in case we're using Dask
                         means = means.compute()
                         stds = stds.compute()
@@ -820,7 +820,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                     categories_stds = dict(stds)
 
                     # Normalize the right categories
-                    if 'dask' in str(type(df)):
+                    if isinstance(df, dd.DataFrame):
                         data[col_tuple[1]] = data.apply(lambda df: apply_zscore_norm(value=df[col_tuple[1]], df=df, categories_means=categories_means,
                                                                                      categories_stds=categories_stds, groupby_columns=col_tuple[0]),
                                                         axis=1, meta=('df', float))
@@ -832,15 +832,15 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
         # Otherwise, the tensor is normalized
         else:
             if columns_to_normalize is not False:
+                # Dictionaries to retrieve the mean and standard deviation values
+                column_means = dict(means)
+                column_stds = dict(stds)
                 # Dictionary to convert the the tensor's column indeces into the dataframe's column names
                 idx_to_name = dict(enumerate(df.columns))
-
                 # Dictionary to convert the dataframe's column names into the tensor's column indeces
                 name_to_idx = dict([(t[1], t[0]) for t in enumerate(df.columns)])
-
                 # List of indeces of the tensor's columns which are needing normalization
                 tensor_columns_to_normalize = [name_to_idx[name] for name in columns_to_normalize]
-
                 # Normalize the right columns
                 print(f'z-score normalizing columns {columns_to_normalize}...')
                 for col in utils.iterations_loop(tensor_columns_to_normalize, see_progress=see_progress):
@@ -852,13 +852,10 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             mins = df[columns_to_normalize].min()
             maxs = df[columns_to_normalize].max()
 
-            if 'dask' in str(type(df)):
+            if isinstance(df, dd.DataFrame):
                 # Make sure that the values are computed, in case we're using Dask
                 mins = means.compute()
                 maxs = maxs.compute()
-
-            column_mins = dict(mins)
-            column_maxs = dict(maxs)
 
         # Check if the data being normalized is directly the dataframe
         if data is None:
@@ -872,9 +869,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             if columns_to_normalize is not False:
                 # Normalize the right columns
                 print(f'min-max normalizing columns {columns_to_normalize}...')
-                for col in utils.iterations_loop(columns_to_normalize, see_progress=see_progress):
-                    data[col] = ((data[col] - column_mins[col])
-                                 / (column_maxs[col] - column_mins[col]))
+                data = (data - mins) / (maxs - mins)
 
             if columns_to_normalize_cat is not None:
                 print(f'min-max normalizing columns {columns_to_normalize_cat} by their associated categories...')
@@ -883,16 +878,15 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                     mins = df.groupby(col_tuple[0])[col_tuple[1]].min()
                     maxs = df.groupby(col_tuple[0])[col_tuple[1]].max()
 
-                    if 'dask' in str(type(df)):
+                    if isinstance(df, dd.DataFrame):
                         # Make sure that the values are computed, in case we're using Dask
                         mins = mins.compute()
                         maxs = maxs.compute()
 
                     categories_mins = dict(mins)
                     categories_maxs = dict(maxs)
-
                     # Normalize the right categories
-                    if 'dask' in str(type(df)):
+                    if isinstance(df, dd.DataFrame):
                         data[col_tuple[1]] = data.apply(lambda df: apply_minmax_norm(value=df[col_tuple[1]], df=df, categories_mins=categories_mins,
                                                                                      categories_maxs=categories_maxs, groupby_columns=col_tuple[0]),
                                                         axis=1, meta=('df', float))
@@ -900,29 +894,26 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                         data[col_tuple[1]] = data.apply(lambda df: apply_minmax_norm(value=df[col_tuple[1]], df=df, categories_mins=categories_mins,
                                                                                      categories_maxs=categories_maxs, groupby_columns=col_tuple[0]),
                                                         axis=1)
-
         # Otherwise, the tensor is normalized
         else:
             if columns_to_normalize is not False:
+                # Dictionaries to retrieve the min and max values
+                column_mins = dict(mins)
+                column_maxs = dict(maxs)
                 # Dictionary to convert the the tensor's column indeces into the dataframe's column names
                 idx_to_name = dict(enumerate(df.columns))
-
                 # Dictionary to convert the dataframe's column names into the tensor's column indeces
                 name_to_idx = dict([(t[1], t[0]) for t in enumerate(df.columns)])
-
                 # List of indeces of the tensor's columns which are needing normalization
                 tensor_columns_to_normalize = [name_to_idx[name] for name in columns_to_normalize]
-
                 # Normalize the right columns
                 print(f'min-max normalizing columns {columns_to_normalize}...')
                 for col in utils.iterations_loop(tensor_columns_to_normalize, see_progress=see_progress):
                     data[:, :, col] = ((data[:, :, col] - column_mins[idx_to_name[col]])
                                        / (column_maxs[idx_to_name[col]] - column_mins[idx_to_name[col]]))
-
     else:
         raise ValueError(f'{normalization_method} isn\'t a valid normalization method. Available options \
                          are "z-score" and "min-max".')
-
     return data
 
 
@@ -1019,13 +1010,10 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             means = df[columns_to_denormalize].mean()
             stds = df[columns_to_denormalize].std()
 
-            if 'dask' in str(type(df)):
+            if isinstance(df, dd.DataFrame):
                 # Make sure that the values are computed, in case we're using Dask
                 means = means.compute()
                 stds = stds.compute()
-
-            column_means = dict(means)
-            column_stds = dict(stds)
 
         # Check if the data being denormalized is directly the dataframe
         if data is None:
@@ -1049,7 +1037,7 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                     means = df.groupby(col_tuple[0])[col_tuple[1]].mean()
                     stds = df.groupby(col_tuple[0])[col_tuple[1]].std()
 
-                    if 'dask' in str(type(df)):
+                    if isinstance(df, dd.DataFrame):
                         # Make sure that the values are computed, in case we're using Dask
                         means = means.compute()
                         stds = stds.compute()
@@ -1058,7 +1046,7 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                     categories_stds = dict(stds)
 
                     # Normalize the right categories
-                    if 'dask' in str(type(df)):
+                    if isinstance(df, dd.DataFrame):
                         data[col_tuple[1]] = data.apply(lambda df: apply_zscore_denorm(value=df[col_tuple[1]], df=df, categories_means=categories_means,
                                                                                        categories_stds=categories_stds, groupby_columns=col_tuple[0]),
                                                         axis=1, meta=('df', float))
@@ -1090,13 +1078,10 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             mins = df[columns_to_denormalize].min()
             maxs = df[columns_to_denormalize].max()
 
-            if 'dask' in str(type(df)):
+            if isinstance(df, dd.DataFrame):
                 # Make sure that the values are computed, in case we're using Dask
                 mins = means.compute()
                 maxs = maxs.compute()
-
-            column_mins = dict(mins)
-            column_maxs = dict(maxs)
 
         # Check if the data being denormalized is directly the dataframe
         if data is None:
@@ -1121,7 +1106,7 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                     mins = df.groupby(col_tuple[0])[col_tuple[1]].min()
                     maxs = df.groupby(col_tuple[0])[col_tuple[1]].max()
 
-                    if 'dask' in str(type(df)):
+                    if isinstance(df, dd.DataFrame):
                         # Make sure that the values are computed, in case we're using Dask
                         mins = mins.compute()
                         maxs = maxs.compute()
@@ -1130,7 +1115,7 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                     categories_maxs = dict(maxs)
 
                     # Normalize the right categories
-                    if 'dask' in str(type(df)):
+                    if isinstance(df, dd.DataFrame):
                         data[col_tuple[1]] = data.apply(lambda df: apply_minmax_denorm(value=df[col_tuple[1]], df=df, categories_mins=categories_mins,
                                                                                        categories_maxs=categories_maxs, groupby_columns=col_tuple[0]),
                                                         axis=1, meta=('df', float))
@@ -1196,7 +1181,7 @@ def transpose_dataframe(df, column_to_transpose=None, inplace=False):
         # Set as index the column that has the desired column names as values
         data_df = data_df.set_index(column_to_transpose)
     if isinstance(data_df, pd.DataFrame):
-        data_df = dd.from_pandas(data_df.transpose())
+        data_df = data_df.transpose()
     elif isinstance(data_df, dd.DataFrame):
         data_df = (dd.from_pandas(data_df.compute().transpose(), 
                                   npartitions=data_df.npartitions))
@@ -1254,8 +1239,7 @@ def missing_values_imputation(data, method='zero', id_column='subject_id', inpla
         if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
             data_copy = data_copy.fillna(value=0)
         elif isinstance(data, torch.tensor):
-            data_copy = torch.where(data_copy != data_copy, 
-                                    torch.zeros_like(data_copy), data_copy)
+            data_copy = torch.where(data_copy != data_copy, torch.zeros_like(data_copy), data_copy)
     elif method.lower() == 'zigzag':
         # Replace NaN's with zeros
         if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
@@ -1343,7 +1327,7 @@ def signal_idx_derivative(s, time_scale='seconds', periods=1):
     '''
     # Calculate the signal index's derivative
     s_idx = s.index.to_series().diff()
-    if 'dask' in str(type(s_idx)):
+    if isinstance(s_idx, dd.DataFrame):
         # Make the new derivative have the same divisions as the original signal
         s_idx = (s_idx.to_frame().rename(columns={s.index.name:'tmp_val'})
                       .reset_index()
@@ -1441,13 +1425,13 @@ def threshold_outlier_detect(s, max_thrs=None, min_thrs=None, threshold_type='ab
         signal = signal
     elif threshold_type.lower() == 'mean' or threshold_type.lower() == 'average':
         signal_mean = signal.mean()
-        if 'dask' in str(type(signal)):
+        if isinstance(signal, dd.DataFrame):
             # Make sure that the value is computed, in case we're using Dask
             signal_mean = signal_mean.compute()
         # Normalize by the average value
         signal = signal / signal_mean
     elif threshold_type.lower() == 'median':
-        if 'dask' in str(type(signal)):
+        if isinstance(signal, dd.DataFrame):
             # Make sure that the value is computed, in case we're using Dask
             signal_median = signal.compute().median()
         else:
@@ -1457,7 +1441,7 @@ def threshold_outlier_detect(s, max_thrs=None, min_thrs=None, threshold_type='ab
     elif threshold_type.lower() == 'std':
         signal_mean = signal.mean()
         signal_std = signal.std()
-        if 'dask' in str(type(signal)):
+        if isinstance(signal, dd.DataFrame):
             # Make sure that the values are computed, in case we're using Dask
             signal_mean = signal_mean.compute()
             signal_std = signal_std.compute()
@@ -1531,7 +1515,7 @@ def slopes_outlier_detect(s, max_thrs=4, bidir_sens=0.5, threshold_type='std',
     elif threshold_type.lower() == 'mean' or threshold_type.lower() == 'average':
         bckwrds_deriv_mean = bckwrds_deriv.mean()
         frwrds_deriv_mean = frwrds_deriv.mean()
-        if 'dask' in str(type(bckwrds_deriv)):
+        if isinstance(bckwrds_deriv, dd.DataFrame):
             # Make sure that the value is computed, in case we're using Dask
             bckwrds_deriv_mean = bckwrds_deriv_mean.compute()
             frwrds_deriv_mean = frwrds_deriv_mean.compute()
@@ -1541,7 +1525,7 @@ def slopes_outlier_detect(s, max_thrs=4, bidir_sens=0.5, threshold_type='std',
     elif threshold_type.lower() == 'median':
         bckwrds_deriv_median = bckwrds_deriv.median()
         frwrds_deriv_median = frwrds_deriv.median()
-        if 'dask' in str(type(bckwrds_deriv)):
+        if isinstance(bckwrds_deriv, dd.DataFrame):
             # Make sure that the value is computed, in case we're using Dask
             bckwrds_deriv_median = bckwrds_deriv_median.compute()
             frwrds_deriv_median = frwrds_deriv_median.compute()
@@ -1553,7 +1537,7 @@ def slopes_outlier_detect(s, max_thrs=4, bidir_sens=0.5, threshold_type='std',
         frwrds_deriv_mean = frwrds_deriv.mean()
         bckwrds_deriv_std = bckwrds_deriv.std()
         frwrds_deriv_std = frwrds_deriv.std()
-        if 'dask' in str(type(bckwrds_deriv)):
+        if isinstance(bckwrds_deriv, dd.DataFrame):
             # Make sure that the values are computed, in case we're using Dask
             bckwrds_deriv_mean = bckwrds_deriv_mean.compute()
             frwrds_deriv_mean = frwrds_deriv_mean.compute()

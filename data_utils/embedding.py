@@ -1,6 +1,5 @@
 from comet_ml import Experiment                         # Comet.ml can log training metrics, parameters, do version control and parameter optimization
 import torch                                            # PyTorch to create and apply deep learning models
-import pandas as pd                                     # Pandas to handle the data in dataframes
 import dask.dataframe as dd                             # Dask to handle big data in dataframes
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import numbers                                          # numbers allows to check if data is numeric
@@ -10,6 +9,13 @@ import warnings                                         # Print warnings for bad
 from . import utils                                     # Generic and useful methods
 from . import data_processing                           # Data processing and dataframe operations
 from . import deep_learning                                    # Common and generic deep learning related methods
+import data_utils as du
+
+# Pandas to handle the data in dataframes
+if du.use_modin is True:
+    import modin.pandas as pd
+else:
+    import pandas as pd
 
 # Ignore Dask's 'meta' warning
 warnings.filterwarnings("ignore", message="`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.")
@@ -148,7 +154,7 @@ def enum_categorical_feature(df, feature, nan_value=0, clean_name=True,
         df = data_processing.clean_categories_naming(df, feature)
     # Get the unique values of the cateforical feature
     unique_values = df[feature].unique()
-    if 'dask' in str(type(df)):
+    if isinstance(df, dd.DataFrame):
         # Make sure that the unique values are computed, in case we're using Dask
         unique_values = unique_values.compute()
     # Enumerate the unique values in the categorical feature and put them in a dictionary
@@ -157,7 +163,7 @@ def enum_categorical_feature(df, feature, nan_value=0, clean_name=True,
         return enum_dict
     else:
         # Create a series from the enumerations of the original feature's categories
-        if 'dask' in str(type(df)):
+        if isinstance(df, dd.DataFrame):
             enum_series = df[feature].map(lambda x: utils.apply_dict_convertion(x, enum_dict, nan_value), meta=('x', int))
         else:
             enum_series = df[feature].map(lambda x: utils.apply_dict_convertion(x, enum_dict, nan_value))
@@ -438,7 +444,7 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
         df_list.append(data_to_add)
     # Merge all dataframes
     print('Merging features\' dataframes...')
-    if 'dask' in str(type(data_df)):
+    if isinstance(df, dd.DataFrame):
         data_df = reduce(lambda x, y: dd.merge(x, y, on=id_columns), df_list)
     else:
         data_df = reduce(lambda x, y: pd.merge(x, y, on=id_columns), df_list)

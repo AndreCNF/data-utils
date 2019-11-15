@@ -1,8 +1,14 @@
-import pandas as pd                                     # Pandas to handle the data in dataframes
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import numbers                                          # numbers allows to check if data is numeric
 import warnings                                         # Print warnings for bad practices
 from . import utils                                     # Generic and useful methods
+import data_utils as du
+
+# Pandas to handle the data in dataframes
+if du.use_modin is True:
+    import modin.pandas as pd
+else:
+    import pandas as pd
 
 # Ignore Dask's 'meta' warning
 warnings.filterwarnings("ignore", message="`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.")
@@ -32,7 +38,7 @@ def dataframe_missing_values(df, column=None):
     if column is None:
         columns = df.columns
         percent_missing = df.isnull().sum() * 100 / len(df)
-        if 'dask' in str(type(df)):
+        if isinstance(df, dd.DataFrame):
             # Make sure that the values are computed, in case we're using Dask
             percent_missing = percent_missing.compute()
         missing_value_df = pd.DataFrame({'column_name': columns,
@@ -61,13 +67,13 @@ def is_one_hot_encoded_column(df, column):
         Otherwise, returns false.
     '''
     n_unique_values = df[column].nunique()
-    if 'dask' in str(type(df)):
+    if isinstance(df, dd.DataFrame):
         # Make sure that the number of unique values are computed, in case we're using Dask
         n_unique_values = n_unique_values.compute()
     # Check if it only has 2 possible values
     if n_unique_values == 2:
         unique_values = df[column].unique()
-        if 'dask' in str(type(df)):
+        if isinstance(df, dd.DataFrame):
             # Make sure that the unique values are computed, in case we're using Dask
             unique_values = unique_values.compute()
         # Check if the possible values are all numeric
@@ -192,10 +198,10 @@ def find_row_contains_word(df, feature, words):
         words = [words]
     if any([not isinstance(word, str) for word in words]):
         raise Exception('ERROR: All words in the specified words list should be strings.')
-    if 'dask' in str(type(df)):
+    if isinstance(df, dd.DataFrame):
         row_contains_word = df[feature].apply(lambda row: any([word.lower() in row.lower() for word in words]),
                                               meta=('row', bool))
-    elif 'pandas' in str(type(df)):
+    elif isinstance(df, pd.DataFrame):
         row_contains_word = df[feature].apply(lambda row: any([word.lower() in row.lower() for word in words]))
     else:
         raise Exception(f'ERROR: `df` should either be a Pandas or Dask dataframe, not {type(df)}.')
