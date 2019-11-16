@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.7.2" />
+<title>data_utils.padding API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>data_utils.padding</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from comet_ml import Experiment                         # Comet.ml can log training metrics, parameters, do version control and parameter optimization
+import torch                                            # PyTorch to create and apply deep learning models
+import numpy as np                                      # NumPy to handle numeric and NaN operations
+import warnings                                         # Print warnings for bad practices
+from . import utils                                     # Generic and useful methods
+from . import embedding                                 # Embeddings and other categorical features handling methods
+
+# Ignore Dask&#39;s &#39;meta&#39; warning
+warnings.filterwarnings(&#34;ignore&#34;, message=&#34;`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.&#34;)
+
+# Methods
+
+def get_sequence_length_dict(df, id_column=&#39;subject_id&#39;, ts_column=&#39;ts&#39;):
+    &#39;&#39;&#39;Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Data in a Pandas dataframe format which will be padded and converted
+        to the requested data type.
+    id_column : string, default &#39;subject_id&#39;
+        Name of the column which corresponds to the subject identifier in the
+        dataframe.
+    ts_column : string, default &#39;ts&#39;
+        Name of the column which corresponds to the timestamp in the
+        dataframe.
+
+    Returns
+    -------
+    seq_len_dict : dictionary, default None
+        Dictionary containing the original sequence lengths of the dataframe.
+        The keys should be the sequence identifiers (the numbers obtained from
+        the id_column) and the values should be the length of each sequence.
+    &#39;&#39;&#39;
+    # Dictionary containing the sequence length (number of temporal events) of each sequence (patient)
+    seq_len_df = df.groupby(id_column)[ts_column].count().to_frame().sort_values(by=ts_column, ascending=False)
+    seq_len_dict = dict([(idx, val[0]) for idx, val in list(zip(seq_len_df.index, seq_len_df.values))])
+    return seq_len_dict
+
+
+def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column=&#39;subject_id&#39;, 
+                               ts_column=&#39;ts&#39;, data_type=&#39;PyTorch&#39;, 
+                               padding_value=999999, cat_feat=None, 
+                               inplace=False):
+    &#39;&#39;&#39;Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Data in a Pandas dataframe format which will be padded and converted
+        to the requested data type.
+    seq_len_dict : dictionary, default None
+        Dictionary containing the original sequence lengths of the dataframe.
+        The keys should be the sequence identifiers (the numbers obtained from
+        the id_column) and the values should be the length of each sequence.
+    id_column : string, default &#39;subject_id&#39;
+        Name of the column which corresponds to the subject identifier in the
+        dataframe.
+    ts_column : string, default &#39;ts&#39;
+        Name of the column which corresponds to the timestamp in the
+        dataframe.
+    data_type : string, default &#39;PyTorch&#39;
+        Indication of what kind of output data type is desired. In case it&#39;s
+        set as &#39;NumPy&#39;, the function outputs a NumPy array. If it&#39;s &#39;PyTorch&#39;,
+        the function outputs a PyTorch tensor.
+    padding_value : numeric
+        Value to use in the padding, to fill the sequences.
+    cat_feat : string or list of strings, default None
+        Name(s) of the categorical encoded feature(s) which will have their
+        semicolon separators converted into its binary ASCII code. If not
+        specified, the method will look through all columns, processing
+        the ones that might have semicolons.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
+
+    Returns
+    -------
+    arr : torch.Tensor or numpy.ndarray
+        PyTorch tensor or NumPy array version of the dataframe, after being
+        padded with the specified padding value to have a fixed sequence
+        length.
+    &#39;&#39;&#39;
+    # Make sure that all possible categorical encoded columns are in numeric format
+    data_df = embedding.string_encod_to_numeric(df, cat_feat=cat_feat, inplace=inplace)
+    if seq_len_dict is None:
+        # Find the sequence lengths and store them in a dictionary
+        seq_len_dict = get_sequence_length_dict(data_df, id_column, ts_column)
+    # Fetch the number of unique sequence IDs
+    n_ids = data_df[id_column].nunique()
+    if isinstance(df, dd.DataFrame):
+        # Make sure that the number of unique values are computed, in case we&#39;re using Dask
+        n_ids = n_ids.compute()
+    # Get the number of columns in the dataframe
+    n_inputs = len(data_df.columns)
+    # Max sequence length (e.g. patient with the most temporal events)
+    max_seq_len = seq_len_dict[max(seq_len_dict, key=seq_len_dict.get)]
+    # Making a padded numpy array version of the dataframe (all index has the same sequence length as the one with the max)
+    arr = np.ones((n_ids, max_seq_len, n_inputs)) * padding_value
+    # Iterator that outputs each unique identifier (e.g. each patient in the dataset)
+    id_iter = iter(data_df[id_column].unique())
+    # Count the iterations of ids
+    count = 0
+    # Assign each value from the dataframe to the numpy array
+    for idt in id_iter:
+        arr[count, :seq_len_dict[idt], :] = data_df[data_df[id_column] == idt].to_numpy()
+        arr[count, seq_len_dict[idt]:, :] = padding_value
+        count += 1
+    # Make sure that the data type asked for is a string
+    if not isinstance(data_type, str):
+        raise Exception(&#39;ERROR: Please provide the desirable data type in a string format.&#39;)
+    if data_type.lower() == &#39;numpy&#39;:
+        return arr
+    elif data_type.lower() == &#39;pytorch&#39;:
+        return torch.from_numpy(arr)
+    else:
+        raise Exception(&#39;ERROR: Unavailable data type. Please choose either NumPy or PyTorch.&#39;)
+
+
+def sort_by_seq_len(data, seq_len_dict, labels=None, id_column=0):
+    &#39;&#39;&#39;Sort the data by sequence length in order to correctly apply it to a
+    PyTorch neural network.
+
+    Parameters
+    ----------
+    data : torch.Tensor
+        Data tensor on which sorting by sequence length will be applied.
+    seq_len_dict : dict
+        Dictionary containing the sequence lengths for each index of the
+        original dataframe. This allows to ignore the padding done in
+        the fixed sequence length tensor.
+    labels : torch.Tensor, default None
+        Labels corresponding to the data used, either specified in the input
+        or all the data that the interpreter has.
+    id_column : int, default 0
+        Number of the column which corresponds to the subject identifier in
+        the data tensor.
+
+    Returns
+    -------
+    sorted_data : torch.Tensor, default None
+        Data tensor already sorted by sequence length.
+    sorted_labels : torch.Tensor, default None
+        Labels tensor already sorted by sequence length. Only outputed if the
+        labels data is specified in the input.
+    x_lengths : list of int
+        Sorted list of sequence lengths, relative to the input data.
+    &#39;&#39;&#39;
+    # Get the original lengths of the sequences, for the input data
+    x_lengths = [seq_len_dict[id] for id in list(data[:, 0, id_column].numpy())]
+    is_sorted = all(x_lengths[i] &gt;= x_lengths[i+1] for i in range(len(x_lengths)-1))
+    if is_sorted is True:
+        # Do nothing if it&#39;s already sorted
+        sorted_data = data
+        sorted_labels = labels
+    else:
+        # Sorted indeces to get the data sorted by sequence length
+        data_sorted_idx = list(np.argsort(x_lengths)[::-1])
+        # Sort the x_lengths array by descending sequence length
+        x_lengths = [x_lengths[idx] for idx in data_sorted_idx]
+        # Sort the data by descending sequence length
+        sorted_data = data[data_sorted_idx, :, :]
+        if labels is not None:
+            # Sort the labels by descending sequence length
+            sorted_labels = labels[data_sorted_idx, :]
+    if labels is None:
+        return sorted_data, x_lengths
+    else:
+        return sorted_data, sorted_labels,  x_lengths
+
+
+def pad_list(x_list, length, padding_value=999999):
+    &#39;&#39;&#39;Pad a list with a specific padding value until the desired length is
+    met.
+
+    Parameters
+    ----------
+    x_list : list
+        List which will be padded.
+    length : int
+        Desired length for the final padded list.
+    padding_value : numeric
+        Value to use in the padding, to fill the sequences.
+
+    Returns
+    -------
+    x_list : list
+        Resulting padded list&#39;&#39;&#39;
+    return x_list + [padding_value] * (length - len(x_list))</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="data_utils.padding.dataframe_to_padded_tensor"><code class="name flex">
+<span>def <span class="ident">dataframe_to_padded_tensor</span></span>(<span>df, seq_len_dict=None, id_column='subject_id', ts_column='ts', data_type='PyTorch', padding_value=999999, cat_feat=None, inplace=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
+<dd>Data in a Pandas dataframe format which will be padded and converted
+to the requested data type.</dd>
+<dt><strong><code>seq_len_dict</code></strong> :&ensp;<code>dictionary</code>, default <code>None</code></dt>
+<dd>Dictionary containing the original sequence lengths of the dataframe.
+The keys should be the sequence identifiers (the numbers obtained from
+the id_column) and the values should be the length of each sequence.</dd>
+<dt><strong><code>id_column</code></strong> :&ensp;<code>string</code>, default <code>'subject_id'</code></dt>
+<dd>Name of the column which corresponds to the subject identifier in the
+dataframe.</dd>
+<dt><strong><code>ts_column</code></strong> :&ensp;<code>string</code>, default <code>'ts'</code></dt>
+<dd>Name of the column which corresponds to the timestamp in the
+dataframe.</dd>
+<dt><strong><code>data_type</code></strong> :&ensp;<code>string</code>, default <code>'PyTorch'</code></dt>
+<dd>Indication of what kind of output data type is desired. In case it's
+set as 'NumPy', the function outputs a NumPy array. If it's 'PyTorch',
+the function outputs a PyTorch tensor.</dd>
+<dt><strong><code>padding_value</code></strong> :&ensp;<code>numeric</code></dt>
+<dd>Value to use in the padding, to fill the sequences.</dd>
+<dt><strong><code>cat_feat</code></strong> :&ensp;<code>string</code> or <code>list</code> of <code>strings</code>, default <code>None</code></dt>
+<dd>Name(s) of the categorical encoded feature(s) which will have their
+semicolon separators converted into its binary ASCII code. If not
+specified, the method will look through all columns, processing
+the ones that might have semicolons.</dd>
+<dt><strong><code>inplace</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>If set to True, the original dataframe will be used and modified
+directly. Otherwise, a copy will be created and returned, without
+changing the original dataframe.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>arr</code></strong> :&ensp;<code>torch.Tensor</code> or <code>numpy.ndarray</code></dt>
+<dd>PyTorch tensor or NumPy array version of the dataframe, after being
+padded with the specified padding value to have a fixed sequence
+length.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column=&#39;subject_id&#39;, 
+                               ts_column=&#39;ts&#39;, data_type=&#39;PyTorch&#39;, 
+                               padding_value=999999, cat_feat=None, 
+                               inplace=False):
+    &#39;&#39;&#39;Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Data in a Pandas dataframe format which will be padded and converted
+        to the requested data type.
+    seq_len_dict : dictionary, default None
+        Dictionary containing the original sequence lengths of the dataframe.
+        The keys should be the sequence identifiers (the numbers obtained from
+        the id_column) and the values should be the length of each sequence.
+    id_column : string, default &#39;subject_id&#39;
+        Name of the column which corresponds to the subject identifier in the
+        dataframe.
+    ts_column : string, default &#39;ts&#39;
+        Name of the column which corresponds to the timestamp in the
+        dataframe.
+    data_type : string, default &#39;PyTorch&#39;
+        Indication of what kind of output data type is desired. In case it&#39;s
+        set as &#39;NumPy&#39;, the function outputs a NumPy array. If it&#39;s &#39;PyTorch&#39;,
+        the function outputs a PyTorch tensor.
+    padding_value : numeric
+        Value to use in the padding, to fill the sequences.
+    cat_feat : string or list of strings, default None
+        Name(s) of the categorical encoded feature(s) which will have their
+        semicolon separators converted into its binary ASCII code. If not
+        specified, the method will look through all columns, processing
+        the ones that might have semicolons.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
+
+    Returns
+    -------
+    arr : torch.Tensor or numpy.ndarray
+        PyTorch tensor or NumPy array version of the dataframe, after being
+        padded with the specified padding value to have a fixed sequence
+        length.
+    &#39;&#39;&#39;
+    # Make sure that all possible categorical encoded columns are in numeric format
+    data_df = embedding.string_encod_to_numeric(df, cat_feat=cat_feat, inplace=inplace)
+    if seq_len_dict is None:
+        # Find the sequence lengths and store them in a dictionary
+        seq_len_dict = get_sequence_length_dict(data_df, id_column, ts_column)
+    # Fetch the number of unique sequence IDs
+    n_ids = data_df[id_column].nunique()
+    if isinstance(df, dd.DataFrame):
+        # Make sure that the number of unique values are computed, in case we&#39;re using Dask
+        n_ids = n_ids.compute()
+    # Get the number of columns in the dataframe
+    n_inputs = len(data_df.columns)
+    # Max sequence length (e.g. patient with the most temporal events)
+    max_seq_len = seq_len_dict[max(seq_len_dict, key=seq_len_dict.get)]
+    # Making a padded numpy array version of the dataframe (all index has the same sequence length as the one with the max)
+    arr = np.ones((n_ids, max_seq_len, n_inputs)) * padding_value
+    # Iterator that outputs each unique identifier (e.g. each patient in the dataset)
+    id_iter = iter(data_df[id_column].unique())
+    # Count the iterations of ids
+    count = 0
+    # Assign each value from the dataframe to the numpy array
+    for idt in id_iter:
+        arr[count, :seq_len_dict[idt], :] = data_df[data_df[id_column] == idt].to_numpy()
+        arr[count, seq_len_dict[idt]:, :] = padding_value
+        count += 1
+    # Make sure that the data type asked for is a string
+    if not isinstance(data_type, str):
+        raise Exception(&#39;ERROR: Please provide the desirable data type in a string format.&#39;)
+    if data_type.lower() == &#39;numpy&#39;:
+        return arr
+    elif data_type.lower() == &#39;pytorch&#39;:
+        return torch.from_numpy(arr)
+    else:
+        raise Exception(&#39;ERROR: Unavailable data type. Please choose either NumPy or PyTorch.&#39;)</code></pre>
+</details>
+</dd>
+<dt id="data_utils.padding.get_sequence_length_dict"><code class="name flex">
+<span>def <span class="ident">get_sequence_length_dict</span></span>(<span>df, id_column='subject_id', ts_column='ts')</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
+<dd>Data in a Pandas dataframe format which will be padded and converted
+to the requested data type.</dd>
+<dt><strong><code>id_column</code></strong> :&ensp;<code>string</code>, default <code>'subject_id'</code></dt>
+<dd>Name of the column which corresponds to the subject identifier in the
+dataframe.</dd>
+<dt><strong><code>ts_column</code></strong> :&ensp;<code>string</code>, default <code>'ts'</code></dt>
+<dd>Name of the column which corresponds to the timestamp in the
+dataframe.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>seq_len_dict</code></strong> :&ensp;<code>dictionary</code>, default <code>None</code></dt>
+<dd>Dictionary containing the original sequence lengths of the dataframe.
+The keys should be the sequence identifiers (the numbers obtained from
+the id_column) and the values should be the length of each sequence.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_sequence_length_dict(df, id_column=&#39;subject_id&#39;, ts_column=&#39;ts&#39;):
+    &#39;&#39;&#39;Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Data in a Pandas dataframe format which will be padded and converted
+        to the requested data type.
+    id_column : string, default &#39;subject_id&#39;
+        Name of the column which corresponds to the subject identifier in the
+        dataframe.
+    ts_column : string, default &#39;ts&#39;
+        Name of the column which corresponds to the timestamp in the
+        dataframe.
+
+    Returns
+    -------
+    seq_len_dict : dictionary, default None
+        Dictionary containing the original sequence lengths of the dataframe.
+        The keys should be the sequence identifiers (the numbers obtained from
+        the id_column) and the values should be the length of each sequence.
+    &#39;&#39;&#39;
+    # Dictionary containing the sequence length (number of temporal events) of each sequence (patient)
+    seq_len_df = df.groupby(id_column)[ts_column].count().to_frame().sort_values(by=ts_column, ascending=False)
+    seq_len_dict = dict([(idx, val[0]) for idx, val in list(zip(seq_len_df.index, seq_len_df.values))])
+    return seq_len_dict</code></pre>
+</details>
+</dd>
+<dt id="data_utils.padding.pad_list"><code class="name flex">
+<span>def <span class="ident">pad_list</span></span>(<span>x_list, length, padding_value=999999)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Pad a list with a specific padding value until the desired length is
+met.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>x_list</code></strong> :&ensp;<code>list</code></dt>
+<dd>List which will be padded.</dd>
+<dt><strong><code>length</code></strong> :&ensp;<code>int</code></dt>
+<dd>Desired length for the final padded list.</dd>
+<dt><strong><code>padding_value</code></strong> :&ensp;<code>numeric</code></dt>
+<dd>Value to use in the padding, to fill the sequences.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>x_list</code></strong> :&ensp;<code>list</code></dt>
+<dd>Resulting padded list</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pad_list(x_list, length, padding_value=999999):
+    &#39;&#39;&#39;Pad a list with a specific padding value until the desired length is
+    met.
+
+    Parameters
+    ----------
+    x_list : list
+        List which will be padded.
+    length : int
+        Desired length for the final padded list.
+    padding_value : numeric
+        Value to use in the padding, to fill the sequences.
+
+    Returns
+    -------
+    x_list : list
+        Resulting padded list&#39;&#39;&#39;
+    return x_list + [padding_value] * (length - len(x_list))</code></pre>
+</details>
+</dd>
+<dt id="data_utils.padding.sort_by_seq_len"><code class="name flex">
+<span>def <span class="ident">sort_by_seq_len</span></span>(<span>data, seq_len_dict, labels=None, id_column=0)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Sort the data by sequence length in order to correctly apply it to a
+PyTorch neural network.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>Data tensor on which sorting by sequence length will be applied.</dd>
+<dt><strong><code>seq_len_dict</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary containing the sequence lengths for each index of the
+original dataframe. This allows to ignore the padding done in
+the fixed sequence length tensor.</dd>
+<dt><strong><code>labels</code></strong> :&ensp;<code>torch.Tensor</code>, default <code>None</code></dt>
+<dd>Labels corresponding to the data used, either specified in the input
+or all the data that the interpreter has.</dd>
+<dt><strong><code>id_column</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dd>Number of the column which corresponds to the subject identifier in
+the data tensor.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>sorted_data</code></strong> :&ensp;<code>torch.Tensor</code>, default <code>None</code></dt>
+<dd>Data tensor already sorted by sequence length.</dd>
+<dt><strong><code>sorted_labels</code></strong> :&ensp;<code>torch.Tensor</code>, default <code>None</code></dt>
+<dd>Labels tensor already sorted by sequence length. Only outputed if the
+labels data is specified in the input.</dd>
+<dt><strong><code>x_lengths</code></strong> :&ensp;<code>list</code> of <code>int</code></dt>
+<dd>Sorted list of sequence lengths, relative to the input data.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sort_by_seq_len(data, seq_len_dict, labels=None, id_column=0):
+    &#39;&#39;&#39;Sort the data by sequence length in order to correctly apply it to a
+    PyTorch neural network.
+
+    Parameters
+    ----------
+    data : torch.Tensor
+        Data tensor on which sorting by sequence length will be applied.
+    seq_len_dict : dict
+        Dictionary containing the sequence lengths for each index of the
+        original dataframe. This allows to ignore the padding done in
+        the fixed sequence length tensor.
+    labels : torch.Tensor, default None
+        Labels corresponding to the data used, either specified in the input
+        or all the data that the interpreter has.
+    id_column : int, default 0
+        Number of the column which corresponds to the subject identifier in
+        the data tensor.
+
+    Returns
+    -------
+    sorted_data : torch.Tensor, default None
+        Data tensor already sorted by sequence length.
+    sorted_labels : torch.Tensor, default None
+        Labels tensor already sorted by sequence length. Only outputed if the
+        labels data is specified in the input.
+    x_lengths : list of int
+        Sorted list of sequence lengths, relative to the input data.
+    &#39;&#39;&#39;
+    # Get the original lengths of the sequences, for the input data
+    x_lengths = [seq_len_dict[id] for id in list(data[:, 0, id_column].numpy())]
+    is_sorted = all(x_lengths[i] &gt;= x_lengths[i+1] for i in range(len(x_lengths)-1))
+    if is_sorted is True:
+        # Do nothing if it&#39;s already sorted
+        sorted_data = data
+        sorted_labels = labels
+    else:
+        # Sorted indeces to get the data sorted by sequence length
+        data_sorted_idx = list(np.argsort(x_lengths)[::-1])
+        # Sort the x_lengths array by descending sequence length
+        x_lengths = [x_lengths[idx] for idx in data_sorted_idx]
+        # Sort the data by descending sequence length
+        sorted_data = data[data_sorted_idx, :, :]
+        if labels is not None:
+            # Sort the labels by descending sequence length
+            sorted_labels = labels[data_sorted_idx, :]
+    if labels is None:
+        return sorted_data, x_lengths
+    else:
+        return sorted_data, sorted_labels,  x_lengths</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="data_utils" href="index.html">data_utils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="data_utils.padding.dataframe_to_padded_tensor" href="#data_utils.padding.dataframe_to_padded_tensor">dataframe_to_padded_tensor</a></code></li>
+<li><code><a title="data_utils.padding.get_sequence_length_dict" href="#data_utils.padding.get_sequence_length_dict">get_sequence_length_dict</a></code></li>
+<li><code><a title="data_utils.padding.pad_list" href="#data_utils.padding.pad_list">pad_list</a></code></li>
+<li><code><a title="data_utils.padding.sort_by_seq_len" href="#data_utils.padding.sort_by_seq_len">sort_by_seq_len</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

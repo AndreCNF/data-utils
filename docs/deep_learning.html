@@ -1,0 +1,1637 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.7.2" />
+<title>data_utils.deep_learning API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>data_utils.deep_learning</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from comet_ml import Experiment                         # Comet.ml can log training metrics, parameters, do version control and parameter optimization
+import torch                                            # PyTorch to create and apply deep learning models
+import numpy as np                                      # NumPy to handle numeric and NaN operations
+import warnings                                         # Print warnings for bad practices
+from datetime import datetime                           # datetime to use proper date and time formats
+import sys                                              # Identify types of exceptions
+import inspect                                          # Inspect methods and their arguments
+from sklearn.metrics import roc_auc_score               # ROC AUC model performance metric
+from . import utils                                     # Generic and useful methods
+from . import padding                                   # Padding and variable sequence length related methods
+import data_utils as du
+
+# Ignore Dask&#39;s &#39;meta&#39; warning
+warnings.filterwarnings(&#39;ignore&#39;, message=&#39;`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.&#39;)
+
+# Methods
+
+def remove_tensor_column(data, col_idx, inplace=False):
+    &#39;&#39;&#39;Remove a column(s) from a PyTorch tensor.
+
+    Parameters
+    ----------
+    data : torch.Tensor
+        Data tensor that contains the column(s) that will be removed.
+    col_idx : int or list of int
+        Index (or indices) or the column(s) to remove.
+    inplace : bool, default False
+        If set to True, the original tensor will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original tensor.
+
+    Returns
+    -------
+    data : torch.Tensor
+        Data tensor with the undesired column(s) removed.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_tensor = data.clone()
+    else:
+        # Use the original dataframe
+        data_tensor = data
+    if isinstance(col_idx, int):
+        # Turn the column index into a list, for ease of coding
+        col_idx = [col_idx]
+    if not isinstance(col_idx, list):
+        raise Exception(f&#39;ERROR: The `col_idx` parameter must either specify a \
+                          single int of a column to remove or a list of ints in the \
+                          case of multiple columns to remove. Received input `col_idx` \
+                          of type {type(col_idx)}.&#39;)
+    for col in col_idx:
+        # Make a list of the indices of the columns that we want to keep, 
+        # without the unwanted one
+        columns_to_keep = list(range(col)) + list(range(col + 1, data_tensor.shape[-1]))
+        # Remove the current column
+        if len(data_tensor.shape) == 2:
+            data_tensor = data_tensor[:, columns_to_keep]
+        elif len(data_tensor.shape) == 3:
+            data_tensor = data_tensor[:, :, columns_to_keep]
+        else:
+            raise Exception(f&#39;ERROR: Currently only supporting either 2D or 3D data. \
+                              Received data tensor with {len(data_tensor.shape)} dimensions.&#39;)
+    return data_tensor
+
+
+def load_checkpoint(filepath, Model, *args):
+    &#39;&#39;&#39;Load a model from a specified path and name.
+
+    Parameters
+    ----------
+    filepath : str
+        Path to the model being loaded, including it&#39;s own file name.
+    Model : torch.nn.Module (any deep learning model)
+        Class constructor for the desired deep learning model.
+    args : list of str
+        Names of the neural network&#39;s parameters that need to be
+        loaded.
+
+    Returns
+    -------
+    model : nn.Module
+        The loaded model with saved weight values.
+    &#39;&#39;&#39;
+    # Load the saved data
+    checkpoint = torch.load(filepath)
+    # Retrieve the parameters&#39; values and integrate them in
+    # a dictionary
+    params = dict(zip(args, [checkpoint[param] for param in args]))
+    # Create a model with the saved parameters
+    model = Model(params)
+    model.load_state_dict(checkpoint[&#39;state_dict&#39;])
+    return model
+
+
+def change_grad(grad, data, min=0, max=1):
+    &#39;&#39;&#39;Restrict the gradients to only have valid values.
+
+    Parameters
+    ----------
+    grad : torch.Tensor
+        PyTorch tensor containing the gradients of the data being optimized.
+    data : torch.Tensor
+        PyTorch tensor containing the data being optimized.
+    min : int, default 0
+        Minimum valid data value.
+    max : int, default 0
+        Maximum valid data value.
+
+    Returns
+    -------
+    grad : torch.Tensor
+        PyTorch tensor containing the corrected gradients of the data being
+        optimized.
+    &#39;&#39;&#39;
+    # Minimum accepted gradient value to be considered
+    min_grad_val = 0.001
+
+    for i in range(data.shape[0]):
+        if (data[i] == min and grad[i] &lt; 0) or (data[i] == max and grad[i] &gt; 0):
+            # Stop the gradient from excedding the limit
+            grad[i] = 0
+        elif data[i] == min and grad[i] &gt; min_grad_val:
+            # Make the gradient have a integer value
+            grad[i] = 1
+        elif data[i] == max and grad[i] &lt; -min_grad_val:
+            # Make the gradient have a integer value
+            grad[i] = -1
+        else:
+            # Avoid any insignificant gradient
+            grad[i] = 0
+
+    return grad
+
+
+def ts_tensor_to_np_matrix(data, feat_num=None, padding_value=999999):
+    &#39;&#39;&#39;Convert a 3D PyTorch tensor, such as one representing multiple time series
+    data, into a 2D NumPy matrix. Can be useful for applying the SHAP Kernel
+    Explainer.
+
+    Parameters
+    ----------
+    data : torch.Tensor
+        PyTorch tensor containing the three dimensional data being converted.
+    feat_num : list of int, default None
+        List of the column numbers that represent the features. If not specified,
+        all columns will be used.
+    padding_value : numeric
+        Value to use in the padding, to fill the sequences.
+
+    Returns
+    -------
+    data_matrix : numpy.ndarray
+        NumPy two dimensional matrix obtained from the data after conversion.
+    &#39;&#39;&#39;
+    # View as a single sequence, i.e. like a dataframe without grouping by id
+    data_matrix = data.contiguous().view(-1, data.shape[2]).detach().numpy()
+    # Remove rows that are filled with padding values
+    if feat_num is not None:
+        data_matrix = data_matrix[[not all(row == padding_value) for row in data_matrix[:, feat_num]]]
+    else:
+        data_matrix = data_matrix[[not all(row == padding_value) for row in data_matrix]]
+    return data_matrix
+
+
+def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=[&#39;loss&#39;, &#39;accuracy&#39;, &#39;AUC&#39;],
+                    padding_value=999999, output_rounded=False, experiment=None, set_name=&#39;test&#39;,
+                    seq_final_outputs=False, cols_to_remove=[0, 1]):
+    &#39;&#39;&#39;Do inference on specified data using a given model.
+
+    Parameters
+    ----------
+    model : torch.nn.Module
+        Neural network model which does the inference on the data.
+    seq_len_dict : dict
+        Dictionary containing the sequence lengths for each index of the
+        original dataframe. This allows to ignore the padding done in
+        the fixed sequence length tensor.
+    dataloader : torch.utils.data.DataLoader, default None
+        Data loader which will be used to get data batches during inference.
+    data : tuple of torch.Tensor, default None
+        If a data loader isn&#39;t specified, the user can input directly a
+        tuple of PyTorch tensor on which inference will be done. The first
+        tensor must correspond to the features tensor whe second one
+        should be the labels tensor.
+    metrics : list of strings, default [&#39;loss&#39;, &#39;accuracy&#39;, &#39;AUC&#39;],
+        List of metrics to be used to evaluate the model on the infered data.
+        Available metrics are cross entropy loss (loss), accuracy, AUC
+        (Receiver Operating Curve Area Under the Curve), precision, recall
+        and F1.
+    padding_value : numeric
+        Value to use in the padding, to fill the sequences.
+    output_rounded : bool, default False
+        If True, the output is rounded, to represent the class assigned by
+        the model, instead of just probabilities (&gt;= 0.5 rounded to 1,
+        otherwise it&#39;s 0)
+    experiment : comet_ml.Experiment, default None
+        Represents a connection to a Comet.ml experiment to which the
+        metrics performance is uploaded, if specified.
+    set_name : str
+        Defines what name to give to the set when uploading the metrics
+        values to the specified Comet.ml experiment.
+    seq_final_outputs : bool, default False
+        If set to true, the function only returns the ouputs given at each
+        sequence&#39;s end.
+    cols_to_remove : list of ints, default [0, 1]
+        List of indeces of columns to remove from the features before feeding to
+        the model. This tend to be the identifier columns, such as subject_id
+        and ts (timestamp).
+
+    Returns
+    -------
+    output : torch.Tensor
+        Contains the output scores (or classes, if output_rounded is set to
+        True) for all of the input data.
+    metrics_vals : dict of floats
+        Dictionary containing the calculated performance on each of the
+        specified metrics.
+    &#39;&#39;&#39;
+    # Guarantee that the model is in evaluation mode, so as to deactivate dropout
+    model.eval()
+
+    # Create an empty dictionary with all the possible metrics
+    metrics_vals = {&#39;loss&#39;: None,
+                    &#39;accuracy&#39;: None,
+                    &#39;AUC&#39;: None,
+                    &#39;precision&#39;: None,
+                    &#39;recall&#39;: None,
+                    &#39;F1&#39;: None}
+
+    # Initialize the metrics
+    if &#39;loss&#39; in metrics:
+        loss = 0
+    if &#39;accuracy&#39; in metrics:
+        acc = 0
+    if &#39;AUC&#39; in metrics:
+        auc = 0
+    if &#39;precision&#39; in metrics:
+        prec = 0
+    if &#39;recall&#39; in metrics:
+        rcl = 0
+    if &#39;F1&#39; in metrics:
+        f1_score = 0
+
+    # Check if the user wants to do inference directly on a PyTorch tensor
+    if dataloader is None and data is not None:
+        features, labels = data[0].float(), data[1].float()             # Make the data have type float instead of double, as it would cause problems
+        features, labels, x_lengths = padding.sort_by_seq_len(features, seq_len_dict, labels) # Sort the data by sequence length
+
+        # Remove unwanted columns from the data
+        features_idx = list(range(features.shape[2]))
+        [features_idx.remove(column) for column in cols_to_remove]
+        features = features[:, :, features_idx]
+        scores = model.forward(features, x_lengths)                     # Feedforward the data through the model
+
+        # Adjust the labels so that it gets the exact same shape as the predictions
+        # (i.e. sequence length = max sequence length of the current batch, not the max of all the data)
+        labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
+        labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
+
+        mask = (labels &lt;= 1).view_as(scores)                            # Create a mask by filtering out all labels that are not a padding value
+        unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask) # Completely remove the padded values from the labels using the mask
+        unpadded_scores = torch.masked_select(scores, mask)             # Completely remove the padded values from the scores using the mask
+        pred = torch.round(unpadded_scores)                             # Get the predictions
+
+        if output_rounded is True:
+            # Get the predicted classes
+            output = pred.int()
+        else:
+            # Get the model scores (class probabilities)
+            output = unpadded_scores
+
+        if seq_final_outputs is True:
+            # Only get the outputs retrieved at the sequences&#39; end
+            # Cumulative sequence lengths
+            final_seq_idx = np.cumsum(x_lengths) - 1
+
+            # Get the outputs of the last instances of each sequence
+            output = output[final_seq_idx]
+
+        if any(mtrc in metrics for mtrc in [&#39;precision&#39;, &#39;recall&#39;, &#39;F1&#39;]):
+            # Calculate the number of true positives, false negatives, true negatives and false positives
+            true_pos = int(sum(torch.masked_select(pred, unpadded_labels.bool())))
+            false_neg = int(sum(torch.masked_select(pred == 0, unpadded_labels.bool())))
+            true_neg = int(sum(torch.masked_select(pred == 0, (unpadded_labels == 0).bool())))
+            false_pos = int(sum(torch.masked_select(pred, (unpadded_labels == 0).bool())))
+
+        if &#39;loss&#39; in metrics:
+            metrics_vals[&#39;loss&#39;] = model.loss(scores, labels, x_lengths).item() # Add the loss of the current batch
+        if &#39;accuracy&#39; in metrics:
+            correct_pred = pred == unpadded_labels                          # Get the correct predictions
+            metrics_vals[&#39;accuracy&#39;] = torch.mean(correct_pred.type(torch.FloatTensor)).item() # Add the accuracy of the current batch, ignoring all padding values
+        if &#39;AUC&#39; in metrics:
+            metrics_vals[&#39;AUC&#39;] = roc_auc_score(unpadded_labels.numpy(), unpadded_scores.detach().numpy()) # Add the ROC AUC of the current batch
+        if &#39;precision&#39; in metrics:
+            curr_prec = true_pos / (true_pos + false_pos)
+            metrics_vals[&#39;precision&#39;] = curr_prec                           # Add the precision of the current batch
+        if &#39;recall&#39; in metrics:
+            curr_rcl = true_pos / (true_pos + false_neg)
+            metrics_vals[&#39;recall&#39;] = curr_rcl                               # Add the recall of the current batch
+        if &#39;F1&#39; in metrics:
+            # Check if precision has not yet been calculated
+            if &#39;curr_prec&#39; not in locals():
+                curr_prec = true_pos / (true_pos + false_pos)
+            # Check if recall has not yet been calculated
+            if &#39;curr_rcl&#39; not in locals():
+                curr_rcl = true_pos / (true_pos + false_neg)
+            metrics_vals[&#39;F1&#39;] = 2 * curr_prec * curr_rcl / (curr_prec + curr_rcl) # Add the F1 score of the current batch
+
+        return output, metrics_vals
+
+    # Initialize the output
+    output = torch.tensor([]).int()
+
+    # Evaluate the model on the set
+    for features, labels in dataloader:
+        # Turn off gradients, saves memory and computations
+        with torch.no_grad():
+            features, labels = features.float(), labels.float()             # Make the data have type float instead of double, as it would cause problems
+            features, labels, x_lengths = padding.sort_by_seq_len(features, seq_len_dict, labels) # Sort the data by sequence length
+
+            # Remove unwanted columns from the data
+            features_idx = list(range(features.shape[2]))
+            [features_idx.remove(column) for column in cols_to_remove]
+            features = features[:, :, features_idx]
+            scores = model.forward(features, x_lengths)                     # Feedforward the data through the model
+
+            # Adjust the labels so that it gets the exact same shape as the predictions
+            # (i.e. sequence length = max sequence length of the current batch, not the max of all the data)
+            labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
+            labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
+
+            mask = (labels &lt;= 1).view_as(scores)                            # Create a mask by filtering out all labels that are not a padding value
+            unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask) # Completely remove the padded values from the labels using the mask
+            unpadded_scores = torch.masked_select(scores, mask)             # Completely remove the padded values from the scores using the mask
+            pred = torch.round(unpadded_scores)                             # Get the predictions
+
+            if output_rounded is True:
+                # Get the predicted classes
+                output = torch.cat([output, pred.int()])
+            else:
+                # Get the model scores (class probabilities)
+                output = torch.cat([output.float(), unpadded_scores])
+
+            if seq_final_outputs is True:
+                # Indeces at the end of each sequence
+                final_seq_idx = [n_subject*features.shape[1]+x_lengths[n_subject]-1 for n_subject in range(features.shape[0])]
+
+                # Get the outputs of the last instances of each sequence
+                output = output[final_seq_idx]
+
+            if any(mtrc in metrics for mtrc in [&#39;precision&#39;, &#39;recall&#39;, &#39;F1&#39;]):
+                # Calculate the number of true positives, false negatives, true negatives and false positives
+                true_pos = int(sum(torch.masked_select(pred, unpadded_labels.bool())))
+                false_neg = int(sum(torch.masked_select(pred == 0, unpadded_labels.bool())))
+                true_neg = int(sum(torch.masked_select(pred == 0, (unpadded_labels == 0).bool())))
+                false_pos = int(sum(torch.masked_select(pred, (unpadded_labels == 0).bool())))
+
+            if &#39;loss&#39; in metrics:
+                loss += model.loss(scores, labels, x_lengths)               # Add the loss of the current batch
+            if &#39;accuracy&#39; in metrics:
+                correct_pred = pred == unpadded_labels                      # Get the correct predictions
+                acc += torch.mean(correct_pred.type(torch.FloatTensor))     # Add the accuracy of the current batch, ignoring all padding values
+            if &#39;AUC&#39; in metrics:
+                auc += roc_auc_score(unpadded_labels.numpy(), unpadded_scores.detach().numpy()) # Add the ROC AUC of the current batch
+            if &#39;precision&#39; in metrics:
+                curr_prec = true_pos / (true_pos + false_pos)
+                prec += curr_prec                                           # Add the precision of the current batch
+            if &#39;recall&#39; in metrics:
+                curr_rcl = true_pos / (true_pos + false_neg)
+                rcl += curr_rcl                                             # Add the recall of the current batch
+            if &#39;F1&#39; in metrics:
+                # Check if precision has not yet been calculated
+                if &#39;curr_prec&#39; not in locals():
+                    curr_prec = true_pos / (true_pos + false_pos)
+                # Check if recall has not yet been calculated
+                if &#39;curr_rcl&#39; not in locals():
+                    curr_rcl = true_pos / (true_pos + false_neg)
+                f1_score += 2 * curr_prec * curr_rcl / (curr_prec + curr_rcl) # Add the F1 score of the current batch
+
+    # Calculate the average of the metrics over the batches
+    if &#39;loss&#39; in metrics:
+        metrics_vals[&#39;loss&#39;] = loss / len(dataloader)
+        metrics_vals[&#39;loss&#39;] = metrics_vals[&#39;loss&#39;].item()                  # Get just the value, not a tensor
+    if &#39;accuracy&#39; in metrics:
+        metrics_vals[&#39;accuracy&#39;] = acc / len(dataloader)
+        metrics_vals[&#39;accuracy&#39;] = metrics_vals[&#39;accuracy&#39;].item()          # Get just the value, not a tensor
+    if &#39;AUC&#39; in metrics:
+        metrics_vals[&#39;AUC&#39;] = auc / len(dataloader)
+    if &#39;precision&#39; in metrics:
+        metrics_vals[&#39;precision&#39;] = prec / len(dataloader)
+    if &#39;recall&#39; in metrics:
+        metrics_vals[&#39;recall&#39;] = rcl / len(dataloader)
+    if &#39;F1&#39; in metrics:
+        metrics_vals[&#39;F1&#39;] = f1_score / len(dataloader)
+
+    if experiment is not None:
+        # Log metrics to Comet.ml
+        if &#39;loss&#39; in metrics:
+            experiment.log_metric(f&#39;{set_name}_loss&#39;, metrics_vals[&#39;loss&#39;])
+        if &#39;accuracy&#39; in metrics:
+            experiment.log_metric(f&#39;{set_name}_acc&#39;, metrics_vals[&#39;accuracy&#39;])
+        if &#39;AUC&#39; in metrics:
+            experiment.log_metric(f&#39;{set_name}_auc&#39;, metrics_vals[&#39;AUC&#39;])
+        if &#39;precision&#39; in metrics:
+            experiment.log_metric(f&#39;{set_name}_prec&#39;, metrics_vals[&#39;precision&#39;])
+        if &#39;recall&#39; in metrics:
+            experiment.log_metric(f&#39;{set_name}_rcl&#39;, metrics_vals[&#39;recall&#39;])
+        if &#39;F1&#39; in metrics:
+            experiment.log_metric(f&#39;{set_name}_f1_score&#39;, metrics_vals[&#39;F1&#39;])
+
+    return output, metrics_vals
+
+
+def train(model, train_dataloader, val_dataloader, seq_len_dict, test_dataloader=None,
+          batch_size=32, n_epochs=50, lr=0.001, model_path=&#39;models/&#39;,
+          ModelClass=None, padding_value=999999, do_test=True, log_comet_ml=False,
+          comet_ml_api_key=None, comet_ml_project_name=None,
+          comet_ml_workspace=None, comet_ml_save_model=False, experiment=None,
+          features_list=None, get_val_loss_min=False):
+    &#39;&#39;&#39;Trains a given model on the provided data.
+
+    Parameters
+    ----------
+    model : torch.nn.Module
+        Neural network model which is trained on the data to perform a
+        classification task.
+    train_dataloader : torch.utils.data.DataLoader
+        Data loader which will be used to get data batches during training.
+    val_dataloader : torch.utils.data.DataLoader
+        Data loader which will be used to get data batches when evaluating
+        the model&#39;s performance on a validation set during training.
+    test_dataloader : torch.utils.data.DataLoader, default None
+        Data loader which will be used to get data batches whe evaluating
+        the model&#39;s performance on a test set, after finishing the
+        training process.
+    seq_len_dict : dict
+        Dictionary containing the sequence lengths for each index of the
+        original dataframe. This allows to ignore the padding done in
+        the fixed sequence length tensor.
+    batch_size : int, default 32
+        Defines the batch size, i.e. the number of samples used in each
+        training iteration to update the model&#39;s weights.
+    n_epochs : int, default 50
+        Number of epochs, i.e. the number of times the training loop
+        iterates through all of the training data.
+    lr : float, default 0.001
+        Learning rate used in the optimization algorithm.
+    model_path : string, default &#39;models/&#39;
+        Path where the model will be saved. By default, it saves in
+        the directory named &#34;models&#34;.
+    ModelClass : object, default None
+        Sets the class which corresponds to the machine learning 
+        model type. It will be needed if test inference is 
+        performed (do_test set to True), as we need to know
+        the model type so as to load the best scored model.
+    padding_value : numeric, default 999999
+        Value to use in the padding, to fill the sequences.
+    do_test : bool, default True
+        If true, evaluates the model on the test set, after completing
+        the training.
+    log_comet_ml : bool, default False
+        If true, makes the code upload a training report and metrics
+        to comet.ml, a online platform which allows for a detailed
+        version control for machine learning models.
+    comet_ml_api_key : string, default None
+        Comet.ml API key used when logging data to the platform.
+    comet_ml_project_name : string, default None
+        Name of the comet.ml project used when logging data to the
+        platform.
+    comet_ml_workspace : string, default None
+        Name of the comet.ml workspace used when logging data to the
+        platform.
+    comet_ml_save_model : bool, default False
+        If set to true, uploads the model with the lowest validation loss
+        to comet.ml when logging data to the platform.
+    experiment : comet_ml.Experiment, default None
+        Defines an already existing Comet.ml experiment object to be used in the
+        training. If not defined (None), a new experiment is created inside the
+        method. In any case, a Comet.ml experiment is only used if log_comet_ml
+        is set to True and the remaining necessary Comet.ml related parameters
+        (comet_ml_api_key, comet_ml_project_name, comet_ml_workspace) are
+        properly set up.
+    features_list : list of strings, default None
+        Names of the features being used in the current pipeline. This
+        will be logged to comet.ml, if activated, in order to have a
+        more detailed version control.
+    get_val_loss_min : bool, default False
+        If set to True, besides returning the trained model, the method also
+        returns the minimum validation loss found during training.
+
+    Returns
+    -------
+    model : nn.Module
+        The same input model but with optimized weight values.
+    val_loss_min : float
+        If get_val_loss_min is set to True, the method also returns the minimum
+        validation loss found during training.
+    &#39;&#39;&#39;
+    # Register all the hyperparameters
+    model_args = inspect.getfullargspec(model.__init__).args[1:]
+    hyper_params = dict([(param, getattr(model, param))
+                         for param in model_args])
+    hyper_params.update({&#34;batch_size&#34;: batch_size,
+                         &#34;n_epochs&#34;: n_epochs,
+                         &#34;learning_rate&#34;: lr,
+                         &#34;random_seed&#34;: du.random_seed})
+    if log_comet_ml is True:
+        if experiment is None:
+            # Create a new Comet.ml experiment
+            experiment = Experiment(api_key=comet_ml_api_key, project_name=comet_ml_project_name, workspace=comet_ml_workspace)
+        experiment.log_other(&#34;completed&#34;, False)
+        experiment.log_other(&#34;random_seed&#34;, du.random_seed)
+        # Report hyperparameters to Comet.ml
+        experiment.log_parameters(hyper_params)
+        if features_list is not None:
+            # Log the names of the features being used
+            experiment.log_other(&#34;features_list&#34;, features_list)
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)                 # Adam optimization algorithm
+    step = 0                                                                # Number of iteration steps done so far
+    print_every = 10                                                        # Steps interval where the metrics are printed
+    train_on_gpu = torch.cuda.is_available()                                # Check if GPU is available
+    val_loss_min = np.inf                                                   # Start with an infinitely big minimum validation loss
+
+    for epoch in range(1, n_epochs+1):
+        # Initialize the training metrics
+        train_loss = 0
+        train_acc = 0
+        train_auc = 0
+
+        try:
+            # Loop through the training data
+            for features, labels in train_dataloader:
+                model.train()                                                   # Activate dropout to train the model
+                optimizer.zero_grad()                                           # Clear the gradients of all optimized variables
+
+                if train_on_gpu is True:
+                    features, labels = features.cuda(), labels.cuda()           # Move data to GPU
+
+                features, labels = features.float(), labels.float()             # Make the data have type float instead of double, as it would cause problems
+                features, labels, x_lengths = padding.sort_by_seq_len(features, seq_len_dict, labels) # Sort the data by sequence length
+                scores = model.forward(features[:, :, 2:], x_lengths)           # Feedforward the data through the model
+                                                                                # (the 2 is there to avoid using the identifier features in the predictions)
+
+                # Adjust the labels so that it gets the exact same shape as the predictions
+                # (i.e. sequence length = max sequence length of the current batch, not the max of all the data)
+                labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
+                labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
+
+                loss = model.loss(scores, labels, x_lengths)                    # Calculate the cross entropy loss
+                loss.backward()                                                 # Backpropagate the loss
+                optimizer.step()                                                # Update the model&#39;s weights
+                train_loss += loss                                              # Add the training loss of the current batch
+                mask = (labels &lt;= 1).view_as(scores)                            # Create a mask by filtering out all labels that are not a padding value
+                unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask) # Completely remove the padded values from the labels using the mask
+                unpadded_scores = torch.masked_select(scores, mask)             # Completely remove the padded values from the scores using the mask
+                pred = torch.round(unpadded_scores)                             # Get the predictions
+                correct_pred = pred == unpadded_labels                          # Get the correct predictions
+                train_acc += torch.mean(correct_pred.type(torch.FloatTensor))   # Add the training accuracy of the current batch, ignoring all padding values
+                train_auc += roc_auc_score(unpadded_labels.numpy(), unpadded_scores.detach().numpy()) # Add the training ROC AUC of the current batch
+                step += 1                                                       # Count one more iteration step
+                model.eval()                                                    # Deactivate dropout to test the model
+
+                # Initialize the validation metrics
+                val_loss = 0
+                val_acc = 0
+                val_auc = 0
+
+                # Loop through the validation data
+                for features, labels in val_dataloader:
+                    # Turn off gradients for validation, saves memory and computations
+                    with torch.no_grad():
+                        features, labels = features.float(), labels.float()             # Make the data have type float instead of double, as it would cause problems
+                        features, labels, x_lengths = padding.sort_by_seq_len(features, seq_len_dict, labels) # Sort the data by sequence length
+                        scores = model.forward(features[:, :, 2:], x_lengths)           # Feedforward the data through the model
+                                                                                        # (the 2 is there to avoid using the identifier features in the predictions)
+
+                        # Adjust the labels so that it gets the exact same shape as the predictions
+                        # (i.e. sequence length = max sequence length of the current batch, not the max of all the data)
+                        labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
+                        labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
+
+                        val_loss += model.loss(scores, labels, x_lengths)               # Calculate and add the validation loss of the current batch
+                        mask = (labels &lt;= 1).view_as(scores)                            # Create a mask by filtering out all labels that are not a padding value
+                        unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask) # Completely remove the padded values from the labels using the mask
+                        unpadded_scores = torch.masked_select(scores, mask)             # Completely remove the padded values from the scores using the mask
+                        pred = torch.round(unpadded_scores)                             # Get the predictions
+                        correct_pred = pred == unpadded_labels                          # Get the correct predictions
+                        val_acc += torch.mean(correct_pred.type(torch.FloatTensor))     # Add the validation accuracy of the current batch, ignoring all padding values
+                        val_auc += roc_auc_score(unpadded_labels.numpy(), unpadded_scores.detach().numpy()) # Add the validation ROC AUC of the current batch
+
+                # Calculate the average of the metrics over the batches
+                val_loss = val_loss / len(val_dataloader)
+                val_acc = val_acc / len(val_dataloader)
+                val_auc = val_auc / len(val_dataloader)
+
+
+                # Display validation loss
+                if step%print_every == 0:
+                    print(f&#39;Epoch {epoch} step {step}: Validation loss: {val_loss}; Validation Accuracy: {val_acc}; Validation AUC: {val_auc}&#39;)
+
+                # Check if the performance obtained in the validation set is the best so far (lowest loss value)
+                if val_loss &lt; val_loss_min:
+                    print(f&#39;New minimum validation loss: {val_loss_min} -&gt; {val_loss}.&#39;)
+
+                    # Update the minimum validation loss
+                    val_loss_min = val_loss
+
+                    # Get the current day and time to attach to the saved model&#39;s name
+                    current_datetime = datetime.now().strftime(&#39;%d_%m_%Y_%H_%M&#39;)
+
+                    # Filename and path where the model will be saved
+                    model_filename = f&#39;{model_path}checkpoint_{current_datetime}.pth&#39;
+
+                    print(f&#39;Saving model in {model_filename}&#39;)
+
+                    # Save the best performing model so far, along with additional information to implement it
+                    checkpoint = hyper_params
+                    checkpoint[&#39;state_dict&#39;] = model.state_dict()
+                    torch.save(checkpoint, model_filename)
+
+                    if log_comet_ml is True and comet_ml_save_model is True:
+                        # Upload the model to Comet.ml
+                        experiment.log_asset(file_data=model_filename, overwrite=True)
+
+            # Calculate the average of the metrics over the epoch
+            train_loss = train_loss / len(train_dataloader)
+            train_acc = train_acc / len(train_dataloader)
+            train_auc = train_auc / len(train_dataloader)
+
+            if log_comet_ml is True:
+                # Log metrics to Comet.ml
+                experiment.log_metric(&#34;train_loss&#34;, train_loss, step=epoch)
+                experiment.log_metric(&#34;train_acc&#34;, train_acc, step=epoch)
+                experiment.log_metric(&#34;train_auc&#34;, train_auc, step=epoch)
+                experiment.log_metric(&#34;val_loss&#34;, val_loss, step=epoch)
+                experiment.log_metric(&#34;val_acc&#34;, val_acc, step=epoch)
+                experiment.log_metric(&#34;val_auc&#34;, val_auc, step=epoch)
+                experiment.log_metric(&#34;epoch&#34;, epoch)
+
+            # Print a report of the epoch
+            print(f&#39;Epoch {epoch}: Training loss: {train_loss}; Training Accuracy: {train_acc}; Training AUC: {train_auc}; \
+                    Validation loss: {val_loss}; Validation Accuracy: {val_acc}; Validation AUC: {val_auc}&#39;)
+            print(&#39;----------------------&#39;)
+        except Exception:
+            warnings.warn(f&#39;There was a problem doing training epoch {epoch}. Ending training.&#39;)
+
+    try:
+        if do_test is True and model_filename is not None:
+            # Load the model with the best validation performance
+            model = load_checkpoint(model_filename, ModelClass)
+
+            # Run inference on the test data
+            model_inference(model, seq_len_dict, dataloader=test_dataloader , experiment=experiment)
+    except UnboundLocalError:
+        warnings.warn(&#39;Inference failed due to non existent saved models. Skipping evaluation on test set.&#39;)
+    except Exception:
+        warnings.warn(f&#39;Inference failed due to {sys.exc_info()[0]}. Skipping evaluation on test set.&#39;)
+
+    if log_comet_ml is True:
+        # Only report that the experiment completed successfully if it finished the training without errors
+        experiment.log_other(&#34;completed&#34;, True)
+
+    if get_val_loss_min is True:
+        # Also return the minimum validation loss alongside the corresponding model
+        return model, val_loss_min.item()
+
+    return model</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="data_utils.deep_learning.change_grad"><code class="name flex">
+<span>def <span class="ident">change_grad</span></span>(<span>grad, data, min=0, max=1)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Restrict the gradients to only have valid values.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>grad</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>PyTorch tensor containing the gradients of the data being optimized.</dd>
+<dt><strong><code>data</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>PyTorch tensor containing the data being optimized.</dd>
+<dt><strong><code>min</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dd>Minimum valid data value.</dd>
+<dt><strong><code>max</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dd>Maximum valid data value.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>grad</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>PyTorch tensor containing the corrected gradients of the data being
+optimized.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def change_grad(grad, data, min=0, max=1):
+    &#39;&#39;&#39;Restrict the gradients to only have valid values.
+
+    Parameters
+    ----------
+    grad : torch.Tensor
+        PyTorch tensor containing the gradients of the data being optimized.
+    data : torch.Tensor
+        PyTorch tensor containing the data being optimized.
+    min : int, default 0
+        Minimum valid data value.
+    max : int, default 0
+        Maximum valid data value.
+
+    Returns
+    -------
+    grad : torch.Tensor
+        PyTorch tensor containing the corrected gradients of the data being
+        optimized.
+    &#39;&#39;&#39;
+    # Minimum accepted gradient value to be considered
+    min_grad_val = 0.001
+
+    for i in range(data.shape[0]):
+        if (data[i] == min and grad[i] &lt; 0) or (data[i] == max and grad[i] &gt; 0):
+            # Stop the gradient from excedding the limit
+            grad[i] = 0
+        elif data[i] == min and grad[i] &gt; min_grad_val:
+            # Make the gradient have a integer value
+            grad[i] = 1
+        elif data[i] == max and grad[i] &lt; -min_grad_val:
+            # Make the gradient have a integer value
+            grad[i] = -1
+        else:
+            # Avoid any insignificant gradient
+            grad[i] = 0
+
+    return grad</code></pre>
+</details>
+</dd>
+<dt id="data_utils.deep_learning.load_checkpoint"><code class="name flex">
+<span>def <span class="ident">load_checkpoint</span></span>(<span>filepath, Model, *args)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Load a model from a specified path and name.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>filepath</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to the model being loaded, including it's own file name.</dd>
+<dt><strong><code>Model</code></strong> :&ensp;<code>torch.nn.Module</code> (<code>any</code> <code>deep</code> <code>learning</code> <code>model</code>)</dt>
+<dd>Class constructor for the desired deep learning model.</dd>
+<dt><strong><code>args</code></strong> :&ensp;<code>list</code> of <code>str</code></dt>
+<dd>Names of the neural network's parameters that need to be
+loaded.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>model</code></strong> :&ensp;<code>nn.Module</code></dt>
+<dd>The loaded model with saved weight values.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_checkpoint(filepath, Model, *args):
+    &#39;&#39;&#39;Load a model from a specified path and name.
+
+    Parameters
+    ----------
+    filepath : str
+        Path to the model being loaded, including it&#39;s own file name.
+    Model : torch.nn.Module (any deep learning model)
+        Class constructor for the desired deep learning model.
+    args : list of str
+        Names of the neural network&#39;s parameters that need to be
+        loaded.
+
+    Returns
+    -------
+    model : nn.Module
+        The loaded model with saved weight values.
+    &#39;&#39;&#39;
+    # Load the saved data
+    checkpoint = torch.load(filepath)
+    # Retrieve the parameters&#39; values and integrate them in
+    # a dictionary
+    params = dict(zip(args, [checkpoint[param] for param in args]))
+    # Create a model with the saved parameters
+    model = Model(params)
+    model.load_state_dict(checkpoint[&#39;state_dict&#39;])
+    return model</code></pre>
+</details>
+</dd>
+<dt id="data_utils.deep_learning.model_inference"><code class="name flex">
+<span>def <span class="ident">model_inference</span></span>(<span>model, seq_len_dict, dataloader=None, data=None, metrics=['loss', 'accuracy', 'AUC'], padding_value=999999, output_rounded=False, experiment=None, set_name='test', seq_final_outputs=False, cols_to_remove=[0, 1])</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Do inference on specified data using a given model.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>model</code></strong> :&ensp;<code>torch.nn.Module</code></dt>
+<dd>Neural network model which does the inference on the data.</dd>
+<dt><strong><code>seq_len_dict</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary containing the sequence lengths for each index of the
+original dataframe. This allows to ignore the padding done in
+the fixed sequence length tensor.</dd>
+<dt><strong><code>dataloader</code></strong> :&ensp;<code>torch.utils.data.DataLoader</code>, default <code>None</code></dt>
+<dd>Data loader which will be used to get data batches during inference.</dd>
+<dt><strong><code>data</code></strong> :&ensp;<code>tuple</code> of <code>torch.Tensor</code>, default <code>None</code></dt>
+<dd>If a data loader isn't specified, the user can input directly a
+tuple of PyTorch tensor on which inference will be done. The first
+tensor must correspond to the features tensor whe second one
+should be the labels tensor.</dd>
+<dt><strong><code>metrics</code></strong> :&ensp;<code>list</code> of <code>strings</code>, default [<code>'loss'</code>, <code>'accuracy'</code>, <code>'AUC'</code>],</dt>
+<dd>List of metrics to be used to evaluate the model on the infered data.
+Available metrics are cross entropy loss (loss), accuracy, AUC
+(Receiver Operating Curve Area Under the Curve), precision, recall
+and F1.</dd>
+<dt><strong><code>padding_value</code></strong> :&ensp;<code>numeric</code></dt>
+<dd>Value to use in the padding, to fill the sequences.</dd>
+<dt><strong><code>output_rounded</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>If True, the output is rounded, to represent the class assigned by
+the model, instead of just probabilities (&gt;= 0.5 rounded to 1,
+otherwise it's 0)</dd>
+<dt><strong><code>experiment</code></strong> :&ensp;<code>comet_ml.Experiment</code>, default <code>None</code></dt>
+<dd>Represents a connection to a Comet.ml experiment to which the
+metrics performance is uploaded, if specified.</dd>
+<dt><strong><code>set_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>Defines what name to give to the set when uploading the metrics
+values to the specified Comet.ml experiment.</dd>
+<dt><strong><code>seq_final_outputs</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>If set to true, the function only returns the ouputs given at each
+sequence's end.</dd>
+<dt><strong><code>cols_to_remove</code></strong> :&ensp;<code>list</code> of <code>ints</code>, default [<code>0</code>, <code>1</code>]</dt>
+<dd>List of indeces of columns to remove from the features before feeding to
+the model. This tend to be the identifier columns, such as subject_id
+and ts (timestamp).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>output</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>Contains the output scores (or classes, if output_rounded is set to
+True) for all of the input data.</dd>
+<dt><strong><code>metrics_vals</code></strong> :&ensp;<code>dict</code> of <code>floats</code></dt>
+<dd>Dictionary containing the calculated performance on each of the
+specified metrics.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=[&#39;loss&#39;, &#39;accuracy&#39;, &#39;AUC&#39;],
+                    padding_value=999999, output_rounded=False, experiment=None, set_name=&#39;test&#39;,
+                    seq_final_outputs=False, cols_to_remove=[0, 1]):
+    &#39;&#39;&#39;Do inference on specified data using a given model.
+
+    Parameters
+    ----------
+    model : torch.nn.Module
+        Neural network model which does the inference on the data.
+    seq_len_dict : dict
+        Dictionary containing the sequence lengths for each index of the
+        original dataframe. This allows to ignore the padding done in
+        the fixed sequence length tensor.
+    dataloader : torch.utils.data.DataLoader, default None
+        Data loader which will be used to get data batches during inference.
+    data : tuple of torch.Tensor, default None
+        If a data loader isn&#39;t specified, the user can input directly a
+        tuple of PyTorch tensor on which inference will be done. The first
+        tensor must correspond to the features tensor whe second one
+        should be the labels tensor.
+    metrics : list of strings, default [&#39;loss&#39;, &#39;accuracy&#39;, &#39;AUC&#39;],
+        List of metrics to be used to evaluate the model on the infered data.
+        Available metrics are cross entropy loss (loss), accuracy, AUC
+        (Receiver Operating Curve Area Under the Curve), precision, recall
+        and F1.
+    padding_value : numeric
+        Value to use in the padding, to fill the sequences.
+    output_rounded : bool, default False
+        If True, the output is rounded, to represent the class assigned by
+        the model, instead of just probabilities (&gt;= 0.5 rounded to 1,
+        otherwise it&#39;s 0)
+    experiment : comet_ml.Experiment, default None
+        Represents a connection to a Comet.ml experiment to which the
+        metrics performance is uploaded, if specified.
+    set_name : str
+        Defines what name to give to the set when uploading the metrics
+        values to the specified Comet.ml experiment.
+    seq_final_outputs : bool, default False
+        If set to true, the function only returns the ouputs given at each
+        sequence&#39;s end.
+    cols_to_remove : list of ints, default [0, 1]
+        List of indeces of columns to remove from the features before feeding to
+        the model. This tend to be the identifier columns, such as subject_id
+        and ts (timestamp).
+
+    Returns
+    -------
+    output : torch.Tensor
+        Contains the output scores (or classes, if output_rounded is set to
+        True) for all of the input data.
+    metrics_vals : dict of floats
+        Dictionary containing the calculated performance on each of the
+        specified metrics.
+    &#39;&#39;&#39;
+    # Guarantee that the model is in evaluation mode, so as to deactivate dropout
+    model.eval()
+
+    # Create an empty dictionary with all the possible metrics
+    metrics_vals = {&#39;loss&#39;: None,
+                    &#39;accuracy&#39;: None,
+                    &#39;AUC&#39;: None,
+                    &#39;precision&#39;: None,
+                    &#39;recall&#39;: None,
+                    &#39;F1&#39;: None}
+
+    # Initialize the metrics
+    if &#39;loss&#39; in metrics:
+        loss = 0
+    if &#39;accuracy&#39; in metrics:
+        acc = 0
+    if &#39;AUC&#39; in metrics:
+        auc = 0
+    if &#39;precision&#39; in metrics:
+        prec = 0
+    if &#39;recall&#39; in metrics:
+        rcl = 0
+    if &#39;F1&#39; in metrics:
+        f1_score = 0
+
+    # Check if the user wants to do inference directly on a PyTorch tensor
+    if dataloader is None and data is not None:
+        features, labels = data[0].float(), data[1].float()             # Make the data have type float instead of double, as it would cause problems
+        features, labels, x_lengths = padding.sort_by_seq_len(features, seq_len_dict, labels) # Sort the data by sequence length
+
+        # Remove unwanted columns from the data
+        features_idx = list(range(features.shape[2]))
+        [features_idx.remove(column) for column in cols_to_remove]
+        features = features[:, :, features_idx]
+        scores = model.forward(features, x_lengths)                     # Feedforward the data through the model
+
+        # Adjust the labels so that it gets the exact same shape as the predictions
+        # (i.e. sequence length = max sequence length of the current batch, not the max of all the data)
+        labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
+        labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
+
+        mask = (labels &lt;= 1).view_as(scores)                            # Create a mask by filtering out all labels that are not a padding value
+        unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask) # Completely remove the padded values from the labels using the mask
+        unpadded_scores = torch.masked_select(scores, mask)             # Completely remove the padded values from the scores using the mask
+        pred = torch.round(unpadded_scores)                             # Get the predictions
+
+        if output_rounded is True:
+            # Get the predicted classes
+            output = pred.int()
+        else:
+            # Get the model scores (class probabilities)
+            output = unpadded_scores
+
+        if seq_final_outputs is True:
+            # Only get the outputs retrieved at the sequences&#39; end
+            # Cumulative sequence lengths
+            final_seq_idx = np.cumsum(x_lengths) - 1
+
+            # Get the outputs of the last instances of each sequence
+            output = output[final_seq_idx]
+
+        if any(mtrc in metrics for mtrc in [&#39;precision&#39;, &#39;recall&#39;, &#39;F1&#39;]):
+            # Calculate the number of true positives, false negatives, true negatives and false positives
+            true_pos = int(sum(torch.masked_select(pred, unpadded_labels.bool())))
+            false_neg = int(sum(torch.masked_select(pred == 0, unpadded_labels.bool())))
+            true_neg = int(sum(torch.masked_select(pred == 0, (unpadded_labels == 0).bool())))
+            false_pos = int(sum(torch.masked_select(pred, (unpadded_labels == 0).bool())))
+
+        if &#39;loss&#39; in metrics:
+            metrics_vals[&#39;loss&#39;] = model.loss(scores, labels, x_lengths).item() # Add the loss of the current batch
+        if &#39;accuracy&#39; in metrics:
+            correct_pred = pred == unpadded_labels                          # Get the correct predictions
+            metrics_vals[&#39;accuracy&#39;] = torch.mean(correct_pred.type(torch.FloatTensor)).item() # Add the accuracy of the current batch, ignoring all padding values
+        if &#39;AUC&#39; in metrics:
+            metrics_vals[&#39;AUC&#39;] = roc_auc_score(unpadded_labels.numpy(), unpadded_scores.detach().numpy()) # Add the ROC AUC of the current batch
+        if &#39;precision&#39; in metrics:
+            curr_prec = true_pos / (true_pos + false_pos)
+            metrics_vals[&#39;precision&#39;] = curr_prec                           # Add the precision of the current batch
+        if &#39;recall&#39; in metrics:
+            curr_rcl = true_pos / (true_pos + false_neg)
+            metrics_vals[&#39;recall&#39;] = curr_rcl                               # Add the recall of the current batch
+        if &#39;F1&#39; in metrics:
+            # Check if precision has not yet been calculated
+            if &#39;curr_prec&#39; not in locals():
+                curr_prec = true_pos / (true_pos + false_pos)
+            # Check if recall has not yet been calculated
+            if &#39;curr_rcl&#39; not in locals():
+                curr_rcl = true_pos / (true_pos + false_neg)
+            metrics_vals[&#39;F1&#39;] = 2 * curr_prec * curr_rcl / (curr_prec + curr_rcl) # Add the F1 score of the current batch
+
+        return output, metrics_vals
+
+    # Initialize the output
+    output = torch.tensor([]).int()
+
+    # Evaluate the model on the set
+    for features, labels in dataloader:
+        # Turn off gradients, saves memory and computations
+        with torch.no_grad():
+            features, labels = features.float(), labels.float()             # Make the data have type float instead of double, as it would cause problems
+            features, labels, x_lengths = padding.sort_by_seq_len(features, seq_len_dict, labels) # Sort the data by sequence length
+
+            # Remove unwanted columns from the data
+            features_idx = list(range(features.shape[2]))
+            [features_idx.remove(column) for column in cols_to_remove]
+            features = features[:, :, features_idx]
+            scores = model.forward(features, x_lengths)                     # Feedforward the data through the model
+
+            # Adjust the labels so that it gets the exact same shape as the predictions
+            # (i.e. sequence length = max sequence length of the current batch, not the max of all the data)
+            labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
+            labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
+
+            mask = (labels &lt;= 1).view_as(scores)                            # Create a mask by filtering out all labels that are not a padding value
+            unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask) # Completely remove the padded values from the labels using the mask
+            unpadded_scores = torch.masked_select(scores, mask)             # Completely remove the padded values from the scores using the mask
+            pred = torch.round(unpadded_scores)                             # Get the predictions
+
+            if output_rounded is True:
+                # Get the predicted classes
+                output = torch.cat([output, pred.int()])
+            else:
+                # Get the model scores (class probabilities)
+                output = torch.cat([output.float(), unpadded_scores])
+
+            if seq_final_outputs is True:
+                # Indeces at the end of each sequence
+                final_seq_idx = [n_subject*features.shape[1]+x_lengths[n_subject]-1 for n_subject in range(features.shape[0])]
+
+                # Get the outputs of the last instances of each sequence
+                output = output[final_seq_idx]
+
+            if any(mtrc in metrics for mtrc in [&#39;precision&#39;, &#39;recall&#39;, &#39;F1&#39;]):
+                # Calculate the number of true positives, false negatives, true negatives and false positives
+                true_pos = int(sum(torch.masked_select(pred, unpadded_labels.bool())))
+                false_neg = int(sum(torch.masked_select(pred == 0, unpadded_labels.bool())))
+                true_neg = int(sum(torch.masked_select(pred == 0, (unpadded_labels == 0).bool())))
+                false_pos = int(sum(torch.masked_select(pred, (unpadded_labels == 0).bool())))
+
+            if &#39;loss&#39; in metrics:
+                loss += model.loss(scores, labels, x_lengths)               # Add the loss of the current batch
+            if &#39;accuracy&#39; in metrics:
+                correct_pred = pred == unpadded_labels                      # Get the correct predictions
+                acc += torch.mean(correct_pred.type(torch.FloatTensor))     # Add the accuracy of the current batch, ignoring all padding values
+            if &#39;AUC&#39; in metrics:
+                auc += roc_auc_score(unpadded_labels.numpy(), unpadded_scores.detach().numpy()) # Add the ROC AUC of the current batch
+            if &#39;precision&#39; in metrics:
+                curr_prec = true_pos / (true_pos + false_pos)
+                prec += curr_prec                                           # Add the precision of the current batch
+            if &#39;recall&#39; in metrics:
+                curr_rcl = true_pos / (true_pos + false_neg)
+                rcl += curr_rcl                                             # Add the recall of the current batch
+            if &#39;F1&#39; in metrics:
+                # Check if precision has not yet been calculated
+                if &#39;curr_prec&#39; not in locals():
+                    curr_prec = true_pos / (true_pos + false_pos)
+                # Check if recall has not yet been calculated
+                if &#39;curr_rcl&#39; not in locals():
+                    curr_rcl = true_pos / (true_pos + false_neg)
+                f1_score += 2 * curr_prec * curr_rcl / (curr_prec + curr_rcl) # Add the F1 score of the current batch
+
+    # Calculate the average of the metrics over the batches
+    if &#39;loss&#39; in metrics:
+        metrics_vals[&#39;loss&#39;] = loss / len(dataloader)
+        metrics_vals[&#39;loss&#39;] = metrics_vals[&#39;loss&#39;].item()                  # Get just the value, not a tensor
+    if &#39;accuracy&#39; in metrics:
+        metrics_vals[&#39;accuracy&#39;] = acc / len(dataloader)
+        metrics_vals[&#39;accuracy&#39;] = metrics_vals[&#39;accuracy&#39;].item()          # Get just the value, not a tensor
+    if &#39;AUC&#39; in metrics:
+        metrics_vals[&#39;AUC&#39;] = auc / len(dataloader)
+    if &#39;precision&#39; in metrics:
+        metrics_vals[&#39;precision&#39;] = prec / len(dataloader)
+    if &#39;recall&#39; in metrics:
+        metrics_vals[&#39;recall&#39;] = rcl / len(dataloader)
+    if &#39;F1&#39; in metrics:
+        metrics_vals[&#39;F1&#39;] = f1_score / len(dataloader)
+
+    if experiment is not None:
+        # Log metrics to Comet.ml
+        if &#39;loss&#39; in metrics:
+            experiment.log_metric(f&#39;{set_name}_loss&#39;, metrics_vals[&#39;loss&#39;])
+        if &#39;accuracy&#39; in metrics:
+            experiment.log_metric(f&#39;{set_name}_acc&#39;, metrics_vals[&#39;accuracy&#39;])
+        if &#39;AUC&#39; in metrics:
+            experiment.log_metric(f&#39;{set_name}_auc&#39;, metrics_vals[&#39;AUC&#39;])
+        if &#39;precision&#39; in metrics:
+            experiment.log_metric(f&#39;{set_name}_prec&#39;, metrics_vals[&#39;precision&#39;])
+        if &#39;recall&#39; in metrics:
+            experiment.log_metric(f&#39;{set_name}_rcl&#39;, metrics_vals[&#39;recall&#39;])
+        if &#39;F1&#39; in metrics:
+            experiment.log_metric(f&#39;{set_name}_f1_score&#39;, metrics_vals[&#39;F1&#39;])
+
+    return output, metrics_vals</code></pre>
+</details>
+</dd>
+<dt id="data_utils.deep_learning.remove_tensor_column"><code class="name flex">
+<span>def <span class="ident">remove_tensor_column</span></span>(<span>data, col_idx, inplace=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Remove a column(s) from a PyTorch tensor.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>Data tensor that contains the column(s) that will be removed.</dd>
+<dt><strong><code>col_idx</code></strong> :&ensp;<code>int</code> or <code>list</code> of <code>int</code></dt>
+<dd>Index (or indices) or the column(s) to remove.</dd>
+<dt><strong><code>inplace</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>If set to True, the original tensor will be used and modified
+directly. Otherwise, a copy will be created and returned, without
+changing the original tensor.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>Data tensor with the undesired column(s) removed.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove_tensor_column(data, col_idx, inplace=False):
+    &#39;&#39;&#39;Remove a column(s) from a PyTorch tensor.
+
+    Parameters
+    ----------
+    data : torch.Tensor
+        Data tensor that contains the column(s) that will be removed.
+    col_idx : int or list of int
+        Index (or indices) or the column(s) to remove.
+    inplace : bool, default False
+        If set to True, the original tensor will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original tensor.
+
+    Returns
+    -------
+    data : torch.Tensor
+        Data tensor with the undesired column(s) removed.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_tensor = data.clone()
+    else:
+        # Use the original dataframe
+        data_tensor = data
+    if isinstance(col_idx, int):
+        # Turn the column index into a list, for ease of coding
+        col_idx = [col_idx]
+    if not isinstance(col_idx, list):
+        raise Exception(f&#39;ERROR: The `col_idx` parameter must either specify a \
+                          single int of a column to remove or a list of ints in the \
+                          case of multiple columns to remove. Received input `col_idx` \
+                          of type {type(col_idx)}.&#39;)
+    for col in col_idx:
+        # Make a list of the indices of the columns that we want to keep, 
+        # without the unwanted one
+        columns_to_keep = list(range(col)) + list(range(col + 1, data_tensor.shape[-1]))
+        # Remove the current column
+        if len(data_tensor.shape) == 2:
+            data_tensor = data_tensor[:, columns_to_keep]
+        elif len(data_tensor.shape) == 3:
+            data_tensor = data_tensor[:, :, columns_to_keep]
+        else:
+            raise Exception(f&#39;ERROR: Currently only supporting either 2D or 3D data. \
+                              Received data tensor with {len(data_tensor.shape)} dimensions.&#39;)
+    return data_tensor</code></pre>
+</details>
+</dd>
+<dt id="data_utils.deep_learning.train"><code class="name flex">
+<span>def <span class="ident">train</span></span>(<span>model, train_dataloader, val_dataloader, seq_len_dict, test_dataloader=None, batch_size=32, n_epochs=50, lr=0.001, model_path='models/', ModelClass=None, padding_value=999999, do_test=True, log_comet_ml=False, comet_ml_api_key=None, comet_ml_project_name=None, comet_ml_workspace=None, comet_ml_save_model=False, experiment=None, features_list=None, get_val_loss_min=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Trains a given model on the provided data.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>model</code></strong> :&ensp;<code>torch.nn.Module</code></dt>
+<dd>Neural network model which is trained on the data to perform a
+classification task.</dd>
+<dt><strong><code>train_dataloader</code></strong> :&ensp;<code>torch.utils.data.DataLoader</code></dt>
+<dd>Data loader which will be used to get data batches during training.</dd>
+<dt><strong><code>val_dataloader</code></strong> :&ensp;<code>torch.utils.data.DataLoader</code></dt>
+<dd>Data loader which will be used to get data batches when evaluating
+the model's performance on a validation set during training.</dd>
+<dt><strong><code>test_dataloader</code></strong> :&ensp;<code>torch.utils.data.DataLoader</code>, default <code>None</code></dt>
+<dd>Data loader which will be used to get data batches whe evaluating
+the model's performance on a test set, after finishing the
+training process.</dd>
+<dt><strong><code>seq_len_dict</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary containing the sequence lengths for each index of the
+original dataframe. This allows to ignore the padding done in
+the fixed sequence length tensor.</dd>
+<dt><strong><code>batch_size</code></strong> :&ensp;<code>int</code>, default <code>32</code></dt>
+<dd>Defines the batch size, i.e. the number of samples used in each
+training iteration to update the model's weights.</dd>
+<dt><strong><code>n_epochs</code></strong> :&ensp;<code>int</code>, default <code>50</code></dt>
+<dd>Number of epochs, i.e. the number of times the training loop
+iterates through all of the training data.</dd>
+<dt><strong><code>lr</code></strong> :&ensp;<code>float</code>, default <code>0.001</code></dt>
+<dd>Learning rate used in the optimization algorithm.</dd>
+<dt><strong><code>model_path</code></strong> :&ensp;<code>string</code>, default <code>'models</code>/<code>'</code></dt>
+<dd>Path where the model will be saved. By default, it saves in
+the directory named "models".</dd>
+<dt><strong><code>ModelClass</code></strong> :&ensp;<code>object</code>, default <code>None</code></dt>
+<dd>Sets the class which corresponds to the machine learning
+model type. It will be needed if test inference is
+performed (do_test set to True), as we need to know
+the model type so as to load the best scored model.</dd>
+<dt><strong><code>padding_value</code></strong> :&ensp;<code>numeric</code>, default <code>999999</code></dt>
+<dd>Value to use in the padding, to fill the sequences.</dd>
+<dt><strong><code>do_test</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
+<dd>If true, evaluates the model on the test set, after completing
+the training.</dd>
+<dt><strong><code>log_comet_ml</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>If true, makes the code upload a training report and metrics
+to comet.ml, a online platform which allows for a detailed
+version control for machine learning models.</dd>
+<dt><strong><code>comet_ml_api_key</code></strong> :&ensp;<code>string</code>, default <code>None</code></dt>
+<dd>Comet.ml API key used when logging data to the platform.</dd>
+<dt><strong><code>comet_ml_project_name</code></strong> :&ensp;<code>string</code>, default <code>None</code></dt>
+<dd>Name of the comet.ml project used when logging data to the
+platform.</dd>
+<dt><strong><code>comet_ml_workspace</code></strong> :&ensp;<code>string</code>, default <code>None</code></dt>
+<dd>Name of the comet.ml workspace used when logging data to the
+platform.</dd>
+<dt><strong><code>comet_ml_save_model</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>If set to true, uploads the model with the lowest validation loss
+to comet.ml when logging data to the platform.</dd>
+<dt><strong><code>experiment</code></strong> :&ensp;<code>comet_ml.Experiment</code>, default <code>None</code></dt>
+<dd>Defines an already existing Comet.ml experiment object to be used in the
+training. If not defined (None), a new experiment is created inside the
+method. In any case, a Comet.ml experiment is only used if log_comet_ml
+is set to True and the remaining necessary Comet.ml related parameters
+(comet_ml_api_key, comet_ml_project_name, comet_ml_workspace) are
+properly set up.</dd>
+<dt><strong><code>features_list</code></strong> :&ensp;<code>list</code> of <code>strings</code>, default <code>None</code></dt>
+<dd>Names of the features being used in the current pipeline. This
+will be logged to comet.ml, if activated, in order to have a
+more detailed version control.</dd>
+<dt><strong><code>get_val_loss_min</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>If set to True, besides returning the trained model, the method also
+returns the minimum validation loss found during training.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>model</code></strong> :&ensp;<code>nn.Module</code></dt>
+<dd>The same input model but with optimized weight values.</dd>
+<dt><strong><code>val_loss_min</code></strong> :&ensp;<code>float</code></dt>
+<dd>If get_val_loss_min is set to True, the method also returns the minimum
+validation loss found during training.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def train(model, train_dataloader, val_dataloader, seq_len_dict, test_dataloader=None,
+          batch_size=32, n_epochs=50, lr=0.001, model_path=&#39;models/&#39;,
+          ModelClass=None, padding_value=999999, do_test=True, log_comet_ml=False,
+          comet_ml_api_key=None, comet_ml_project_name=None,
+          comet_ml_workspace=None, comet_ml_save_model=False, experiment=None,
+          features_list=None, get_val_loss_min=False):
+    &#39;&#39;&#39;Trains a given model on the provided data.
+
+    Parameters
+    ----------
+    model : torch.nn.Module
+        Neural network model which is trained on the data to perform a
+        classification task.
+    train_dataloader : torch.utils.data.DataLoader
+        Data loader which will be used to get data batches during training.
+    val_dataloader : torch.utils.data.DataLoader
+        Data loader which will be used to get data batches when evaluating
+        the model&#39;s performance on a validation set during training.
+    test_dataloader : torch.utils.data.DataLoader, default None
+        Data loader which will be used to get data batches whe evaluating
+        the model&#39;s performance on a test set, after finishing the
+        training process.
+    seq_len_dict : dict
+        Dictionary containing the sequence lengths for each index of the
+        original dataframe. This allows to ignore the padding done in
+        the fixed sequence length tensor.
+    batch_size : int, default 32
+        Defines the batch size, i.e. the number of samples used in each
+        training iteration to update the model&#39;s weights.
+    n_epochs : int, default 50
+        Number of epochs, i.e. the number of times the training loop
+        iterates through all of the training data.
+    lr : float, default 0.001
+        Learning rate used in the optimization algorithm.
+    model_path : string, default &#39;models/&#39;
+        Path where the model will be saved. By default, it saves in
+        the directory named &#34;models&#34;.
+    ModelClass : object, default None
+        Sets the class which corresponds to the machine learning 
+        model type. It will be needed if test inference is 
+        performed (do_test set to True), as we need to know
+        the model type so as to load the best scored model.
+    padding_value : numeric, default 999999
+        Value to use in the padding, to fill the sequences.
+    do_test : bool, default True
+        If true, evaluates the model on the test set, after completing
+        the training.
+    log_comet_ml : bool, default False
+        If true, makes the code upload a training report and metrics
+        to comet.ml, a online platform which allows for a detailed
+        version control for machine learning models.
+    comet_ml_api_key : string, default None
+        Comet.ml API key used when logging data to the platform.
+    comet_ml_project_name : string, default None
+        Name of the comet.ml project used when logging data to the
+        platform.
+    comet_ml_workspace : string, default None
+        Name of the comet.ml workspace used when logging data to the
+        platform.
+    comet_ml_save_model : bool, default False
+        If set to true, uploads the model with the lowest validation loss
+        to comet.ml when logging data to the platform.
+    experiment : comet_ml.Experiment, default None
+        Defines an already existing Comet.ml experiment object to be used in the
+        training. If not defined (None), a new experiment is created inside the
+        method. In any case, a Comet.ml experiment is only used if log_comet_ml
+        is set to True and the remaining necessary Comet.ml related parameters
+        (comet_ml_api_key, comet_ml_project_name, comet_ml_workspace) are
+        properly set up.
+    features_list : list of strings, default None
+        Names of the features being used in the current pipeline. This
+        will be logged to comet.ml, if activated, in order to have a
+        more detailed version control.
+    get_val_loss_min : bool, default False
+        If set to True, besides returning the trained model, the method also
+        returns the minimum validation loss found during training.
+
+    Returns
+    -------
+    model : nn.Module
+        The same input model but with optimized weight values.
+    val_loss_min : float
+        If get_val_loss_min is set to True, the method also returns the minimum
+        validation loss found during training.
+    &#39;&#39;&#39;
+    # Register all the hyperparameters
+    model_args = inspect.getfullargspec(model.__init__).args[1:]
+    hyper_params = dict([(param, getattr(model, param))
+                         for param in model_args])
+    hyper_params.update({&#34;batch_size&#34;: batch_size,
+                         &#34;n_epochs&#34;: n_epochs,
+                         &#34;learning_rate&#34;: lr,
+                         &#34;random_seed&#34;: du.random_seed})
+    if log_comet_ml is True:
+        if experiment is None:
+            # Create a new Comet.ml experiment
+            experiment = Experiment(api_key=comet_ml_api_key, project_name=comet_ml_project_name, workspace=comet_ml_workspace)
+        experiment.log_other(&#34;completed&#34;, False)
+        experiment.log_other(&#34;random_seed&#34;, du.random_seed)
+        # Report hyperparameters to Comet.ml
+        experiment.log_parameters(hyper_params)
+        if features_list is not None:
+            # Log the names of the features being used
+            experiment.log_other(&#34;features_list&#34;, features_list)
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)                 # Adam optimization algorithm
+    step = 0                                                                # Number of iteration steps done so far
+    print_every = 10                                                        # Steps interval where the metrics are printed
+    train_on_gpu = torch.cuda.is_available()                                # Check if GPU is available
+    val_loss_min = np.inf                                                   # Start with an infinitely big minimum validation loss
+
+    for epoch in range(1, n_epochs+1):
+        # Initialize the training metrics
+        train_loss = 0
+        train_acc = 0
+        train_auc = 0
+
+        try:
+            # Loop through the training data
+            for features, labels in train_dataloader:
+                model.train()                                                   # Activate dropout to train the model
+                optimizer.zero_grad()                                           # Clear the gradients of all optimized variables
+
+                if train_on_gpu is True:
+                    features, labels = features.cuda(), labels.cuda()           # Move data to GPU
+
+                features, labels = features.float(), labels.float()             # Make the data have type float instead of double, as it would cause problems
+                features, labels, x_lengths = padding.sort_by_seq_len(features, seq_len_dict, labels) # Sort the data by sequence length
+                scores = model.forward(features[:, :, 2:], x_lengths)           # Feedforward the data through the model
+                                                                                # (the 2 is there to avoid using the identifier features in the predictions)
+
+                # Adjust the labels so that it gets the exact same shape as the predictions
+                # (i.e. sequence length = max sequence length of the current batch, not the max of all the data)
+                labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
+                labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
+
+                loss = model.loss(scores, labels, x_lengths)                    # Calculate the cross entropy loss
+                loss.backward()                                                 # Backpropagate the loss
+                optimizer.step()                                                # Update the model&#39;s weights
+                train_loss += loss                                              # Add the training loss of the current batch
+                mask = (labels &lt;= 1).view_as(scores)                            # Create a mask by filtering out all labels that are not a padding value
+                unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask) # Completely remove the padded values from the labels using the mask
+                unpadded_scores = torch.masked_select(scores, mask)             # Completely remove the padded values from the scores using the mask
+                pred = torch.round(unpadded_scores)                             # Get the predictions
+                correct_pred = pred == unpadded_labels                          # Get the correct predictions
+                train_acc += torch.mean(correct_pred.type(torch.FloatTensor))   # Add the training accuracy of the current batch, ignoring all padding values
+                train_auc += roc_auc_score(unpadded_labels.numpy(), unpadded_scores.detach().numpy()) # Add the training ROC AUC of the current batch
+                step += 1                                                       # Count one more iteration step
+                model.eval()                                                    # Deactivate dropout to test the model
+
+                # Initialize the validation metrics
+                val_loss = 0
+                val_acc = 0
+                val_auc = 0
+
+                # Loop through the validation data
+                for features, labels in val_dataloader:
+                    # Turn off gradients for validation, saves memory and computations
+                    with torch.no_grad():
+                        features, labels = features.float(), labels.float()             # Make the data have type float instead of double, as it would cause problems
+                        features, labels, x_lengths = padding.sort_by_seq_len(features, seq_len_dict, labels) # Sort the data by sequence length
+                        scores = model.forward(features[:, :, 2:], x_lengths)           # Feedforward the data through the model
+                                                                                        # (the 2 is there to avoid using the identifier features in the predictions)
+
+                        # Adjust the labels so that it gets the exact same shape as the predictions
+                        # (i.e. sequence length = max sequence length of the current batch, not the max of all the data)
+                        labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
+                        labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
+
+                        val_loss += model.loss(scores, labels, x_lengths)               # Calculate and add the validation loss of the current batch
+                        mask = (labels &lt;= 1).view_as(scores)                            # Create a mask by filtering out all labels that are not a padding value
+                        unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask) # Completely remove the padded values from the labels using the mask
+                        unpadded_scores = torch.masked_select(scores, mask)             # Completely remove the padded values from the scores using the mask
+                        pred = torch.round(unpadded_scores)                             # Get the predictions
+                        correct_pred = pred == unpadded_labels                          # Get the correct predictions
+                        val_acc += torch.mean(correct_pred.type(torch.FloatTensor))     # Add the validation accuracy of the current batch, ignoring all padding values
+                        val_auc += roc_auc_score(unpadded_labels.numpy(), unpadded_scores.detach().numpy()) # Add the validation ROC AUC of the current batch
+
+                # Calculate the average of the metrics over the batches
+                val_loss = val_loss / len(val_dataloader)
+                val_acc = val_acc / len(val_dataloader)
+                val_auc = val_auc / len(val_dataloader)
+
+
+                # Display validation loss
+                if step%print_every == 0:
+                    print(f&#39;Epoch {epoch} step {step}: Validation loss: {val_loss}; Validation Accuracy: {val_acc}; Validation AUC: {val_auc}&#39;)
+
+                # Check if the performance obtained in the validation set is the best so far (lowest loss value)
+                if val_loss &lt; val_loss_min:
+                    print(f&#39;New minimum validation loss: {val_loss_min} -&gt; {val_loss}.&#39;)
+
+                    # Update the minimum validation loss
+                    val_loss_min = val_loss
+
+                    # Get the current day and time to attach to the saved model&#39;s name
+                    current_datetime = datetime.now().strftime(&#39;%d_%m_%Y_%H_%M&#39;)
+
+                    # Filename and path where the model will be saved
+                    model_filename = f&#39;{model_path}checkpoint_{current_datetime}.pth&#39;
+
+                    print(f&#39;Saving model in {model_filename}&#39;)
+
+                    # Save the best performing model so far, along with additional information to implement it
+                    checkpoint = hyper_params
+                    checkpoint[&#39;state_dict&#39;] = model.state_dict()
+                    torch.save(checkpoint, model_filename)
+
+                    if log_comet_ml is True and comet_ml_save_model is True:
+                        # Upload the model to Comet.ml
+                        experiment.log_asset(file_data=model_filename, overwrite=True)
+
+            # Calculate the average of the metrics over the epoch
+            train_loss = train_loss / len(train_dataloader)
+            train_acc = train_acc / len(train_dataloader)
+            train_auc = train_auc / len(train_dataloader)
+
+            if log_comet_ml is True:
+                # Log metrics to Comet.ml
+                experiment.log_metric(&#34;train_loss&#34;, train_loss, step=epoch)
+                experiment.log_metric(&#34;train_acc&#34;, train_acc, step=epoch)
+                experiment.log_metric(&#34;train_auc&#34;, train_auc, step=epoch)
+                experiment.log_metric(&#34;val_loss&#34;, val_loss, step=epoch)
+                experiment.log_metric(&#34;val_acc&#34;, val_acc, step=epoch)
+                experiment.log_metric(&#34;val_auc&#34;, val_auc, step=epoch)
+                experiment.log_metric(&#34;epoch&#34;, epoch)
+
+            # Print a report of the epoch
+            print(f&#39;Epoch {epoch}: Training loss: {train_loss}; Training Accuracy: {train_acc}; Training AUC: {train_auc}; \
+                    Validation loss: {val_loss}; Validation Accuracy: {val_acc}; Validation AUC: {val_auc}&#39;)
+            print(&#39;----------------------&#39;)
+        except Exception:
+            warnings.warn(f&#39;There was a problem doing training epoch {epoch}. Ending training.&#39;)
+
+    try:
+        if do_test is True and model_filename is not None:
+            # Load the model with the best validation performance
+            model = load_checkpoint(model_filename, ModelClass)
+
+            # Run inference on the test data
+            model_inference(model, seq_len_dict, dataloader=test_dataloader , experiment=experiment)
+    except UnboundLocalError:
+        warnings.warn(&#39;Inference failed due to non existent saved models. Skipping evaluation on test set.&#39;)
+    except Exception:
+        warnings.warn(f&#39;Inference failed due to {sys.exc_info()[0]}. Skipping evaluation on test set.&#39;)
+
+    if log_comet_ml is True:
+        # Only report that the experiment completed successfully if it finished the training without errors
+        experiment.log_other(&#34;completed&#34;, True)
+
+    if get_val_loss_min is True:
+        # Also return the minimum validation loss alongside the corresponding model
+        return model, val_loss_min.item()
+
+    return model</code></pre>
+</details>
+</dd>
+<dt id="data_utils.deep_learning.ts_tensor_to_np_matrix"><code class="name flex">
+<span>def <span class="ident">ts_tensor_to_np_matrix</span></span>(<span>data, feat_num=None, padding_value=999999)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Convert a 3D PyTorch tensor, such as one representing multiple time series
+data, into a 2D NumPy matrix. Can be useful for applying the SHAP Kernel
+Explainer.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>PyTorch tensor containing the three dimensional data being converted.</dd>
+<dt><strong><code>feat_num</code></strong> :&ensp;<code>list</code> of <code>int</code>, default <code>None</code></dt>
+<dd>List of the column numbers that represent the features. If not specified,
+all columns will be used.</dd>
+<dt><strong><code>padding_value</code></strong> :&ensp;<code>numeric</code></dt>
+<dd>Value to use in the padding, to fill the sequences.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>data_matrix</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>NumPy two dimensional matrix obtained from the data after conversion.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ts_tensor_to_np_matrix(data, feat_num=None, padding_value=999999):
+    &#39;&#39;&#39;Convert a 3D PyTorch tensor, such as one representing multiple time series
+    data, into a 2D NumPy matrix. Can be useful for applying the SHAP Kernel
+    Explainer.
+
+    Parameters
+    ----------
+    data : torch.Tensor
+        PyTorch tensor containing the three dimensional data being converted.
+    feat_num : list of int, default None
+        List of the column numbers that represent the features. If not specified,
+        all columns will be used.
+    padding_value : numeric
+        Value to use in the padding, to fill the sequences.
+
+    Returns
+    -------
+    data_matrix : numpy.ndarray
+        NumPy two dimensional matrix obtained from the data after conversion.
+    &#39;&#39;&#39;
+    # View as a single sequence, i.e. like a dataframe without grouping by id
+    data_matrix = data.contiguous().view(-1, data.shape[2]).detach().numpy()
+    # Remove rows that are filled with padding values
+    if feat_num is not None:
+        data_matrix = data_matrix[[not all(row == padding_value) for row in data_matrix[:, feat_num]]]
+    else:
+        data_matrix = data_matrix[[not all(row == padding_value) for row in data_matrix]]
+    return data_matrix</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="data_utils" href="index.html">data_utils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="data_utils.deep_learning.change_grad" href="#data_utils.deep_learning.change_grad">change_grad</a></code></li>
+<li><code><a title="data_utils.deep_learning.load_checkpoint" href="#data_utils.deep_learning.load_checkpoint">load_checkpoint</a></code></li>
+<li><code><a title="data_utils.deep_learning.model_inference" href="#data_utils.deep_learning.model_inference">model_inference</a></code></li>
+<li><code><a title="data_utils.deep_learning.remove_tensor_column" href="#data_utils.deep_learning.remove_tensor_column">remove_tensor_column</a></code></li>
+<li><code><a title="data_utils.deep_learning.train" href="#data_utils.deep_learning.train">train</a></code></li>
+<li><code><a title="data_utils.deep_learning.ts_tensor_to_np_matrix" href="#data_utils.deep_learning.ts_tensor_to_np_matrix">ts_tensor_to_np_matrix</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

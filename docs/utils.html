@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.7.2" />
+<title>data_utils.utils API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>data_utils.utils</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from comet_ml import Experiment                         # Comet.ml can log training metrics, parameters, do version control and parameter optimization
+import torch                                            # PyTorch to create and apply deep learning models
+import numpy as np                                      # NumPy to handle numeric and NaN operations
+from tqdm.auto import tqdm                              # tqdm allows to track code execution progress
+import numbers                                          # numbers allows to check if data is numeric
+import warnings                                         # Print warnings for bad practices
+
+# Methods
+
+def apply_dict_convertion(x, conv_dict, nan_value=0):
+    &#39;&#39;&#39;Safely apply a convertion through a dictionary.
+
+    Parameters
+    ----------
+    x : anything
+        Object that will be converted through the dictionary.
+    conv_dict : dict
+        Dictionary used to convert the input object.
+    nan_value: anything
+        Value or object that repressents missingness.
+
+    Returns
+    -------
+    x : anything
+        Converted object.
+    &#39;&#39;&#39;
+    # Check if it&#39;s a missing value (NaN)
+    if isinstance(x, numbers.Number):
+        if np.isnan(x):
+            return nan_value
+    # Must be a convertable value
+    else:
+        return conv_dict[x]
+
+
+def invert_dict(x):
+    &#39;&#39;&#39;Invert a dictionary, switching its keys with its values.
+
+    Parameters
+    ----------
+    x : dict
+        Dictionary to be inverted
+
+    Returns
+    -------
+    x : dict:
+        Inverted dictionary
+    &#39;&#39;&#39;
+    return {v: k for k, v in x.items()}
+
+
+def is_definitely_string(x):
+    &#39;&#39;&#39;Reports if a value is actually a real string or if it has some number in it.
+
+    Parameters
+    ----------
+    x
+        Any value which will be judged to be either a real string or numeric.
+
+    Returns
+    -------
+    boolean
+        Returns a boolean, being it True if it really is a string or False if it&#39;s
+        either numeric data or a string with a number inside.
+    &#39;&#39;&#39;
+    if isinstance(x, int) or isinstance(x, float):
+        return False
+
+    try:
+        float(x)
+        return False
+
+    except Exception:
+        return isinstance(x, str)
+
+
+def is_string_nan(x, specific_nan_strings=[]):
+    &#39;&#39;&#39;Indicates if a string corresponds to a missing value.
+
+    Parameters
+    ----------
+    x : string
+        A string that will be compared with possible missing value
+        representations.
+    specific_nan_strings : list of strings, default []
+        Parameter where the user can specify additional strings that
+        should correspond to missing values.
+
+    Returns
+    -------
+    boolean
+        Returns a boolean, being it True if the string corresponds to a missing
+        value representation or False if it doesn&#39;t.
+    &#39;&#39;&#39;
+    # Only considering strings for the missing values search
+    if isinstance(x, str):
+        # Considering the possibility of just 3 more random extra characters 
+        # in NaN-like strings
+        if ((&#39;other&#39; in x.lower() and len(x) &lt; 9)
+            or (&#39;null&#39; in x.lower() and len(x) &lt; 7)
+            or (x.lower() == &#39;nan&#39;)
+            or (&#39;discrepancy&#39; in x.lower() and len(x) &lt; 14)
+            or all([char == &#39; &#39; for char in x])
+            or all([char == &#39;_&#39; for char in x])
+            or all([char == &#39;.&#39; for char in x])
+            or (&#39;unknown&#39; in x.lower())
+            or (&#39;not obtainable&#39; in x.lower())
+            or (&#39;not obtained&#39; in x.lower())
+            or (&#39;not applicable&#39; in x.lower())
+            or (&#39;not available&#39; in x.lower())
+            or (&#39;not evaluated&#39; in x.lower())
+            or (x in specific_nan_strings)):
+            return True
+        else:
+            return False
+    else:
+        warnings.warn(f&#39;Found a non string value of type {type(x)}. As we\&#39;re \
+                        expecting a string, any other format will be considered \
+                        a missing value.&#39;)
+        return True
+
+
+def get_full_number_string(x, decimal_digits=0):
+    &#39;&#39;&#39;Gets a full number&#39;s representation in a string.
+    Particularly useful when one has very large float values,
+    possibly too big to be represented as an integer.
+
+    Parameters
+    ----------
+    x : float or double or int
+        A numeric value that one wants to represent in a string,
+        with all it&#39;s numbers visible.
+    decimal_digits : int, default 0
+        Number of decimal digits to account for in the number.
+        Considering the value as a natural number, without
+        decimals, by default.
+
+    Returns
+    -------
+    x : string
+        A numeric value that one wants to represent in a string,
+        with all it&#39;s numbers visible.
+    &#39;&#39;&#39;
+    return f&#39;{x:.{decimal_digits}f}&#39;
+
+
+def in_ipynb():
+    &#39;&#39;&#39;Detect if code is running in a IPython notebook, such as in Jupyter Lab.&#39;&#39;&#39;
+    try:
+        return str(type(get_ipython())) == &#34;&lt;class &#39;ipykernel.zmqshell.ZMQInteractiveShell&#39;&gt;&#34;
+    except Exception:
+        # Not on IPython if get_ipython fails
+        return False
+
+
+def iterations_loop(x, see_progress=True):
+    &#39;&#39;&#39;Determine if a progress bar is shown or not.&#39;&#39;&#39;
+    if see_progress is True:
+        # Use a progress bar
+        return tqdm(x)
+    else:
+        # Don&#39;t show any progress bar if see_progress is False
+        return x
+
+
+def set_bar_color(values, ids, seq_len, threshold=0,
+                  neg_color=&#39;rgba(30,136,229,1)&#39;, pos_color=&#39;rgba(255,13,87,1)&#39;):
+    &#39;&#39;&#39;Determine each bar&#39;s color in a bar chart, according to the values being
+    plotted and the predefined threshold.
+
+    Parameters
+    ----------
+    values : numpy.Array
+        Array containing the values to be plotted.
+    ids : int or list of ints
+        ID or list of ID&#39;s that select which time series / sequences to use in
+        the color selection.
+    seq_len : int or list of ints
+        Single or multiple sequence lengths, which represent the true, unpadded
+        size of the input sequences.
+    threshold : int or float, default 0
+        Value to use as a threshold in the plot&#39;s color selection. In other
+        words, values that exceed this threshold will have one color while the
+        remaining have a different one, as specified in the parameters.
+    pos_color : string
+        Color to use in the bars corresponding to threshold exceeding values.
+    neg_color : string
+        Color to use in the bars corresponding to values bellow the threshold.
+
+    Returns
+    -------
+    colors : list of strings
+        Resulting bar colors list.&#39;&#39;&#39;
+    if type(ids) is list:
+        # Create a list of lists, with the colors for each sequences&#39; instances
+        return [[pos_color if val &gt; 0 else neg_color for val in values[id, :seq_len]]
+                for id in ids]
+    else:
+        # Create a single list, with the colors for the sequence&#39;s instances
+        return [pos_color if val &gt; 0 else neg_color for val in values[ids, :seq_len]]</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="data_utils.utils.apply_dict_convertion"><code class="name flex">
+<span>def <span class="ident">apply_dict_convertion</span></span>(<span>x, conv_dict, nan_value=0)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Safely apply a convertion through a dictionary.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>anything</code></dt>
+<dd>Object that will be converted through the dictionary.</dd>
+<dt><strong><code>conv_dict</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary used to convert the input object.</dd>
+<dt><strong><code>nan_value</code></strong> :&ensp;<code>anything</code></dt>
+<dd>Value or object that repressents missingness.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>anything</code></dt>
+<dd>Converted object.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def apply_dict_convertion(x, conv_dict, nan_value=0):
+    &#39;&#39;&#39;Safely apply a convertion through a dictionary.
+
+    Parameters
+    ----------
+    x : anything
+        Object that will be converted through the dictionary.
+    conv_dict : dict
+        Dictionary used to convert the input object.
+    nan_value: anything
+        Value or object that repressents missingness.
+
+    Returns
+    -------
+    x : anything
+        Converted object.
+    &#39;&#39;&#39;
+    # Check if it&#39;s a missing value (NaN)
+    if isinstance(x, numbers.Number):
+        if np.isnan(x):
+            return nan_value
+    # Must be a convertable value
+    else:
+        return conv_dict[x]</code></pre>
+</details>
+</dd>
+<dt id="data_utils.utils.get_full_number_string"><code class="name flex">
+<span>def <span class="ident">get_full_number_string</span></span>(<span>x, decimal_digits=0)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Gets a full number's representation in a string.
+Particularly useful when one has very large float values,
+possibly too big to be represented as an integer.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>float</code> or <code>double</code> or <code>int</code></dt>
+<dd>A numeric value that one wants to represent in a string,
+with all it's numbers visible.</dd>
+<dt><strong><code>decimal_digits</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dd>Number of decimal digits to account for in the number.
+Considering the value as a natural number, without
+decimals, by default.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>string</code></dt>
+<dd>A numeric value that one wants to represent in a string,
+with all it's numbers visible.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_full_number_string(x, decimal_digits=0):
+    &#39;&#39;&#39;Gets a full number&#39;s representation in a string.
+    Particularly useful when one has very large float values,
+    possibly too big to be represented as an integer.
+
+    Parameters
+    ----------
+    x : float or double or int
+        A numeric value that one wants to represent in a string,
+        with all it&#39;s numbers visible.
+    decimal_digits : int, default 0
+        Number of decimal digits to account for in the number.
+        Considering the value as a natural number, without
+        decimals, by default.
+
+    Returns
+    -------
+    x : string
+        A numeric value that one wants to represent in a string,
+        with all it&#39;s numbers visible.
+    &#39;&#39;&#39;
+    return f&#39;{x:.{decimal_digits}f}&#39;</code></pre>
+</details>
+</dd>
+<dt id="data_utils.utils.in_ipynb"><code class="name flex">
+<span>def <span class="ident">in_ipynb</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Detect if code is running in a IPython notebook, such as in Jupyter Lab.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def in_ipynb():
+    &#39;&#39;&#39;Detect if code is running in a IPython notebook, such as in Jupyter Lab.&#39;&#39;&#39;
+    try:
+        return str(type(get_ipython())) == &#34;&lt;class &#39;ipykernel.zmqshell.ZMQInteractiveShell&#39;&gt;&#34;
+    except Exception:
+        # Not on IPython if get_ipython fails
+        return False</code></pre>
+</details>
+</dd>
+<dt id="data_utils.utils.invert_dict"><code class="name flex">
+<span>def <span class="ident">invert_dict</span></span>(<span>x)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Invert a dictionary, switching its keys with its values.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary to be inverted</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>dict</code>:</dt>
+<dd>Inverted dictionary</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def invert_dict(x):
+    &#39;&#39;&#39;Invert a dictionary, switching its keys with its values.
+
+    Parameters
+    ----------
+    x : dict
+        Dictionary to be inverted
+
+    Returns
+    -------
+    x : dict:
+        Inverted dictionary
+    &#39;&#39;&#39;
+    return {v: k for k, v in x.items()}</code></pre>
+</details>
+</dd>
+<dt id="data_utils.utils.is_definitely_string"><code class="name flex">
+<span>def <span class="ident">is_definitely_string</span></span>(<span>x)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Reports if a value is actually a real string or if it has some number in it.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>x</code></strong></dt>
+<dd>Any value which will be judged to be either a real string or numeric.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>boolean</code></dt>
+<dd>Returns a boolean, being it True if it really is a string or False if it's
+either numeric data or a string with a number inside.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_definitely_string(x):
+    &#39;&#39;&#39;Reports if a value is actually a real string or if it has some number in it.
+
+    Parameters
+    ----------
+    x
+        Any value which will be judged to be either a real string or numeric.
+
+    Returns
+    -------
+    boolean
+        Returns a boolean, being it True if it really is a string or False if it&#39;s
+        either numeric data or a string with a number inside.
+    &#39;&#39;&#39;
+    if isinstance(x, int) or isinstance(x, float):
+        return False
+
+    try:
+        float(x)
+        return False
+
+    except Exception:
+        return isinstance(x, str)</code></pre>
+</details>
+</dd>
+<dt id="data_utils.utils.is_string_nan"><code class="name flex">
+<span>def <span class="ident">is_string_nan</span></span>(<span>x, specific_nan_strings=[])</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Indicates if a string corresponds to a missing value.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>string</code></dt>
+<dd>A string that will be compared with possible missing value
+representations.</dd>
+<dt><strong><code>specific_nan_strings</code></strong> :&ensp;<code>list</code> of <code>strings</code>, default []</dt>
+<dd>Parameter where the user can specify additional strings that
+should correspond to missing values.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>boolean</code></dt>
+<dd>Returns a boolean, being it True if the string corresponds to a missing
+value representation or False if it doesn't.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_string_nan(x, specific_nan_strings=[]):
+    &#39;&#39;&#39;Indicates if a string corresponds to a missing value.
+
+    Parameters
+    ----------
+    x : string
+        A string that will be compared with possible missing value
+        representations.
+    specific_nan_strings : list of strings, default []
+        Parameter where the user can specify additional strings that
+        should correspond to missing values.
+
+    Returns
+    -------
+    boolean
+        Returns a boolean, being it True if the string corresponds to a missing
+        value representation or False if it doesn&#39;t.
+    &#39;&#39;&#39;
+    # Only considering strings for the missing values search
+    if isinstance(x, str):
+        # Considering the possibility of just 3 more random extra characters 
+        # in NaN-like strings
+        if ((&#39;other&#39; in x.lower() and len(x) &lt; 9)
+            or (&#39;null&#39; in x.lower() and len(x) &lt; 7)
+            or (x.lower() == &#39;nan&#39;)
+            or (&#39;discrepancy&#39; in x.lower() and len(x) &lt; 14)
+            or all([char == &#39; &#39; for char in x])
+            or all([char == &#39;_&#39; for char in x])
+            or all([char == &#39;.&#39; for char in x])
+            or (&#39;unknown&#39; in x.lower())
+            or (&#39;not obtainable&#39; in x.lower())
+            or (&#39;not obtained&#39; in x.lower())
+            or (&#39;not applicable&#39; in x.lower())
+            or (&#39;not available&#39; in x.lower())
+            or (&#39;not evaluated&#39; in x.lower())
+            or (x in specific_nan_strings)):
+            return True
+        else:
+            return False
+    else:
+        warnings.warn(f&#39;Found a non string value of type {type(x)}. As we\&#39;re \
+                        expecting a string, any other format will be considered \
+                        a missing value.&#39;)
+        return True</code></pre>
+</details>
+</dd>
+<dt id="data_utils.utils.iterations_loop"><code class="name flex">
+<span>def <span class="ident">iterations_loop</span></span>(<span>x, see_progress=True)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Determine if a progress bar is shown or not.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def iterations_loop(x, see_progress=True):
+    &#39;&#39;&#39;Determine if a progress bar is shown or not.&#39;&#39;&#39;
+    if see_progress is True:
+        # Use a progress bar
+        return tqdm(x)
+    else:
+        # Don&#39;t show any progress bar if see_progress is False
+        return x</code></pre>
+</details>
+</dd>
+<dt id="data_utils.utils.set_bar_color"><code class="name flex">
+<span>def <span class="ident">set_bar_color</span></span>(<span>values, ids, seq_len, threshold=0, neg_color='rgba(30,136,229,1)', pos_color='rgba(255,13,87,1)')</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Determine each bar's color in a bar chart, according to the values being
+plotted and the predefined threshold.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>values</code></strong> :&ensp;<code>numpy.Array</code></dt>
+<dd>Array containing the values to be plotted.</dd>
+<dt><strong><code>ids</code></strong> :&ensp;<code>int</code> or <code>list</code> of <code>ints</code></dt>
+<dd>ID or list of ID's that select which time series / sequences to use in
+the color selection.</dd>
+<dt><strong><code>seq_len</code></strong> :&ensp;<code>int</code> or <code>list</code> of <code>ints</code></dt>
+<dd>Single or multiple sequence lengths, which represent the true, unpadded
+size of the input sequences.</dd>
+<dt><strong><code>threshold</code></strong> :&ensp;<code>int</code> or <code>float</code>, default <code>0</code></dt>
+<dd>Value to use as a threshold in the plot's color selection. In other
+words, values that exceed this threshold will have one color while the
+remaining have a different one, as specified in the parameters.</dd>
+<dt><strong><code>pos_color</code></strong> :&ensp;<code>string</code></dt>
+<dd>Color to use in the bars corresponding to threshold exceeding values.</dd>
+<dt><strong><code>neg_color</code></strong> :&ensp;<code>string</code></dt>
+<dd>Color to use in the bars corresponding to values bellow the threshold.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>colors</code></strong> :&ensp;<code>list</code> of <code>strings</code></dt>
+<dd>Resulting bar colors list.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_bar_color(values, ids, seq_len, threshold=0,
+                  neg_color=&#39;rgba(30,136,229,1)&#39;, pos_color=&#39;rgba(255,13,87,1)&#39;):
+    &#39;&#39;&#39;Determine each bar&#39;s color in a bar chart, according to the values being
+    plotted and the predefined threshold.
+
+    Parameters
+    ----------
+    values : numpy.Array
+        Array containing the values to be plotted.
+    ids : int or list of ints
+        ID or list of ID&#39;s that select which time series / sequences to use in
+        the color selection.
+    seq_len : int or list of ints
+        Single or multiple sequence lengths, which represent the true, unpadded
+        size of the input sequences.
+    threshold : int or float, default 0
+        Value to use as a threshold in the plot&#39;s color selection. In other
+        words, values that exceed this threshold will have one color while the
+        remaining have a different one, as specified in the parameters.
+    pos_color : string
+        Color to use in the bars corresponding to threshold exceeding values.
+    neg_color : string
+        Color to use in the bars corresponding to values bellow the threshold.
+
+    Returns
+    -------
+    colors : list of strings
+        Resulting bar colors list.&#39;&#39;&#39;
+    if type(ids) is list:
+        # Create a list of lists, with the colors for each sequences&#39; instances
+        return [[pos_color if val &gt; 0 else neg_color for val in values[id, :seq_len]]
+                for id in ids]
+    else:
+        # Create a single list, with the colors for the sequence&#39;s instances
+        return [pos_color if val &gt; 0 else neg_color for val in values[ids, :seq_len]]</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="data_utils" href="index.html">data_utils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="data_utils.utils.apply_dict_convertion" href="#data_utils.utils.apply_dict_convertion">apply_dict_convertion</a></code></li>
+<li><code><a title="data_utils.utils.get_full_number_string" href="#data_utils.utils.get_full_number_string">get_full_number_string</a></code></li>
+<li><code><a title="data_utils.utils.in_ipynb" href="#data_utils.utils.in_ipynb">in_ipynb</a></code></li>
+<li><code><a title="data_utils.utils.invert_dict" href="#data_utils.utils.invert_dict">invert_dict</a></code></li>
+<li><code><a title="data_utils.utils.is_definitely_string" href="#data_utils.utils.is_definitely_string">is_definitely_string</a></code></li>
+<li><code><a title="data_utils.utils.is_string_nan" href="#data_utils.utils.is_string_nan">is_string_nan</a></code></li>
+<li><code><a title="data_utils.utils.iterations_loop" href="#data_utils.utils.iterations_loop">iterations_loop</a></code></li>
+<li><code><a title="data_utils.utils.set_bar_color" href="#data_utils.utils.set_bar_color">set_bar_color</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

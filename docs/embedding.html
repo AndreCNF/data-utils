@@ -1,0 +1,1927 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.7.2" />
+<title>data_utils.embedding API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>data_utils.embedding</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from comet_ml import Experiment                         # Comet.ml can log training metrics, parameters, do version control and parameter optimization
+import torch                                            # PyTorch to create and apply deep learning models
+import dask.dataframe as dd                             # Dask to handle big data in dataframes
+import numpy as np                                      # NumPy to handle numeric and NaN operations
+import numbers                                          # numbers allows to check if data is numeric
+from functools import reduce                            # Parallelize functions
+import re                                               # Methods for string editing and searching, regular expression matching operations
+import warnings                                         # Print warnings for bad practices
+from . import utils                                     # Generic and useful methods
+from . import data_processing                           # Data processing and dataframe operations
+from . import deep_learning                                    # Common and generic deep learning related methods
+import data_utils as du
+
+# Pandas to handle the data in dataframes
+if du.use_modin is True:
+    import modin.pandas as pd
+else:
+    import pandas as pd
+
+# Ignore Dask&#39;s &#39;meta&#39; warning
+warnings.filterwarnings(&#34;ignore&#34;, message=&#34;`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.&#34;)
+
+# Methods
+
+def remove_digit_from_dict(enum_dict, forbidden_digit=0, inplace=False):
+    &#39;&#39;&#39;Convert an enumeration dictionary to a representation that doesn&#39;t
+    include any value with a specific digit.
+
+    Parameters
+    ----------
+    enum_dict : dict
+        Dictionary containing the mapping between the original values and a
+        numbering.
+    forbidden_digit : int, default 0
+        Digit that we want to prevent from appearing in any enumeration
+        encoding.
+    inplace : bool, default False
+        If set to True, the original dictionary will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dictionary.
+
+    Returns
+    -------
+    enum_dict : dict
+        Dictionary containing the mapping between the original values and a
+        numbering. Now without any occurence of the specified digit.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dictionary
+        new_enum_dict = enum_dict.copy()
+    else:
+        # Use the original dictionary
+        new_enum_dict = enum_dict
+    # Create a sequence of enumeration encoding values
+    enum_seq = []
+    # Value that represents the current sequence number
+    num = 1
+    # Digit to be used when replacing the forbidden digit
+    alt_digit = forbidden_digit + 1
+    for i in range(len(enum_dict)):
+        # Replace undesired digit with the alternative one
+        num = str(num).replace(str(forbidden_digit), str(alt_digit))
+        # Add to the enumeration sequence
+        num = int(num)
+        enum_seq.append(num)
+        # Increment to the following number
+        num += 1
+    # Create a dictionary to convert regular enumeration into the newly created
+    # sequence
+    old_to_new_dict = dict(enumerate(enum_seq, start=1))
+    # Convert the enumeration dictionary to the new encoding scheme
+    for key, val in enum_dict.items():
+        new_enum_dict[key] = old_to_new_dict[val]
+    return new_enum_dict
+
+
+def create_enum_dict(unique_values, nan_value=0, forbidden_digit=0):
+    &#39;&#39;&#39;Enumerate all categories in a specified categorical feature, while also
+    attributing a specific number to NaN and other unknown values.
+
+    Parameters
+    ----------
+    unique_values : list of strings
+        Specifies all the unique values to be enumerated.
+    nan_value : int, default 0
+        Integer number that gets assigned to NaN and NaN-like values.
+    forbidden_digit : int, default 0
+        Digit that we want to prevent from appearing in any enumeration
+        encoding.
+
+    Returns
+    -------
+    enum_dict : dict
+        Dictionary containing the mapping between the original values and the
+        numbering obtained.
+    &#39;&#39;&#39;
+    # Enumerate the unique values in the categorical feature and put them in a dictionary
+    enum_dict = dict(enumerate(unique_values, start=1))
+    # Invert the dictionary to have the unique categories as keys and the numbers as values
+    enum_dict = utils.invert_dict(enum_dict)
+    if forbidden_digit is not None:
+        # Change the enumeration to prevent it from including undesired digits
+        enum_dict = remove_digit_from_dict(enum_dict, forbidden_digit, inplace=True)
+    # Move NaN to key 0
+    enum_dict[np.nan] = nan_value
+    # Search for NaN-like categories
+    for key, val in enum_dict.items():
+        if type(key) is str:
+            if utils.is_string_nan(key):
+                # Move NaN-like key to nan_value
+                enum_dict[key] = nan_value
+        elif isinstance(key, numbers.Number):
+            if np.isnan(key) or str(key).lower() == &#39;nan&#39;:
+                # Move NaN-like key to nan_value
+                enum_dict[key] = nan_value
+    return enum_dict
+
+
+def enum_categorical_feature(df, feature, nan_value=0, clean_name=True,
+                             forbidden_digit=0, apply_on_df=True):
+    &#39;&#39;&#39;Enumerate all categories in a specified categorical feature, while also
+    attributing a specific number to NaN and other unknown values.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe which the categorical feature belongs to.
+    feature : string
+        Name of the categorical feature which will be enumerated.
+    nan_value : int, default 0
+        Integer number that gets assigned to NaN and NaN-like values.
+    clean_name : bool, default True
+        If set to True, the method assumes that the feature is of type string
+        and it will make sure that all the feature&#39;s values are in lower case,
+        to reduce duplicate information.
+    forbidden_digit : int, default 0
+        Digit that we want to prevent from appearing in any enumeration
+        encoding.
+    apply_on_df : bool, default True
+        If set to True, the original column of the dataframe will be converted
+        to the new enumeration encoding.
+
+    Returns
+    -------
+    enum_series : pandas.Series or dask.Series
+        Series corresponding to the analyzed feature, after
+        enumeration.
+    enum_dict : dict
+        Dictionary containing the mapping between the original categorical values
+        and the numbering obtained.
+    &#39;&#39;&#39;
+    if clean_name is True:
+        # Clean the column&#39;s string values to have the same, standard format
+        df = data_processing.clean_categories_naming(df, feature)
+    # Get the unique values of the cateforical feature
+    unique_values = df[feature].unique()
+    if isinstance(df, dd.DataFrame):
+        # Make sure that the unique values are computed, in case we&#39;re using Dask
+        unique_values = unique_values.compute()
+    # Enumerate the unique values in the categorical feature and put them in a dictionary
+    enum_dict = create_enum_dict(unique_values, nan_value, forbidden_digit)
+    if apply_on_df is False:
+        return enum_dict
+    else:
+        # Create a series from the enumerations of the original feature&#39;s categories
+        if isinstance(df, dd.DataFrame):
+            enum_series = df[feature].map(lambda x: utils.apply_dict_convertion(x, enum_dict, nan_value), meta=(&#39;x&#39;, int))
+        else:
+            enum_series = df[feature].map(lambda x: utils.apply_dict_convertion(x, enum_dict, nan_value))
+        return enum_series, enum_dict
+
+
+def enum_category_conversion(df, enum_column, enum_dict, enum_to_category=True):
+    &#39;&#39;&#39;Convert between enumerated encodings and their respective categories&#39;
+    names, in either direction.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe which the categorical feature belongs to.
+    enum_column : string
+        Name of the categorical feature which is encoded/enumerated. The
+        feature&#39;s values must be single integer numbers, with a &#39;;&#39; separator if
+        more than one category applies to a given row.
+    enum_dict : dict
+        Dictionary containing the category names that correspond to each
+        enumeration number.
+    enum_to_category : bool, default True
+        Indicator on which the user can specify if the conversion is from
+        numerical encodings to string categories names (True) or vice-versa
+        (False). By default, it&#39;s not defined (None) and the method infers the
+        direction of the conversion based on the input dictionary&#39;s key type.
+
+    Returns
+    -------
+    categories : string
+        String containing all the categories names of the current row. If more
+        than one category is present, their names are separated by the &#39;;&#39;
+        separator.
+    &#39;&#39;&#39;
+    # Separate the enumerations
+    enums = str(df[enum_column]).split(&#39;;&#39;)
+    # Check what direction the conversion is being done
+    if enum_to_category is False:
+        # If all the keys are integers, then we&#39;re converting from enumerations to category names;
+        # otherwise, it&#39;s the opposite direction
+        enum_to_category = all([isinstance(item, int) for item in list(enum_dict.keys())])
+        # Get the individual categories names
+        categories = [str(enum_dict[str(n)]) for n in enums]
+    else:
+        # Get the individual categories names
+        categories = [enum_dict[int(n)] for n in enums]
+    # Join the categories by a &#39;;&#39; separator
+    categories = &#39;;&#39;.join(categories)
+    return categories
+
+
+def converge_enum(df1, df2, cat_feat_name, dict1=None, dict2=None, nan_value=0,
+                  sort=True, inplace=False):
+    &#39;&#39;&#39;Converge the categorical encoding (enumerations) on the same feature of
+    two dataframes.
+
+    Parameters
+    ----------
+    df1 : pandas.DataFrame or dask.DataFrame
+        One of the dataframes that has the enumerated categorical feature, which
+        encoding needs to be converged with the other.
+    df2 : pandas.DataFrame or dask.DataFrame
+        One of the dataframes that has the enumerated categorical feature, which
+        encoding needs to be converged with the other.
+    cat_feat_name : string
+        Name of the categorical feature whose encodings need to be converged.
+    dict1 : dict, default None
+        Dictionary mapping between the category names and the first dataframe&#39;s
+        encoding number. If not specified, the method will create the dictionary.
+    dict2 : dict, default None
+        Dictionary mapping between the category names and the second dataframe&#39;s
+        encoding number. If not specified, the method will create the dictionary.
+    nan_value : int, default 0
+        Integer number that gets assigned to NaN and NaN-like values.
+    sort : bool, default True
+        If set to True, the final dictionary of mapping between categories names
+        and enumeration numbers will be sorted alphabetically. In case sorting
+        is used, the resulting dictionary and dataframes will always be the same.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
+
+    Returns
+    -------
+    data1_df : pandas.DataFrame or dask.DataFrame
+        The first input dataframe after having its categorical feature converted
+        to the new, converged enumeration encoding.
+    data2_df : pandas.DataFrame or dask.DataFrame
+        The second input dataframe after having its categorical feature
+        converted to the new, converged enumeration encoding.
+    all_data_dict : dict, default None
+        New dictionary that maps both dataframes&#39; unique categories to the
+        converged enumeration encoding. Remember to save this dictionary, as
+        this converged dictionary creation process is stochastic, if sorting is
+        not performed.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data1_df = df1.copy()
+        data2_df = df2.copy()
+    else:
+        # Use the original dataframes
+        data1_df = df1
+        data2_df = df2
+    if dict1 is not None and dict2 is not None:
+        data1_dict = dict1.copy()
+        data2_dict = dict2.copy()
+    else:
+        # Determine each dataframe&#39;s dictionary of categories
+        data1_df[cat_feat_name], data1_dict = enum_categorical_feature(data1_df, cat_feat_name, nan_value=nan_value)
+        data2_df[cat_feat_name], data2_dict = enum_categorical_feature(data2_df, cat_feat_name, nan_value=nan_value)
+    # Invert the dictionaries of categories
+    data1_dict_inv = utils.invert_dict(data1_dict)
+    data2_dict_inv = utils.invert_dict(data2_dict)
+    data1_dict_inv[nan_value] = &#39;nan&#39;
+    data2_dict_inv[nan_value] = &#39;nan&#39;
+    # Revert back to the original dictionaries, now without multiple NaN-like categories
+    data1_dict = utils.invert_dict(data1_dict_inv)
+    data2_dict = utils.invert_dict(data2_dict_inv)
+    # Get the unique categories of each dataframe
+    data1_categories = list(data1_dict.keys())
+    data2_categories = list(data2_dict.keys())
+    # Combine all the unique categories into one single list
+    all_categories = set(data1_categories + data2_categories)
+    all_categories.remove(&#39;nan&#39;)
+    if sort is True:
+        all_categories = list(all_categories)
+        all_categories.sort()
+    # Create a new dictionary for the combined categories
+    all_data_dict = create_enum_dict(all_categories)
+    all_data_dict[&#39;nan&#39;] = nan_value
+    # Revert the feature of each dataframe to its original categories strings
+    data1_df[cat_feat_name] = data1_df.apply(lambda df: enum_category_conversion(df, enum_column=cat_feat_name,
+                                                                                 enum_dict=data1_dict_inv,
+                                                                                 enum_to_category=True),
+                                             axis=1, meta=(&#39;df&#39;, str))
+    data2_df[cat_feat_name] = data2_df.apply(lambda df: enum_category_conversion(df, enum_column=cat_feat_name,
+                                                                                 enum_dict=data2_dict_inv,
+                                                                                 enum_to_category=True),
+                                             axis=1, meta=(&#39;df&#39;, str))
+    # Convert the features&#39; values into the new enumeration
+    data1_df[cat_feat_name] = data1_df.apply(lambda df: enum_category_conversion(df, enum_column=cat_feat_name,
+                                                                                 enum_dict=all_data_dict,
+                                                                                 enum_to_category=False),
+                                             axis=1, meta=(&#39;df&#39;, str))
+    data2_df[cat_feat_name] = data2_df.apply(lambda df: enum_category_conversion(df, enum_column=cat_feat_name,
+                                                                                 enum_dict=all_data_dict,
+                                                                                 enum_to_category=False),
+                                             axis=1, meta=(&#39;df&#39;, str))
+    return data1_df, data2_df, all_data_dict
+
+
+def remove_nan_enum_from_string(x, nan_value=0):
+    &#39;&#39;&#39;Removes missing values (NaN) from enumeration encoded strings.
+
+    Parameters
+    ----------
+    x : string
+        Original string, with possible NaNs included.
+    nan_value : int, default 0
+        Integer number that gets assigned to NaN and NaN-like values.
+
+    Returns
+    -------
+    x : string
+        NaN removed string.
+    &#39;&#39;&#39;
+    # Make sure that the NaN value is represented as a string
+    nan_value = str(nan_value)
+    # Only remove NaN values if the string isn&#39;t just a single NaN value
+    if x != nan_value:
+        # Remove NaN value that might have a following encoded value
+        if f&#39;{nan_value};&#39; in x:
+            x = re.sub(f&#39;{nan_value};&#39;, &#39;&#39;, x)
+        # Remove NaN value that might be at the end of the string
+        if nan_value in x:
+            x = re.sub(f&#39;;{nan_value}&#39;, &#39;&#39;, x)
+        # If the string got completly emptied, place a single NaN value on it
+        if x == &#39;&#39;:
+            x = nan_value
+    return x
+
+
+def join_categorical_enum(df, cat_feat=[], id_columns=[&#39;patientunitstayid&#39;, &#39;ts&#39;],
+                          cont_join_method=&#39;mean&#39;, has_timestamp=None,
+                          nan_value=0, remove_listed_nan=True, inplace=False):
+    &#39;&#39;&#39;Join rows that have the same identifier columns based on concatenating
+    categorical encodings and on averaging continuous features.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe which will be processed.
+    cat_feat : string or list of strings, default []
+        Name(s) of the categorical feature(s) which will have their values
+        concatenated along the ID&#39;s.
+    id_columns : list of strings, default [&#39;patientunitstayid&#39;, &#39;ts&#39;]
+        List of columns names which represent identifier columns. These are not
+        supposed to be changed.
+    cont_join_method : string, default &#39;mean&#39;
+        Defines which method to use when joining rows of continuous features.
+        Can be either &#39;mean&#39;, &#39;min&#39; or &#39;max&#39;.
+    has_timestamp : bool, default None
+        If set to True, the resulting dataframe will be sorted and set as index
+        by the timestamp column (`ts`). If not specified, the method will
+        automatically look for a `ts` named column in the input dataframe.
+    nan_value : int, default 0
+        Integer number that gets assigned to NaN and NaN-like values.
+    remove_listed_nan : bool, default True
+        If set to True, joined rows where non-NaN values exist have the NaN
+        values removed.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
+
+    Returns
+    -------
+    data_df : pandas.DataFrame or dask.DataFrame
+        Resulting dataframe from merging all the concatenated or averaged
+        features.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
+    else:
+        # Use the original dataframe
+        data_df = df
+    # Define a list of dataframes
+    df_list = []
+    # See if there is a timestamp column on the dataframe (only considering as a
+    # timestamp column those that are named &#39;ts&#39;)
+    if has_timestamp is None:
+        if &#39;ts&#39; in data_df.columns:
+            has_timestamp = True
+        else:
+            has_timestamp = False
+    print(&#39;Concatenating categorical encodings...&#39;)
+    if isinstance(cat_feat, str):
+        # Make sure that the categorical feature names are in a list format,
+        # even if it&#39;s just one feature name
+        cat_feat = [cat_feat]
+    for feature in utils.iterations_loop(cat_feat):
+        # Convert to string format
+        data_df[feature] = data_df[feature].astype(str)
+        # Join with other categorical enumerations on the same ID&#39;s
+        data_to_add = data_df.groupby(id_columns)[feature].apply(lambda x: &#39;;&#39;.join(x)).to_frame().reset_index()
+        if remove_listed_nan is True:
+            # Remove NaN values from rows with non-NaN values
+            data_to_add[feature] = data_to_add[feature].apply(lambda x: remove_nan_enum_from_string(x, nan_value))
+        if has_timestamp is True:
+            # Sort by time `ts` and set it as index
+            data_to_add = data_to_add.set_index(&#39;ts&#39;)
+        # Add to the list of dataframes that will be merged
+        df_list.append(data_to_add)
+    remaining_feat = list(set(data_df.columns) - set(cat_feat) - set(id_columns))
+    print(&#39;Averaging continuous features...&#39;)
+    for feature in utils.iterations_loop(remaining_feat):
+        if data_df[feature].dtype == &#39;object&#39;:
+            raise Exception(f&#39;ERROR: There is at least one non-numeric feature in the dataframe. \
+                              This method requires all columns to be numeric, either integer or floats. \
+                              In case there are categorical features still in string format, consider \
+                              using the `string_encod_to_numeric` method first. The column {feature} is \
+                              of type {df[feature].dtype}.&#39;)
+        # Join remaining features through their average, min or max value
+        # (just to be sure that there aren&#39;t missing or different values)
+        if cont_join_method.lower() == &#39;mean&#39;:
+            data_to_add = data_df.groupby(id_columns)[feature].mean().to_frame().reset_index()
+        elif cont_join_method.lower() == &#39;min&#39;:
+            data_to_add = data_df.groupby(id_columns)[feature].min().to_frame().reset_index()
+        elif cont_join_method.lower() == &#39;max&#39;:
+            data_to_add = data_df.groupby(id_columns)[feature].max().to_frame().reset_index()
+        if has_timestamp is True:
+            # Sort by time `ts` and set it as index
+            data_to_add = data_to_add.set_index(&#39;ts&#39;)
+        # Add to the list of dataframes that will be merged
+        df_list.append(data_to_add)
+    # Merge all dataframes
+    print(&#39;Merging features\&#39; dataframes...&#39;)
+    if isinstance(df, dd.DataFrame):
+        data_df = reduce(lambda x, y: dd.merge(x, y, on=id_columns), df_list)
+    else:
+        data_df = reduce(lambda x, y: pd.merge(x, y, on=id_columns), df_list)
+    print(&#39;Done!&#39;)
+    return data_df
+
+
+def string_encod_to_numeric(df, cat_feat=None, separator_num=0, inplace=False):
+    &#39;&#39;&#39;Convert the string encoded columns that represent lists of categories, 
+    separated by semicolons, into numeric columns through the replacement of 
+    the semicolon character by a given number. This allows the dataframe to 
+    be adequately converted into a PyTorch or TensorFlow tensor.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe which will be processed.
+    cat_feat : string or list of strings, default None
+        Name(s) of the categorical encoded feature(s) which will have their
+        semicolon separators converted into its binary ASCII code. If not
+        specified, the method will look through all columns, processing
+        the ones that might have semicolons.
+    separator_num : int, default 0
+        Number to use as a representation of the semicolon encoding
+        separator.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
+
+    Returns
+    -------
+    data_df : pandas.DataFrame or dask.DataFrame
+        Resulting dataframe from converting the string encoded columns into
+        numeric ones, making it tensor ready.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
+    else:
+        # Use the original dataframe
+        data_df = df
+    if cat_feat is None:
+        cat_feat = []
+        # Go through all the features processing the ones that might have semicolons
+        for feature in df.columns:
+            # Only analyze the feature if it has string values
+            if df[feature].dtype == &#39;object&#39;:
+                cat_feat.append(feature)
+    elif isinstance(cat_feat, str):
+        # Make sure that the categorical feature names are in a list format,
+        # even if it&#39;s just one feature name
+        cat_feat = [cat_feat]
+    if isinstance(cat_feat, list):
+        for feature in cat_feat:
+            # Make sure that all values are in string format
+            data_df[feature] = data_df[feature].astype(str)
+            # Replace semicolon characters by its binary ASCII code
+            data_df[feature] = data_df[feature].str.replace(&#39;;&#39;, str(separator_num))
+            # Convert column to an integer format
+            data_df[feature] = data_df[feature].astype(float)
+    else:
+        raise Exception(f&#39;ERROR: When specified, the categorical features `cat_feat` must \
+                         be in string or list of strings format, not {type(cat_feat)}.&#39;)
+    return data_df
+
+
+def prepare_embed_bag(data, feature=None, separator_num=0, padding_value=999999,
+                      nan_value=0):
+    &#39;&#39;&#39;Prepare a categorical feature for embedding bag, i.e. split category
+    enumerations into separate numbers, combine them into a single list and set
+    the appropriate offsets as to when each row&#39;s group of categories end.
+
+    Parameters
+    ----------
+    data : torch.Tensor
+        Data tensor that contains the categorical feature that will be embedded.
+    feature : int, default None
+        Index of the categorical feature on which embedding bag will be 
+        applied. Can only be left undefined if the data is one dimensional.
+    separator_num : int, default 0
+        Number to use as a representation of the semicolon encoding
+        separator.
+    padding_value : numeric, default 999999
+        Value to use in the padding, to fill the sequences.
+    nan_value : int, default 0
+        Integer number that gets assigned to NaN and NaN-like values.
+
+    Returns
+    -------
+    enum_list : torch.Tensor
+        List of all categorical enumerations, i.e. the numbers corresponding to
+        each of the feature&#39;s categories, contained in the input series.
+    offset_list : torch.Tensor
+        List of when each row&#39;s categorical enumerations start, considering the
+        enum_list list.
+    &#39;&#39;&#39;
+    enum_list = []
+    count = 0
+    offset_list = [count]
+    if feature is None and len(data.shape) &gt; 1:
+        raise Exception(&#39;ERROR: If multidimensional data is passed in the input, the \
+                        feature from which to get the full list of categorical \
+                        encodings must be defined.&#39;)
+    if len(data.shape) &lt; 3:
+        for i in range(data.shape[0]):
+            # Get the full list of digits of the current value
+            if len(data.shape) == 1:
+                feature_val_i = utils.get_full_number_string(data[i].item())
+            else:
+                feature_val_i = utils.get_full_number_string(data[i, feature].item())
+            if len(feature_val_i) &gt; 1:
+                # Separate digits in the same string
+                digits_list = feature_val_i.split(str(separator_num))
+            else:
+                # Just use append the single encoding value
+                digits_list = [feature_val_i]
+            if int(digits_list[0]) == padding_value:
+                # Add a missing value embedding
+                enum_list.append([str(nan_value)])
+            else:
+                # Add the digits to the enumeration encodings list
+                enum_list.append(digits_list)
+            # Set the end of the current list
+            count += len(digits_list)
+            offset_list.append(count)
+        # Flatten list
+        enum_list = [int(value) for sublist in enum_list for value in sublist]
+    elif len(data.shape) == 3:
+        # Process each sequence separately, creating 2D categorical encodings and offset lists
+        for i in range(data.shape[0]):
+            for j in range(data.shape[1]):
+                # Get the full list of digits of the current value
+                feature_val_i = utils.get_full_number_string(data[i, j, feature].item())
+                if len(feature_val_i) &gt; 1:
+                    # Separate digits in the same string
+                    digits_list = feature_val_i.split(str(separator_num))
+                else:
+                    # Just use append the single encoding value
+                    digits_list = [feature_val_i]
+                if int(digits_list[0]) == padding_value:
+                    # Add a missing value embedding
+                    enum_list.append([str(nan_value)])
+                else:
+                    # Add the digits to the enumeration encodings list
+                    enum_list.append(digits_list)
+                # Set the end of the current list
+                count += len(digits_list)
+                offset_list.append(count)
+        # Flatten full list
+        enum_list = [int(value) for sublist in enum_list for value in sublist]
+    else:
+        raise Exception(f&#39;ERROR: Data with more than 3 dimensions is not supported. Input data has {len(data.shape)} dimensions.&#39;)
+    # Convert to PyTorch tensor
+    enum_list = torch.tensor(enum_list)
+    offset_list = torch.tensor(offset_list)
+    return enum_list, offset_list
+
+
+def run_embed_bag(data, embedding_layer, enum_list, offset, inplace=False):
+    &#39;&#39;&#39;Run an embedding bag layer on a list(s) of encoded categories, adding 
+    the new embedding columns to the data tensor.
+
+    Parameters
+    ----------
+    data : torch.Tensor
+        Data tensor that contains the categorical feature that will be embedded.
+    embedding_layer : torch.nn.EmbeddingBag
+        PyTorch layer that applies the embedding bag, i.e. calculates the 
+        average embedding based on multiple encoded values.
+    enum_list : torch.Tensor
+        List of all categorical enumerations, i.e. the numbers corresponding to
+        each of the feature&#39;s categories, contained in the input series.
+    offset : torch.Tensor
+        List of when each row&#39;s categorical enumerations start, considering the
+        enum_list list.
+    inplace : bool, default False
+        If set to True, the original tensor will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original tensor.
+
+    Returns
+    -------
+    data : torch.Tensor
+        Data tensor with the new embedding features added.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original tensor
+        data_tensor = data.clone()
+    else:
+        # Use the original dataframe
+        data_tensor = data
+    # Get a tensor with the embedding values retrieved from the embedding bag layer
+    embed_data = embedding_layer(enum_list, offset)[:-1]
+    if len(data_tensor.shape) == 1:
+        # Add the new embedding columns to the data tensor
+        data_tensor = torch.cat((data_tensor.double(), embed_data.double()))
+    elif len(data_tensor.shape) == 2:
+        # Add the new embedding columns to the data tensor
+        data_tensor = torch.cat((data_tensor.double(), embed_data.double()), dim=1)
+    elif len(data_tensor.shape) == 3:
+        # Change shape of the embeddings tensor to match the original data
+        embed_data = embed_data.view(data_tensor.shape[0], data_tensor.shape[1], embedding_layer.embedding_dim)
+        # Add the new embedding columns to the data tensor
+        data_tensor = torch.cat((data_tensor.double(), embed_data.double()), dim=2)
+    else:
+        raise Exception(f&#39;ERROR: Data with more than 3 dimensions is not supported. Input data has {len(data_tensor.shape)} dimensions.&#39;)
+    return data_tensor
+
+
+def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
+                           padding_value=999999, nan_value=0, inplace=False):
+    &#39;&#39;&#39;Run the complete pipeline that gets from a data tensor with categorical
+    features, i.e. columns with lists of encodings as values, into a data tensor
+    with embedding columns.
+
+    Parameters
+    ----------
+    data : torch.Tensor
+        Data tensor that contains the categorical feature(s) that will be embedded.
+    embedding_layer : torch.nn.EmbeddingBag or torch.nn.ModuleList or torch.nn.ModuleDict
+        PyTorch layer(s) that applies the embedding bag, i.e. calculates the 
+        average embedding based on multiple encoded values.
+    features : int or list of int
+        Index (or indeces) of the categorical column(s) that will be ran through
+        its (or their) respective embedding layer(s). This feature(s) is (are) 
+        removed from the data tensor after the embedding columns are added.
+    model_forward : bool, default False
+        Indicates if the method is being executed inside a machine learning model&#39;s
+        forward method. If so, it will account for a previous removal of sample
+        identidying columns.
+    padding_value : numeric, default 999999
+        Value to use in the padding, to fill the sequences.
+    nan_value : int, default 0
+        Integer number that gets assigned to NaN and NaN-like values.
+    inplace : bool, default False
+        If set to True, the original tensor will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original tensor.
+
+    Returns
+    -------
+    data : torch.Tensor
+        Data tensor with the new embedding features added and the old categorical
+        features removed.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_tensor = data.clone()
+    else:
+        # Use the original dataframe
+        data_tensor = data
+    # Check if it&#39;s only a single categorical feature or more
+    if isinstance(embedding_layer, torch.nn.EmbeddingBag) and isinstance(features, int):
+        # Get the list of all the encodings and their offsets
+        if model_forward:
+            enum_list, offset_list = prepare_embed_bag(data_tensor, features-2,
+                                                       padding_value=padding_value, nan_value=nan_value)
+        else:
+            enum_list, offset_list = prepare_embed_bag(data_tensor, features,
+                                                       padding_value=padding_value, nan_value=nan_value)
+        # Run the embedding bag and add the embedding columns to the tensor
+        data_tensor = run_embed_bag(data_tensor, embedding_layer, enum_list, offset_list, inplace)
+    elif isinstance(embedding_layer, torch.nn.ModuleList) and isinstance(features, list):
+        for i in range(len(features)):
+            # Get the list of all the encodings and their offsets
+            if model_forward:
+                enum_list, offset_list = prepare_embed_bag(data_tensor, features[i]-2,
+                                                       padding_value=padding_value, nan_value=nan_value)
+            else:
+                enum_list, offset_list = prepare_embed_bag(data_tensor, features[i],
+                                                       padding_value=padding_value, nan_value=nan_value)
+            # Run the embedding bag and add the embedding columns to the tensor
+            data_tensor = run_embed_bag(data_tensor, embedding_layer[f&#39;embed_{i}&#39;], enum_list, offset_list, inplace)
+    elif isinstance(embedding_layer, torch.nn.ModuleDict) and isinstance(features, list):
+        for feature in features:
+            # Get the list of all the encodings and their offsets
+            if model_forward:
+                enum_list, offset_list = prepare_embed_bag(data_tensor, feature-2,
+                                                       padding_value=padding_value, nan_value=nan_value)
+            else:
+                enum_list, offset_list = prepare_embed_bag(data_tensor, feature,
+                                                       padding_value=padding_value, nan_value=nan_value)
+            # Run the embedding bag and add the embedding columns to the tensor
+            data_tensor = run_embed_bag(data_tensor, embedding_layer[f&#39;embed_{feature}&#39;], enum_list, offset_list, inplace)
+    else:
+        raise Exception(f&#39;ERROR: The user must either a single embedding bag and \
+                          feature index or lists of embedding bag layers and \
+                          feature indeces. The input `embedding_layer` has type \
+                          {type(embedding_layer)} while `feature` has type {type(features)}.&#39;)
+    # Remove the old categorical feature(s)
+    data_tensor = deep_learning.remove_tensor_column(data_tensor, features, inplace)
+    return data_tensor
+
+
+# [TODO] Create a function that takes a set of embeddings (which will be used in
+# an embedding bag) and reverts them back to the original text
+# [TODO] Define an automatic method to discover which embedded category was more
+# important by doing inference on individual embeddings of each category separately,
+# seeing which one caused a bigger change in the output.</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="data_utils.embedding.converge_enum"><code class="name flex">
+<span>def <span class="ident">converge_enum</span></span>(<span>df1, df2, cat_feat_name, dict1=None, dict2=None, nan_value=0, sort=True, inplace=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Converge the categorical encoding (enumerations) on the same feature of
+two dataframes.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df1</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
+<dd>One of the dataframes that has the enumerated categorical feature, which
+encoding needs to be converged with the other.</dd>
+<dt><strong><code>df2</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
+<dd>One of the dataframes that has the enumerated categorical feature, which
+encoding needs to be converged with the other.</dd>
+<dt><strong><code>cat_feat_name</code></strong> :&ensp;<code>string</code></dt>
+<dd>Name of the categorical feature whose encodings need to be converged.</dd>
+<dt><strong><code>dict1</code></strong> :&ensp;<code>dict</code>, default <code>None</code></dt>
+<dd>Dictionary mapping between the category names and the first dataframe's
+encoding number. If not specified, the method will create the dictionary.</dd>
+<dt><strong><code>dict2</code></strong> :&ensp;<code>dict</code>, default <code>None</code></dt>
+<dd>Dictionary mapping between the category names and the second dataframe's
+encoding number. If not specified, the method will create the dictionary.</dd>
+<dt><strong><code>nan_value</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dd>Integer number that gets assigned to NaN and NaN-like values.</dd>
+<dt><strong><code>sort</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
+<dd>If set to True, the final dictionary of mapping between categories names
+and enumeration numbers will be sorted alphabetically. In case sorting
+is used, the resulting dictionary and dataframes will always be the same.</dd>
+<dt><strong><code>inplace</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>If set to True, the original dataframe will be used and modified
+directly. Otherwise, a copy will be created and returned, without
+changing the original dataframe.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>data1_df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
+<dd>The first input dataframe after having its categorical feature converted
+to the new, converged enumeration encoding.</dd>
+<dt><strong><code>data2_df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
+<dd>The second input dataframe after having its categorical feature
+converted to the new, converged enumeration encoding.</dd>
+<dt><strong><code>all_data_dict</code></strong> :&ensp;<code>dict</code>, default <code>None</code></dt>
+<dd>New dictionary that maps both dataframes' unique categories to the
+converged enumeration encoding. Remember to save this dictionary, as
+this converged dictionary creation process is stochastic, if sorting is
+not performed.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def converge_enum(df1, df2, cat_feat_name, dict1=None, dict2=None, nan_value=0,
+                  sort=True, inplace=False):
+    &#39;&#39;&#39;Converge the categorical encoding (enumerations) on the same feature of
+    two dataframes.
+
+    Parameters
+    ----------
+    df1 : pandas.DataFrame or dask.DataFrame
+        One of the dataframes that has the enumerated categorical feature, which
+        encoding needs to be converged with the other.
+    df2 : pandas.DataFrame or dask.DataFrame
+        One of the dataframes that has the enumerated categorical feature, which
+        encoding needs to be converged with the other.
+    cat_feat_name : string
+        Name of the categorical feature whose encodings need to be converged.
+    dict1 : dict, default None
+        Dictionary mapping between the category names and the first dataframe&#39;s
+        encoding number. If not specified, the method will create the dictionary.
+    dict2 : dict, default None
+        Dictionary mapping between the category names and the second dataframe&#39;s
+        encoding number. If not specified, the method will create the dictionary.
+    nan_value : int, default 0
+        Integer number that gets assigned to NaN and NaN-like values.
+    sort : bool, default True
+        If set to True, the final dictionary of mapping between categories names
+        and enumeration numbers will be sorted alphabetically. In case sorting
+        is used, the resulting dictionary and dataframes will always be the same.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
+
+    Returns
+    -------
+    data1_df : pandas.DataFrame or dask.DataFrame
+        The first input dataframe after having its categorical feature converted
+        to the new, converged enumeration encoding.
+    data2_df : pandas.DataFrame or dask.DataFrame
+        The second input dataframe after having its categorical feature
+        converted to the new, converged enumeration encoding.
+    all_data_dict : dict, default None
+        New dictionary that maps both dataframes&#39; unique categories to the
+        converged enumeration encoding. Remember to save this dictionary, as
+        this converged dictionary creation process is stochastic, if sorting is
+        not performed.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data1_df = df1.copy()
+        data2_df = df2.copy()
+    else:
+        # Use the original dataframes
+        data1_df = df1
+        data2_df = df2
+    if dict1 is not None and dict2 is not None:
+        data1_dict = dict1.copy()
+        data2_dict = dict2.copy()
+    else:
+        # Determine each dataframe&#39;s dictionary of categories
+        data1_df[cat_feat_name], data1_dict = enum_categorical_feature(data1_df, cat_feat_name, nan_value=nan_value)
+        data2_df[cat_feat_name], data2_dict = enum_categorical_feature(data2_df, cat_feat_name, nan_value=nan_value)
+    # Invert the dictionaries of categories
+    data1_dict_inv = utils.invert_dict(data1_dict)
+    data2_dict_inv = utils.invert_dict(data2_dict)
+    data1_dict_inv[nan_value] = &#39;nan&#39;
+    data2_dict_inv[nan_value] = &#39;nan&#39;
+    # Revert back to the original dictionaries, now without multiple NaN-like categories
+    data1_dict = utils.invert_dict(data1_dict_inv)
+    data2_dict = utils.invert_dict(data2_dict_inv)
+    # Get the unique categories of each dataframe
+    data1_categories = list(data1_dict.keys())
+    data2_categories = list(data2_dict.keys())
+    # Combine all the unique categories into one single list
+    all_categories = set(data1_categories + data2_categories)
+    all_categories.remove(&#39;nan&#39;)
+    if sort is True:
+        all_categories = list(all_categories)
+        all_categories.sort()
+    # Create a new dictionary for the combined categories
+    all_data_dict = create_enum_dict(all_categories)
+    all_data_dict[&#39;nan&#39;] = nan_value
+    # Revert the feature of each dataframe to its original categories strings
+    data1_df[cat_feat_name] = data1_df.apply(lambda df: enum_category_conversion(df, enum_column=cat_feat_name,
+                                                                                 enum_dict=data1_dict_inv,
+                                                                                 enum_to_category=True),
+                                             axis=1, meta=(&#39;df&#39;, str))
+    data2_df[cat_feat_name] = data2_df.apply(lambda df: enum_category_conversion(df, enum_column=cat_feat_name,
+                                                                                 enum_dict=data2_dict_inv,
+                                                                                 enum_to_category=True),
+                                             axis=1, meta=(&#39;df&#39;, str))
+    # Convert the features&#39; values into the new enumeration
+    data1_df[cat_feat_name] = data1_df.apply(lambda df: enum_category_conversion(df, enum_column=cat_feat_name,
+                                                                                 enum_dict=all_data_dict,
+                                                                                 enum_to_category=False),
+                                             axis=1, meta=(&#39;df&#39;, str))
+    data2_df[cat_feat_name] = data2_df.apply(lambda df: enum_category_conversion(df, enum_column=cat_feat_name,
+                                                                                 enum_dict=all_data_dict,
+                                                                                 enum_to_category=False),
+                                             axis=1, meta=(&#39;df&#39;, str))
+    return data1_df, data2_df, all_data_dict</code></pre>
+</details>
+</dd>
+<dt id="data_utils.embedding.create_enum_dict"><code class="name flex">
+<span>def <span class="ident">create_enum_dict</span></span>(<span>unique_values, nan_value=0, forbidden_digit=0)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Enumerate all categories in a specified categorical feature, while also
+attributing a specific number to NaN and other unknown values.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>unique_values</code></strong> :&ensp;<code>list</code> of <code>strings</code></dt>
+<dd>Specifies all the unique values to be enumerated.</dd>
+<dt><strong><code>nan_value</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dd>Integer number that gets assigned to NaN and NaN-like values.</dd>
+<dt><strong><code>forbidden_digit</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dd>Digit that we want to prevent from appearing in any enumeration
+encoding.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>enum_dict</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary containing the mapping between the original values and the
+numbering obtained.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_enum_dict(unique_values, nan_value=0, forbidden_digit=0):
+    &#39;&#39;&#39;Enumerate all categories in a specified categorical feature, while also
+    attributing a specific number to NaN and other unknown values.
+
+    Parameters
+    ----------
+    unique_values : list of strings
+        Specifies all the unique values to be enumerated.
+    nan_value : int, default 0
+        Integer number that gets assigned to NaN and NaN-like values.
+    forbidden_digit : int, default 0
+        Digit that we want to prevent from appearing in any enumeration
+        encoding.
+
+    Returns
+    -------
+    enum_dict : dict
+        Dictionary containing the mapping between the original values and the
+        numbering obtained.
+    &#39;&#39;&#39;
+    # Enumerate the unique values in the categorical feature and put them in a dictionary
+    enum_dict = dict(enumerate(unique_values, start=1))
+    # Invert the dictionary to have the unique categories as keys and the numbers as values
+    enum_dict = utils.invert_dict(enum_dict)
+    if forbidden_digit is not None:
+        # Change the enumeration to prevent it from including undesired digits
+        enum_dict = remove_digit_from_dict(enum_dict, forbidden_digit, inplace=True)
+    # Move NaN to key 0
+    enum_dict[np.nan] = nan_value
+    # Search for NaN-like categories
+    for key, val in enum_dict.items():
+        if type(key) is str:
+            if utils.is_string_nan(key):
+                # Move NaN-like key to nan_value
+                enum_dict[key] = nan_value
+        elif isinstance(key, numbers.Number):
+            if np.isnan(key) or str(key).lower() == &#39;nan&#39;:
+                # Move NaN-like key to nan_value
+                enum_dict[key] = nan_value
+    return enum_dict</code></pre>
+</details>
+</dd>
+<dt id="data_utils.embedding.embedding_bag_pipeline"><code class="name flex">
+<span>def <span class="ident">embedding_bag_pipeline</span></span>(<span>data, embedding_layer, features, model_forward=False, padding_value=999999, nan_value=0, inplace=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Run the complete pipeline that gets from a data tensor with categorical
+features, i.e. columns with lists of encodings as values, into a data tensor
+with embedding columns.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>Data tensor that contains the categorical feature(s) that will be embedded.</dd>
+<dt><strong><code>embedding_layer</code></strong> :&ensp;<code>torch.nn.EmbeddingBag</code> or <code>torch.nn.ModuleList</code> or <code>torch.nn.ModuleDict</code></dt>
+<dd>PyTorch layer(s) that applies the embedding bag, i.e. calculates the
+average embedding based on multiple encoded values.</dd>
+<dt><strong><code>features</code></strong> :&ensp;<code>int</code> or <code>list</code> of <code>int</code></dt>
+<dd>Index (or indeces) of the categorical column(s) that will be ran through
+its (or their) respective embedding layer(s). This feature(s) is (are)
+removed from the data tensor after the embedding columns are added.</dd>
+<dt><strong><code>model_forward</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>Indicates if the method is being executed inside a machine learning model's
+forward method. If so, it will account for a previous removal of sample
+identidying columns.</dd>
+<dt><strong><code>padding_value</code></strong> :&ensp;<code>numeric</code>, default <code>999999</code></dt>
+<dd>Value to use in the padding, to fill the sequences.</dd>
+<dt><strong><code>nan_value</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dd>Integer number that gets assigned to NaN and NaN-like values.</dd>
+<dt><strong><code>inplace</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>If set to True, the original tensor will be used and modified
+directly. Otherwise, a copy will be created and returned, without
+changing the original tensor.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>Data tensor with the new embedding features added and the old categorical
+features removed.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
+                           padding_value=999999, nan_value=0, inplace=False):
+    &#39;&#39;&#39;Run the complete pipeline that gets from a data tensor with categorical
+    features, i.e. columns with lists of encodings as values, into a data tensor
+    with embedding columns.
+
+    Parameters
+    ----------
+    data : torch.Tensor
+        Data tensor that contains the categorical feature(s) that will be embedded.
+    embedding_layer : torch.nn.EmbeddingBag or torch.nn.ModuleList or torch.nn.ModuleDict
+        PyTorch layer(s) that applies the embedding bag, i.e. calculates the 
+        average embedding based on multiple encoded values.
+    features : int or list of int
+        Index (or indeces) of the categorical column(s) that will be ran through
+        its (or their) respective embedding layer(s). This feature(s) is (are) 
+        removed from the data tensor after the embedding columns are added.
+    model_forward : bool, default False
+        Indicates if the method is being executed inside a machine learning model&#39;s
+        forward method. If so, it will account for a previous removal of sample
+        identidying columns.
+    padding_value : numeric, default 999999
+        Value to use in the padding, to fill the sequences.
+    nan_value : int, default 0
+        Integer number that gets assigned to NaN and NaN-like values.
+    inplace : bool, default False
+        If set to True, the original tensor will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original tensor.
+
+    Returns
+    -------
+    data : torch.Tensor
+        Data tensor with the new embedding features added and the old categorical
+        features removed.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_tensor = data.clone()
+    else:
+        # Use the original dataframe
+        data_tensor = data
+    # Check if it&#39;s only a single categorical feature or more
+    if isinstance(embedding_layer, torch.nn.EmbeddingBag) and isinstance(features, int):
+        # Get the list of all the encodings and their offsets
+        if model_forward:
+            enum_list, offset_list = prepare_embed_bag(data_tensor, features-2,
+                                                       padding_value=padding_value, nan_value=nan_value)
+        else:
+            enum_list, offset_list = prepare_embed_bag(data_tensor, features,
+                                                       padding_value=padding_value, nan_value=nan_value)
+        # Run the embedding bag and add the embedding columns to the tensor
+        data_tensor = run_embed_bag(data_tensor, embedding_layer, enum_list, offset_list, inplace)
+    elif isinstance(embedding_layer, torch.nn.ModuleList) and isinstance(features, list):
+        for i in range(len(features)):
+            # Get the list of all the encodings and their offsets
+            if model_forward:
+                enum_list, offset_list = prepare_embed_bag(data_tensor, features[i]-2,
+                                                       padding_value=padding_value, nan_value=nan_value)
+            else:
+                enum_list, offset_list = prepare_embed_bag(data_tensor, features[i],
+                                                       padding_value=padding_value, nan_value=nan_value)
+            # Run the embedding bag and add the embedding columns to the tensor
+            data_tensor = run_embed_bag(data_tensor, embedding_layer[f&#39;embed_{i}&#39;], enum_list, offset_list, inplace)
+    elif isinstance(embedding_layer, torch.nn.ModuleDict) and isinstance(features, list):
+        for feature in features:
+            # Get the list of all the encodings and their offsets
+            if model_forward:
+                enum_list, offset_list = prepare_embed_bag(data_tensor, feature-2,
+                                                       padding_value=padding_value, nan_value=nan_value)
+            else:
+                enum_list, offset_list = prepare_embed_bag(data_tensor, feature,
+                                                       padding_value=padding_value, nan_value=nan_value)
+            # Run the embedding bag and add the embedding columns to the tensor
+            data_tensor = run_embed_bag(data_tensor, embedding_layer[f&#39;embed_{feature}&#39;], enum_list, offset_list, inplace)
+    else:
+        raise Exception(f&#39;ERROR: The user must either a single embedding bag and \
+                          feature index or lists of embedding bag layers and \
+                          feature indeces. The input `embedding_layer` has type \
+                          {type(embedding_layer)} while `feature` has type {type(features)}.&#39;)
+    # Remove the old categorical feature(s)
+    data_tensor = deep_learning.remove_tensor_column(data_tensor, features, inplace)
+    return data_tensor</code></pre>
+</details>
+</dd>
+<dt id="data_utils.embedding.enum_categorical_feature"><code class="name flex">
+<span>def <span class="ident">enum_categorical_feature</span></span>(<span>df, feature, nan_value=0, clean_name=True, forbidden_digit=0, apply_on_df=True)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Enumerate all categories in a specified categorical feature, while also
+attributing a specific number to NaN and other unknown values.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
+<dd>Dataframe which the categorical feature belongs to.</dd>
+<dt><strong><code>feature</code></strong> :&ensp;<code>string</code></dt>
+<dd>Name of the categorical feature which will be enumerated.</dd>
+<dt><strong><code>nan_value</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dd>Integer number that gets assigned to NaN and NaN-like values.</dd>
+<dt><strong><code>clean_name</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
+<dd>If set to True, the method assumes that the feature is of type string
+and it will make sure that all the feature's values are in lower case,
+to reduce duplicate information.</dd>
+<dt><strong><code>forbidden_digit</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dd>Digit that we want to prevent from appearing in any enumeration
+encoding.</dd>
+<dt><strong><code>apply_on_df</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
+<dd>If set to True, the original column of the dataframe will be converted
+to the new enumeration encoding.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>enum_series</code></strong> :&ensp;<code>pandas.Series</code> or <code>dask.Series</code></dt>
+<dd>Series corresponding to the analyzed feature, after
+enumeration.</dd>
+<dt><strong><code>enum_dict</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary containing the mapping between the original categorical values
+and the numbering obtained.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def enum_categorical_feature(df, feature, nan_value=0, clean_name=True,
+                             forbidden_digit=0, apply_on_df=True):
+    &#39;&#39;&#39;Enumerate all categories in a specified categorical feature, while also
+    attributing a specific number to NaN and other unknown values.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe which the categorical feature belongs to.
+    feature : string
+        Name of the categorical feature which will be enumerated.
+    nan_value : int, default 0
+        Integer number that gets assigned to NaN and NaN-like values.
+    clean_name : bool, default True
+        If set to True, the method assumes that the feature is of type string
+        and it will make sure that all the feature&#39;s values are in lower case,
+        to reduce duplicate information.
+    forbidden_digit : int, default 0
+        Digit that we want to prevent from appearing in any enumeration
+        encoding.
+    apply_on_df : bool, default True
+        If set to True, the original column of the dataframe will be converted
+        to the new enumeration encoding.
+
+    Returns
+    -------
+    enum_series : pandas.Series or dask.Series
+        Series corresponding to the analyzed feature, after
+        enumeration.
+    enum_dict : dict
+        Dictionary containing the mapping between the original categorical values
+        and the numbering obtained.
+    &#39;&#39;&#39;
+    if clean_name is True:
+        # Clean the column&#39;s string values to have the same, standard format
+        df = data_processing.clean_categories_naming(df, feature)
+    # Get the unique values of the cateforical feature
+    unique_values = df[feature].unique()
+    if isinstance(df, dd.DataFrame):
+        # Make sure that the unique values are computed, in case we&#39;re using Dask
+        unique_values = unique_values.compute()
+    # Enumerate the unique values in the categorical feature and put them in a dictionary
+    enum_dict = create_enum_dict(unique_values, nan_value, forbidden_digit)
+    if apply_on_df is False:
+        return enum_dict
+    else:
+        # Create a series from the enumerations of the original feature&#39;s categories
+        if isinstance(df, dd.DataFrame):
+            enum_series = df[feature].map(lambda x: utils.apply_dict_convertion(x, enum_dict, nan_value), meta=(&#39;x&#39;, int))
+        else:
+            enum_series = df[feature].map(lambda x: utils.apply_dict_convertion(x, enum_dict, nan_value))
+        return enum_series, enum_dict</code></pre>
+</details>
+</dd>
+<dt id="data_utils.embedding.enum_category_conversion"><code class="name flex">
+<span>def <span class="ident">enum_category_conversion</span></span>(<span>df, enum_column, enum_dict, enum_to_category=True)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Convert between enumerated encodings and their respective categories'
+names, in either direction.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
+<dd>Dataframe which the categorical feature belongs to.</dd>
+<dt><strong><code>enum_column</code></strong> :&ensp;<code>string</code></dt>
+<dd>Name of the categorical feature which is encoded/enumerated. The
+feature's values must be single integer numbers, with a ';' separator if
+more than one category applies to a given row.</dd>
+<dt><strong><code>enum_dict</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary containing the category names that correspond to each
+enumeration number.</dd>
+<dt><strong><code>enum_to_category</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
+<dd>Indicator on which the user can specify if the conversion is from
+numerical encodings to string categories names (True) or vice-versa
+(False). By default, it's not defined (None) and the method infers the
+direction of the conversion based on the input dictionary's key type.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>categories</code></strong> :&ensp;<code>string</code></dt>
+<dd>String containing all the categories names of the current row. If more
+than one category is present, their names are separated by the ';'
+separator.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def enum_category_conversion(df, enum_column, enum_dict, enum_to_category=True):
+    &#39;&#39;&#39;Convert between enumerated encodings and their respective categories&#39;
+    names, in either direction.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe which the categorical feature belongs to.
+    enum_column : string
+        Name of the categorical feature which is encoded/enumerated. The
+        feature&#39;s values must be single integer numbers, with a &#39;;&#39; separator if
+        more than one category applies to a given row.
+    enum_dict : dict
+        Dictionary containing the category names that correspond to each
+        enumeration number.
+    enum_to_category : bool, default True
+        Indicator on which the user can specify if the conversion is from
+        numerical encodings to string categories names (True) or vice-versa
+        (False). By default, it&#39;s not defined (None) and the method infers the
+        direction of the conversion based on the input dictionary&#39;s key type.
+
+    Returns
+    -------
+    categories : string
+        String containing all the categories names of the current row. If more
+        than one category is present, their names are separated by the &#39;;&#39;
+        separator.
+    &#39;&#39;&#39;
+    # Separate the enumerations
+    enums = str(df[enum_column]).split(&#39;;&#39;)
+    # Check what direction the conversion is being done
+    if enum_to_category is False:
+        # If all the keys are integers, then we&#39;re converting from enumerations to category names;
+        # otherwise, it&#39;s the opposite direction
+        enum_to_category = all([isinstance(item, int) for item in list(enum_dict.keys())])
+        # Get the individual categories names
+        categories = [str(enum_dict[str(n)]) for n in enums]
+    else:
+        # Get the individual categories names
+        categories = [enum_dict[int(n)] for n in enums]
+    # Join the categories by a &#39;;&#39; separator
+    categories = &#39;;&#39;.join(categories)
+    return categories</code></pre>
+</details>
+</dd>
+<dt id="data_utils.embedding.join_categorical_enum"><code class="name flex">
+<span>def <span class="ident">join_categorical_enum</span></span>(<span>df, cat_feat=[], id_columns=['patientunitstayid', 'ts'], cont_join_method='mean', has_timestamp=None, nan_value=0, remove_listed_nan=True, inplace=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Join rows that have the same identifier columns based on concatenating
+categorical encodings and on averaging continuous features.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
+<dd>Dataframe which will be processed.</dd>
+<dt><strong><code>cat_feat</code></strong> :&ensp;<code>string</code> or <code>list</code> of <code>strings</code>, default []</dt>
+<dd>Name(s) of the categorical feature(s) which will have their values
+concatenated along the ID's.</dd>
+<dt><strong><code>id_columns</code></strong> :&ensp;<code>list</code> of <code>strings</code>, default [<code>'patientunitstayid'</code>, <code>'ts'</code>]</dt>
+<dd>List of columns names which represent identifier columns. These are not
+supposed to be changed.</dd>
+<dt><strong><code>cont_join_method</code></strong> :&ensp;<code>string</code>, default <code>'mean'</code></dt>
+<dd>Defines which method to use when joining rows of continuous features.
+Can be either 'mean', 'min' or 'max'.</dd>
+<dt><strong><code>has_timestamp</code></strong> :&ensp;<code>bool</code>, default <code>None</code></dt>
+<dd>If set to True, the resulting dataframe will be sorted and set as index
+by the timestamp column (<code>ts</code>). If not specified, the method will
+automatically look for a <code>ts</code> named column in the input dataframe.</dd>
+<dt><strong><code>nan_value</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dd>Integer number that gets assigned to NaN and NaN-like values.</dd>
+<dt><strong><code>remove_listed_nan</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
+<dd>If set to True, joined rows where non-NaN values exist have the NaN
+values removed.</dd>
+<dt><strong><code>inplace</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>If set to True, the original dataframe will be used and modified
+directly. Otherwise, a copy will be created and returned, without
+changing the original dataframe.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>data_df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
+<dd>Resulting dataframe from merging all the concatenated or averaged
+features.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def join_categorical_enum(df, cat_feat=[], id_columns=[&#39;patientunitstayid&#39;, &#39;ts&#39;],
+                          cont_join_method=&#39;mean&#39;, has_timestamp=None,
+                          nan_value=0, remove_listed_nan=True, inplace=False):
+    &#39;&#39;&#39;Join rows that have the same identifier columns based on concatenating
+    categorical encodings and on averaging continuous features.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe which will be processed.
+    cat_feat : string or list of strings, default []
+        Name(s) of the categorical feature(s) which will have their values
+        concatenated along the ID&#39;s.
+    id_columns : list of strings, default [&#39;patientunitstayid&#39;, &#39;ts&#39;]
+        List of columns names which represent identifier columns. These are not
+        supposed to be changed.
+    cont_join_method : string, default &#39;mean&#39;
+        Defines which method to use when joining rows of continuous features.
+        Can be either &#39;mean&#39;, &#39;min&#39; or &#39;max&#39;.
+    has_timestamp : bool, default None
+        If set to True, the resulting dataframe will be sorted and set as index
+        by the timestamp column (`ts`). If not specified, the method will
+        automatically look for a `ts` named column in the input dataframe.
+    nan_value : int, default 0
+        Integer number that gets assigned to NaN and NaN-like values.
+    remove_listed_nan : bool, default True
+        If set to True, joined rows where non-NaN values exist have the NaN
+        values removed.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
+
+    Returns
+    -------
+    data_df : pandas.DataFrame or dask.DataFrame
+        Resulting dataframe from merging all the concatenated or averaged
+        features.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
+    else:
+        # Use the original dataframe
+        data_df = df
+    # Define a list of dataframes
+    df_list = []
+    # See if there is a timestamp column on the dataframe (only considering as a
+    # timestamp column those that are named &#39;ts&#39;)
+    if has_timestamp is None:
+        if &#39;ts&#39; in data_df.columns:
+            has_timestamp = True
+        else:
+            has_timestamp = False
+    print(&#39;Concatenating categorical encodings...&#39;)
+    if isinstance(cat_feat, str):
+        # Make sure that the categorical feature names are in a list format,
+        # even if it&#39;s just one feature name
+        cat_feat = [cat_feat]
+    for feature in utils.iterations_loop(cat_feat):
+        # Convert to string format
+        data_df[feature] = data_df[feature].astype(str)
+        # Join with other categorical enumerations on the same ID&#39;s
+        data_to_add = data_df.groupby(id_columns)[feature].apply(lambda x: &#39;;&#39;.join(x)).to_frame().reset_index()
+        if remove_listed_nan is True:
+            # Remove NaN values from rows with non-NaN values
+            data_to_add[feature] = data_to_add[feature].apply(lambda x: remove_nan_enum_from_string(x, nan_value))
+        if has_timestamp is True:
+            # Sort by time `ts` and set it as index
+            data_to_add = data_to_add.set_index(&#39;ts&#39;)
+        # Add to the list of dataframes that will be merged
+        df_list.append(data_to_add)
+    remaining_feat = list(set(data_df.columns) - set(cat_feat) - set(id_columns))
+    print(&#39;Averaging continuous features...&#39;)
+    for feature in utils.iterations_loop(remaining_feat):
+        if data_df[feature].dtype == &#39;object&#39;:
+            raise Exception(f&#39;ERROR: There is at least one non-numeric feature in the dataframe. \
+                              This method requires all columns to be numeric, either integer or floats. \
+                              In case there are categorical features still in string format, consider \
+                              using the `string_encod_to_numeric` method first. The column {feature} is \
+                              of type {df[feature].dtype}.&#39;)
+        # Join remaining features through their average, min or max value
+        # (just to be sure that there aren&#39;t missing or different values)
+        if cont_join_method.lower() == &#39;mean&#39;:
+            data_to_add = data_df.groupby(id_columns)[feature].mean().to_frame().reset_index()
+        elif cont_join_method.lower() == &#39;min&#39;:
+            data_to_add = data_df.groupby(id_columns)[feature].min().to_frame().reset_index()
+        elif cont_join_method.lower() == &#39;max&#39;:
+            data_to_add = data_df.groupby(id_columns)[feature].max().to_frame().reset_index()
+        if has_timestamp is True:
+            # Sort by time `ts` and set it as index
+            data_to_add = data_to_add.set_index(&#39;ts&#39;)
+        # Add to the list of dataframes that will be merged
+        df_list.append(data_to_add)
+    # Merge all dataframes
+    print(&#39;Merging features\&#39; dataframes...&#39;)
+    if isinstance(df, dd.DataFrame):
+        data_df = reduce(lambda x, y: dd.merge(x, y, on=id_columns), df_list)
+    else:
+        data_df = reduce(lambda x, y: pd.merge(x, y, on=id_columns), df_list)
+    print(&#39;Done!&#39;)
+    return data_df</code></pre>
+</details>
+</dd>
+<dt id="data_utils.embedding.prepare_embed_bag"><code class="name flex">
+<span>def <span class="ident">prepare_embed_bag</span></span>(<span>data, feature=None, separator_num=0, padding_value=999999, nan_value=0)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Prepare a categorical feature for embedding bag, i.e. split category
+enumerations into separate numbers, combine them into a single list and set
+the appropriate offsets as to when each row's group of categories end.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>Data tensor that contains the categorical feature that will be embedded.</dd>
+<dt><strong><code>feature</code></strong> :&ensp;<code>int</code>, default <code>None</code></dt>
+<dd>Index of the categorical feature on which embedding bag will be
+applied. Can only be left undefined if the data is one dimensional.</dd>
+<dt><strong><code>separator_num</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dd>Number to use as a representation of the semicolon encoding
+separator.</dd>
+<dt><strong><code>padding_value</code></strong> :&ensp;<code>numeric</code>, default <code>999999</code></dt>
+<dd>Value to use in the padding, to fill the sequences.</dd>
+<dt><strong><code>nan_value</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dd>Integer number that gets assigned to NaN and NaN-like values.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>enum_list</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>List of all categorical enumerations, i.e. the numbers corresponding to
+each of the feature's categories, contained in the input series.</dd>
+<dt><strong><code>offset_list</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>List of when each row's categorical enumerations start, considering the
+enum_list list.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def prepare_embed_bag(data, feature=None, separator_num=0, padding_value=999999,
+                      nan_value=0):
+    &#39;&#39;&#39;Prepare a categorical feature for embedding bag, i.e. split category
+    enumerations into separate numbers, combine them into a single list and set
+    the appropriate offsets as to when each row&#39;s group of categories end.
+
+    Parameters
+    ----------
+    data : torch.Tensor
+        Data tensor that contains the categorical feature that will be embedded.
+    feature : int, default None
+        Index of the categorical feature on which embedding bag will be 
+        applied. Can only be left undefined if the data is one dimensional.
+    separator_num : int, default 0
+        Number to use as a representation of the semicolon encoding
+        separator.
+    padding_value : numeric, default 999999
+        Value to use in the padding, to fill the sequences.
+    nan_value : int, default 0
+        Integer number that gets assigned to NaN and NaN-like values.
+
+    Returns
+    -------
+    enum_list : torch.Tensor
+        List of all categorical enumerations, i.e. the numbers corresponding to
+        each of the feature&#39;s categories, contained in the input series.
+    offset_list : torch.Tensor
+        List of when each row&#39;s categorical enumerations start, considering the
+        enum_list list.
+    &#39;&#39;&#39;
+    enum_list = []
+    count = 0
+    offset_list = [count]
+    if feature is None and len(data.shape) &gt; 1:
+        raise Exception(&#39;ERROR: If multidimensional data is passed in the input, the \
+                        feature from which to get the full list of categorical \
+                        encodings must be defined.&#39;)
+    if len(data.shape) &lt; 3:
+        for i in range(data.shape[0]):
+            # Get the full list of digits of the current value
+            if len(data.shape) == 1:
+                feature_val_i = utils.get_full_number_string(data[i].item())
+            else:
+                feature_val_i = utils.get_full_number_string(data[i, feature].item())
+            if len(feature_val_i) &gt; 1:
+                # Separate digits in the same string
+                digits_list = feature_val_i.split(str(separator_num))
+            else:
+                # Just use append the single encoding value
+                digits_list = [feature_val_i]
+            if int(digits_list[0]) == padding_value:
+                # Add a missing value embedding
+                enum_list.append([str(nan_value)])
+            else:
+                # Add the digits to the enumeration encodings list
+                enum_list.append(digits_list)
+            # Set the end of the current list
+            count += len(digits_list)
+            offset_list.append(count)
+        # Flatten list
+        enum_list = [int(value) for sublist in enum_list for value in sublist]
+    elif len(data.shape) == 3:
+        # Process each sequence separately, creating 2D categorical encodings and offset lists
+        for i in range(data.shape[0]):
+            for j in range(data.shape[1]):
+                # Get the full list of digits of the current value
+                feature_val_i = utils.get_full_number_string(data[i, j, feature].item())
+                if len(feature_val_i) &gt; 1:
+                    # Separate digits in the same string
+                    digits_list = feature_val_i.split(str(separator_num))
+                else:
+                    # Just use append the single encoding value
+                    digits_list = [feature_val_i]
+                if int(digits_list[0]) == padding_value:
+                    # Add a missing value embedding
+                    enum_list.append([str(nan_value)])
+                else:
+                    # Add the digits to the enumeration encodings list
+                    enum_list.append(digits_list)
+                # Set the end of the current list
+                count += len(digits_list)
+                offset_list.append(count)
+        # Flatten full list
+        enum_list = [int(value) for sublist in enum_list for value in sublist]
+    else:
+        raise Exception(f&#39;ERROR: Data with more than 3 dimensions is not supported. Input data has {len(data.shape)} dimensions.&#39;)
+    # Convert to PyTorch tensor
+    enum_list = torch.tensor(enum_list)
+    offset_list = torch.tensor(offset_list)
+    return enum_list, offset_list</code></pre>
+</details>
+</dd>
+<dt id="data_utils.embedding.remove_digit_from_dict"><code class="name flex">
+<span>def <span class="ident">remove_digit_from_dict</span></span>(<span>enum_dict, forbidden_digit=0, inplace=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Convert an enumeration dictionary to a representation that doesn't
+include any value with a specific digit.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>enum_dict</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary containing the mapping between the original values and a
+numbering.</dd>
+<dt><strong><code>forbidden_digit</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dd>Digit that we want to prevent from appearing in any enumeration
+encoding.</dd>
+<dt><strong><code>inplace</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>If set to True, the original dictionary will be used and modified
+directly. Otherwise, a copy will be created and returned, without
+changing the original dictionary.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>enum_dict</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary containing the mapping between the original values and a
+numbering. Now without any occurence of the specified digit.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove_digit_from_dict(enum_dict, forbidden_digit=0, inplace=False):
+    &#39;&#39;&#39;Convert an enumeration dictionary to a representation that doesn&#39;t
+    include any value with a specific digit.
+
+    Parameters
+    ----------
+    enum_dict : dict
+        Dictionary containing the mapping between the original values and a
+        numbering.
+    forbidden_digit : int, default 0
+        Digit that we want to prevent from appearing in any enumeration
+        encoding.
+    inplace : bool, default False
+        If set to True, the original dictionary will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dictionary.
+
+    Returns
+    -------
+    enum_dict : dict
+        Dictionary containing the mapping between the original values and a
+        numbering. Now without any occurence of the specified digit.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dictionary
+        new_enum_dict = enum_dict.copy()
+    else:
+        # Use the original dictionary
+        new_enum_dict = enum_dict
+    # Create a sequence of enumeration encoding values
+    enum_seq = []
+    # Value that represents the current sequence number
+    num = 1
+    # Digit to be used when replacing the forbidden digit
+    alt_digit = forbidden_digit + 1
+    for i in range(len(enum_dict)):
+        # Replace undesired digit with the alternative one
+        num = str(num).replace(str(forbidden_digit), str(alt_digit))
+        # Add to the enumeration sequence
+        num = int(num)
+        enum_seq.append(num)
+        # Increment to the following number
+        num += 1
+    # Create a dictionary to convert regular enumeration into the newly created
+    # sequence
+    old_to_new_dict = dict(enumerate(enum_seq, start=1))
+    # Convert the enumeration dictionary to the new encoding scheme
+    for key, val in enum_dict.items():
+        new_enum_dict[key] = old_to_new_dict[val]
+    return new_enum_dict</code></pre>
+</details>
+</dd>
+<dt id="data_utils.embedding.remove_nan_enum_from_string"><code class="name flex">
+<span>def <span class="ident">remove_nan_enum_from_string</span></span>(<span>x, nan_value=0)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Removes missing values (NaN) from enumeration encoded strings.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>string</code></dt>
+<dd>Original string, with possible NaNs included.</dd>
+<dt><strong><code>nan_value</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dd>Integer number that gets assigned to NaN and NaN-like values.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>string</code></dt>
+<dd>NaN removed string.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove_nan_enum_from_string(x, nan_value=0):
+    &#39;&#39;&#39;Removes missing values (NaN) from enumeration encoded strings.
+
+    Parameters
+    ----------
+    x : string
+        Original string, with possible NaNs included.
+    nan_value : int, default 0
+        Integer number that gets assigned to NaN and NaN-like values.
+
+    Returns
+    -------
+    x : string
+        NaN removed string.
+    &#39;&#39;&#39;
+    # Make sure that the NaN value is represented as a string
+    nan_value = str(nan_value)
+    # Only remove NaN values if the string isn&#39;t just a single NaN value
+    if x != nan_value:
+        # Remove NaN value that might have a following encoded value
+        if f&#39;{nan_value};&#39; in x:
+            x = re.sub(f&#39;{nan_value};&#39;, &#39;&#39;, x)
+        # Remove NaN value that might be at the end of the string
+        if nan_value in x:
+            x = re.sub(f&#39;;{nan_value}&#39;, &#39;&#39;, x)
+        # If the string got completly emptied, place a single NaN value on it
+        if x == &#39;&#39;:
+            x = nan_value
+    return x</code></pre>
+</details>
+</dd>
+<dt id="data_utils.embedding.run_embed_bag"><code class="name flex">
+<span>def <span class="ident">run_embed_bag</span></span>(<span>data, embedding_layer, enum_list, offset, inplace=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Run an embedding bag layer on a list(s) of encoded categories, adding
+the new embedding columns to the data tensor.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>Data tensor that contains the categorical feature that will be embedded.</dd>
+<dt><strong><code>embedding_layer</code></strong> :&ensp;<code>torch.nn.EmbeddingBag</code></dt>
+<dd>PyTorch layer that applies the embedding bag, i.e. calculates the
+average embedding based on multiple encoded values.</dd>
+<dt><strong><code>enum_list</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>List of all categorical enumerations, i.e. the numbers corresponding to
+each of the feature's categories, contained in the input series.</dd>
+<dt><strong><code>offset</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>List of when each row's categorical enumerations start, considering the
+enum_list list.</dd>
+<dt><strong><code>inplace</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>If set to True, the original tensor will be used and modified
+directly. Otherwise, a copy will be created and returned, without
+changing the original tensor.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>Data tensor with the new embedding features added.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run_embed_bag(data, embedding_layer, enum_list, offset, inplace=False):
+    &#39;&#39;&#39;Run an embedding bag layer on a list(s) of encoded categories, adding 
+    the new embedding columns to the data tensor.
+
+    Parameters
+    ----------
+    data : torch.Tensor
+        Data tensor that contains the categorical feature that will be embedded.
+    embedding_layer : torch.nn.EmbeddingBag
+        PyTorch layer that applies the embedding bag, i.e. calculates the 
+        average embedding based on multiple encoded values.
+    enum_list : torch.Tensor
+        List of all categorical enumerations, i.e. the numbers corresponding to
+        each of the feature&#39;s categories, contained in the input series.
+    offset : torch.Tensor
+        List of when each row&#39;s categorical enumerations start, considering the
+        enum_list list.
+    inplace : bool, default False
+        If set to True, the original tensor will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original tensor.
+
+    Returns
+    -------
+    data : torch.Tensor
+        Data tensor with the new embedding features added.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original tensor
+        data_tensor = data.clone()
+    else:
+        # Use the original dataframe
+        data_tensor = data
+    # Get a tensor with the embedding values retrieved from the embedding bag layer
+    embed_data = embedding_layer(enum_list, offset)[:-1]
+    if len(data_tensor.shape) == 1:
+        # Add the new embedding columns to the data tensor
+        data_tensor = torch.cat((data_tensor.double(), embed_data.double()))
+    elif len(data_tensor.shape) == 2:
+        # Add the new embedding columns to the data tensor
+        data_tensor = torch.cat((data_tensor.double(), embed_data.double()), dim=1)
+    elif len(data_tensor.shape) == 3:
+        # Change shape of the embeddings tensor to match the original data
+        embed_data = embed_data.view(data_tensor.shape[0], data_tensor.shape[1], embedding_layer.embedding_dim)
+        # Add the new embedding columns to the data tensor
+        data_tensor = torch.cat((data_tensor.double(), embed_data.double()), dim=2)
+    else:
+        raise Exception(f&#39;ERROR: Data with more than 3 dimensions is not supported. Input data has {len(data_tensor.shape)} dimensions.&#39;)
+    return data_tensor</code></pre>
+</details>
+</dd>
+<dt id="data_utils.embedding.string_encod_to_numeric"><code class="name flex">
+<span>def <span class="ident">string_encod_to_numeric</span></span>(<span>df, cat_feat=None, separator_num=0, inplace=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Convert the string encoded columns that represent lists of categories,
+separated by semicolons, into numeric columns through the replacement of
+the semicolon character by a given number. This allows the dataframe to
+be adequately converted into a PyTorch or TensorFlow tensor.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
+<dd>Dataframe which will be processed.</dd>
+<dt><strong><code>cat_feat</code></strong> :&ensp;<code>string</code> or <code>list</code> of <code>strings</code>, default <code>None</code></dt>
+<dd>Name(s) of the categorical encoded feature(s) which will have their
+semicolon separators converted into its binary ASCII code. If not
+specified, the method will look through all columns, processing
+the ones that might have semicolons.</dd>
+<dt><strong><code>separator_num</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dd>Number to use as a representation of the semicolon encoding
+separator.</dd>
+<dt><strong><code>inplace</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>If set to True, the original dataframe will be used and modified
+directly. Otherwise, a copy will be created and returned, without
+changing the original dataframe.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>data_df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
+<dd>Resulting dataframe from converting the string encoded columns into
+numeric ones, making it tensor ready.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def string_encod_to_numeric(df, cat_feat=None, separator_num=0, inplace=False):
+    &#39;&#39;&#39;Convert the string encoded columns that represent lists of categories, 
+    separated by semicolons, into numeric columns through the replacement of 
+    the semicolon character by a given number. This allows the dataframe to 
+    be adequately converted into a PyTorch or TensorFlow tensor.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe which will be processed.
+    cat_feat : string or list of strings, default None
+        Name(s) of the categorical encoded feature(s) which will have their
+        semicolon separators converted into its binary ASCII code. If not
+        specified, the method will look through all columns, processing
+        the ones that might have semicolons.
+    separator_num : int, default 0
+        Number to use as a representation of the semicolon encoding
+        separator.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
+
+    Returns
+    -------
+    data_df : pandas.DataFrame or dask.DataFrame
+        Resulting dataframe from converting the string encoded columns into
+        numeric ones, making it tensor ready.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
+    else:
+        # Use the original dataframe
+        data_df = df
+    if cat_feat is None:
+        cat_feat = []
+        # Go through all the features processing the ones that might have semicolons
+        for feature in df.columns:
+            # Only analyze the feature if it has string values
+            if df[feature].dtype == &#39;object&#39;:
+                cat_feat.append(feature)
+    elif isinstance(cat_feat, str):
+        # Make sure that the categorical feature names are in a list format,
+        # even if it&#39;s just one feature name
+        cat_feat = [cat_feat]
+    if isinstance(cat_feat, list):
+        for feature in cat_feat:
+            # Make sure that all values are in string format
+            data_df[feature] = data_df[feature].astype(str)
+            # Replace semicolon characters by its binary ASCII code
+            data_df[feature] = data_df[feature].str.replace(&#39;;&#39;, str(separator_num))
+            # Convert column to an integer format
+            data_df[feature] = data_df[feature].astype(float)
+    else:
+        raise Exception(f&#39;ERROR: When specified, the categorical features `cat_feat` must \
+                         be in string or list of strings format, not {type(cat_feat)}.&#39;)
+    return data_df</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="data_utils" href="index.html">data_utils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="data_utils.embedding.converge_enum" href="#data_utils.embedding.converge_enum">converge_enum</a></code></li>
+<li><code><a title="data_utils.embedding.create_enum_dict" href="#data_utils.embedding.create_enum_dict">create_enum_dict</a></code></li>
+<li><code><a title="data_utils.embedding.embedding_bag_pipeline" href="#data_utils.embedding.embedding_bag_pipeline">embedding_bag_pipeline</a></code></li>
+<li><code><a title="data_utils.embedding.enum_categorical_feature" href="#data_utils.embedding.enum_categorical_feature">enum_categorical_feature</a></code></li>
+<li><code><a title="data_utils.embedding.enum_category_conversion" href="#data_utils.embedding.enum_category_conversion">enum_category_conversion</a></code></li>
+<li><code><a title="data_utils.embedding.join_categorical_enum" href="#data_utils.embedding.join_categorical_enum">join_categorical_enum</a></code></li>
+<li><code><a title="data_utils.embedding.prepare_embed_bag" href="#data_utils.embedding.prepare_embed_bag">prepare_embed_bag</a></code></li>
+<li><code><a title="data_utils.embedding.remove_digit_from_dict" href="#data_utils.embedding.remove_digit_from_dict">remove_digit_from_dict</a></code></li>
+<li><code><a title="data_utils.embedding.remove_nan_enum_from_string" href="#data_utils.embedding.remove_nan_enum_from_string">remove_nan_enum_from_string</a></code></li>
+<li><code><a title="data_utils.embedding.run_embed_bag" href="#data_utils.embedding.run_embed_bag">run_embed_bag</a></code></li>
+<li><code><a title="data_utils.embedding.string_encod_to_numeric" href="#data_utils.embedding.string_encod_to_numeric">string_encod_to_numeric</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

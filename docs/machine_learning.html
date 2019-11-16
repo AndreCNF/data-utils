@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.7.2" />
+<title>data_utils.machine_learning API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>data_utils.machine_learning</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import comet_ml                                         # Comet.ml can log training metrics, parameters, do version control and parameter optimization
+import torch                                            # PyTorch to create and apply deep learning models
+from torch.utils.data.sampler import SubsetRandomSampler
+import numpy as np                                      # NumPy to handle numeric and NaN operations
+import warnings                                         # Print warnings for bad practices
+import yaml                                             # Save and load YAML files
+from . import deep_learning                             # Common and generic deep learning related methods
+from . import padding                                   # Padding and variable sequence length related methods
+
+# Ignore Dask&#39;s &#39;meta&#39; warning
+warnings.filterwarnings(&#34;ignore&#34;, message=&#34;`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.&#34;)
+
+# Methods
+
+def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch_size=32,
+                      get_indeces=True, shuffle_dataset=True):
+    &#39;&#39;&#39;Distributes the data into train, validation and test sets and returns the respective data loaders.
+
+    Parameters
+    ----------
+    dataset : torch.utils.data.Dataset
+        Dataset object which will be used to train, validate and test the model.
+    test_train_ratio : float, default 0.2
+        Number from 0 to 1 which indicates the percentage of the data
+        which will be used as a test set. The remaining percentage
+        is used in the training and validation sets.
+    validation_ratio : float, default 0.1
+        Number from 0 to 1 which indicates the percentage of the data
+        from the training set which is used for validation purposes.
+        A value of 0.0 corresponds to not using validation.
+    batch_size : int, default 32
+        Defines the batch size, i.e. the number of samples used in each
+        training iteration to update the model&#39;s weights.
+    get_indeces : bool, default True
+        If set to True, the function returns the dataloader objects of
+        the train, validation and test sets and also the indices of the
+        sets&#39; data. Otherwise, it only returns the data loaders.
+    shuffle_dataset : bool, default True
+        If set to True, the data of each set is shuffled.
+
+    Returns
+    -------
+    train_dataloader : torch.utils.data.DataLoader
+        Dataloader for getting batches of data which will be used 
+        during training.
+    val_dataloader : torch.utils.data.DataLoader
+        Dataloader for getting batches of data which will be used to 
+        evaluate the model&#39;s performance on a validation set during 
+        training.
+    test_dataloader : torch.utils.data.DataLoader
+        Dataloader for getting batches of data which will be used to 
+        evaluate the model&#39;s performance on a test set, after 
+        finishing the training process.
+
+    If get_indeces is True:
+
+    train_indices : torch.utils.data.DataLoader
+        Indices of the data which will be used during training.
+    val_indices : torch.utils.data.DataLoader
+        Indices of the data which will be used to evaluate the 
+        model&#39;s performance on a validation set during training.
+    test_indices : torch.utils.data.DataLoader
+        Indices of the data which will be used to evaluate the 
+        model&#39;s performance on a test set, after finishing the 
+        training process.
+    &#39;&#39;&#39;
+    # Create data indices for training and test splits
+    dataset_size = len(dataset)
+    indices = list(range(dataset_size))
+    test_split = int(np.floor(test_train_ratio * dataset_size))
+    if shuffle_dataset is True:
+        np.random.shuffle(indices)
+    train_indices, test_indices = indices[test_split:], indices[:test_split]
+
+    # Create data indices for training and validation splits
+    train_dataset_size = len(train_indices)
+    val_split = int(np.floor(validation_ratio * train_dataset_size))
+    if shuffle_dataset is True:
+        np.random.shuffle(train_indices)
+    train_indices, val_indices = train_indices[val_split:], train_indices[:val_split]
+
+    # Create data samplers
+    train_sampler = SubsetRandomSampler(train_indices)
+    val_sampler = SubsetRandomSampler(val_indices)
+    test_sampler = SubsetRandomSampler(test_indices)
+
+    # Create dataloaders for each set, which will allow loading batches
+    train_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, sampler=train_sampler)
+    val_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, sampler=val_sampler)
+    test_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, sampler=test_sampler)
+
+    if get_indeces is True:
+        # Return the data loaders and the indices of the sets
+        return train_dataloader, val_dataloader, test_dataloader, train_indices, val_indices, test_indices
+    else:
+        # Just return the data loaders of each set
+        return train_dataloader, val_dataloader, test_dataloader
+
+
+# [TODO] Create a generic train method that can train any relevant machine learning model on the input data
+def train(model, train_dataloader, val_dataloader, seq_len_dict, test_dataloader=None,
+          batch_size=32, n_epochs=50, lr=0.001, model_path=&#39;models/&#39;,
+          do_test=True, log_comet_ml=False, comet_ml_api_key=None,
+          comet_ml_project_name=None, comet_ml_workspace=None,
+          comet_ml_save_model=False, experiment=None, features_list=None,
+          get_val_loss_min=False, **kwargs):
+    model = deep_learning.train(model, train_dataloader, val_dataloader, seq_len_dict=seq_len_dict, 
+                                test_dataloader=test_dataloader, batch_size=batch_size, n_epochs=n_epochs, 
+                                lr=lr, model_path=model_path, do_test=do_test, log_comet_ml=log_comet_ml, 
+                                comet_ml_api_key=comet_ml_api_key, comet_ml_project_name=comet_ml_project_name,
+                                comet_ml_workspace=comet_ml_workspace, comet_ml_save_model=comet_ml_save_model,
+                                experiment=experiment, features_list=features_list, 
+                                get_val_loss_min=get_val_loss_min, **kwargs)
+    return model
+
+
+def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
+                             comet_ml_project_name, comet_ml_workspace, n_inputs,
+                             id_column, label_column, inst_column=None,
+                             n_outputs=1, config_path=&#39;&#39;, var_seq=True,
+                             clip_value=10, padding_value=999999, batch_size=32,
+                             n_epochs=20, lr=0.001, test_train_ratio=0.2,
+                             validation_ratio=0.1, comet_ml_save_model=True,
+                             **kwargs):
+    &#39;&#39;&#39;Optimize a machine learning model&#39;s hyperparameters, by training it
+    several times while exploring different hyperparameters values, returning
+    the best performing ones.
+
+    Parameters
+    ----------
+    Model : torch.nn.Module or sklearn.* (any machine learning model)
+        Class constructor for the desired machine learning model.
+    Dataset : torch.torch.utils.data.Dataset
+        Class constructor for the dataset, which will be used for iterating
+        through batches of data. It must be able to receive as inputs a PyTorch
+        tensor and a Pandas or Dask dataframe.
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe containing all the data that will be used in the
+        optimization&#39;s training processes.
+    config_name : str
+        Name of the configuration file, containing information about the
+        parameters to optimize. This data is organized in a YAML format, akin to
+        a dictionary object, where the optimization algorithm is set, each
+        hyperparameter gets a key with its name, followed by a list of values in
+        the order of (minimum value to explore in the optimization, maximum
+        value to explore in the optimization, initial value to use), and the
+        metric to be optimized.
+    comet_ml_api_key : string
+        Comet.ml API key used when logging data to the platform.
+    comet_ml_project_name : string
+        Name of the comet.ml project used when logging data to the platform.
+    comet_ml_workspace : string
+        Name of the comet.ml workspace used when logging data to the platform.
+    n_inputs : int
+        Total number of input features present in the dataframe.
+    id_column : str
+        Name of the column which corresponds to the subject identifier.
+    label_column : str
+        Name of the column which corresponds to the label.
+    inst_column : str, default None
+        Name of the column which corresponds to the instance or timestamp
+        identifier.
+    n_outputs : int, default 1
+        Total number of outputs givenm by the machine learning model.
+    config_path : str, default &#39;&#39;
+        Path to the directory where the configuration file is stored.
+    var_seq : bool, default True
+        Specifies if the data has variable sequence length. Valuable information
+        if the data must be adjusted by padding.
+    clip_value : numeric, default 10
+        Gradient clipping threshold to avoid exploding gradients.
+    padding_value : numeric, default 999999
+        Value to use in the padding, to fill the sequences.
+    batch_size : int, default 32
+        Defines the batch size, i.e. the number of samples used in each
+        training iteration to update the model&#39;s weights.
+    n_epochs : int, default 50
+        Number of epochs, i.e. the number of times the training loop
+        iterates through all of the training data.
+    lr : float, default 0.001
+        Learning rate used in the optimization algorithm.
+    test_train_ratio : float, default 0.2
+        Percentage of data to use for the test set.
+    validation_ratio : float, default 0.1
+        Percentage of training data to use for the validation set.
+    comet_ml_save_model : bool, default True
+        If set to True, uploads the model with the lowest validation loss
+        to comet.ml when logging data to the platform.
+    kwargs : dict
+        Optional additional parameters, specific to the machine learning model
+        being used.
+
+    Returns
+    -------
+    val_loss_min : float
+        Minimum validation loss over all the optimization process.
+    exp_name_min : str
+        Name of the comet ml experiment with the overall minimum validation
+        loss.
+
+    [TODO] Write a small tutorial on how to write the YAML configuration file,
+    based on this: https://www.comet.ml/docs/python-sdk/introduction-optimizer/
+    &#39;&#39;&#39;
+    # Only log training info to Comet.ml if the required parameters are specified
+    if not (comet_ml_api_key is not None
+            and comet_ml_project_name is not None
+            and comet_ml_workspace is not None):
+        raise Exception(&#39;ERROR: All necessary Comet.ml parameters \
+                         (comet_ml_api_key, comet_ml_project_name, \
+                         comet_ml_workspace) must be correctly specified. \
+                         Otherwise, the parameter optimization won\&#39;t work.&#39;)
+    # Load the hyperparameter optimization configuration file into a dictionary
+    config_file = open(f&#39;{config_path}config_name&#39;, &#39;r&#39;)
+    config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
+    # Get all the names of the hyperparameters that will be optimized
+    params_names = list(config_dict[&#39;parameters&#39;].keys())
+    # Create a Comet.ml parameter optimizer:
+    param_optimizer = comet_ml.Optimizer(config_file,
+                                         api_key=comet_ml_api_key,
+                                         project_name=comet_ml_project_name,
+                                         workspace=comet_ml_workspace)
+
+    if inst_column is not None and var_seq is True:
+        print(&#39;Building a dictionary containing the sequence length of each patient\&#39;s time series...&#39;)
+        # Dictionary containing the sequence length (number of temporal events) of each sequence (patient)
+        seq_len_df = df.groupby(id_column)[inst_column].count().to_frame().sort_values(by=inst_column, ascending=False)
+        seq_len_dict = dict([(idx, val[0]) for idx, val in list(zip(seq_len_df.index, seq_len_df.values))])
+        print(&#39;Creating a padded tensor version of the dataframe...&#39;)
+        # Pad data (to have fixed sequence length) and convert into a PyTorch tensor
+        data = padding.dataframe_to_padded_tensor(df, seq_len_dict, n_patients, n_inputs, padding_value=padding_value)
+    else:
+        # Just convert the data into a PyTorch tensor
+        data = torch.from_numpy(df.to_numpy())
+
+    print(&#39;Creating a dataset object...&#39;)
+    # Create a Dataset object from the data tensor
+    dataset = Dataset(data, df)
+    print(&#39;Distributing the data to train, validation and test sets and getting their data loaders...&#39;)
+    # Get the train, validation and test sets data loaders, which will allow loading batches
+    train_dataloader, val_dataloader, test_dataloader = create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1,
+                                                                          batch_size=batch_size, get_indeces=False)
+    # Start off with a minimum validation score of infinity
+    val_loss_min = np.inf
+
+    for experiment in param_optimizer.get_experiments():
+        print(&#39;Starting a new parameter optimization iteration...&#39;)
+        # Get the current optimized values of the hyperparameters
+        params_values = dict(zip(params_names, [param_optimizer.get_parameter(param)
+                                                for param in params_names]))
+        # Instantiate the model (removing the two identifier columns and the labels from the input size)
+        model = Model(n_inputs, n_outputs, **params_values, **kwargs)
+        # Check if GPU (CUDA) is available
+        train_on_gpu = torch.cuda.is_available()
+        if train_on_gpu:
+            # Move the model to the GPU
+            model = model.cuda()
+        # Set gradient clipping to avoid exploding gradients
+        for p in model.parameters():
+            p.register_hook(lambda grad: torch.clamp(grad, -clip_value, clip_value))
+        print(&#39;Training the model...&#39;)
+        # Train the model and get the minimum validation loss
+        model, val_loss = train(model, train_dataloader, val_dataloader,
+                                test_dataloader, seq_len_dict, batch_size,
+                                n_epochs, lr, model_path=&#39;models/&#39;,
+                                padding_value=padding_value, do_test=True,
+                                log_comet_ml=True,
+                                comet_ml_save_model=comet_ml_save_model,
+                                experiment=experiment,
+                                features_list=list(df.columns).remove(label_column),
+                                get_val_loss_min=True)
+        if val_loss &lt; val_loss_min:
+            # Update optimization minimum validation loss and the corresponding
+            # experiment name 
+            val_loss_min = val_loss
+            exp_name_min = experiment.get_key()
+        # Log optimization parameters
+        experiment.log_metric(&#39;n_inputs&#39;, n_inputs)
+        experiment.log_metric(&#39;n_outputs&#39;, n_outputs)
+        experiment.log_metric(&#39;clip_value&#39;, clip_value)
+        experiment.log_metric(&#39;padding_value&#39;, padding_value)
+        experiment.log_metric(&#39;batch_size&#39;, batch_size)
+        experiment.log_metric(&#39;n_epochs&#39;, n_epochs)
+        experiment.log_metric(&#39;lr&#39;, lr)
+        experiment.log_metric(&#39;test_train_ratio&#39;, test_train_ratio)
+        experiment.log_metric(&#39;validation_ratio&#39;, validation_ratio)
+        experiment.log_asset(f&#39;{config_path}config_name&#39;, config_name)
+        experiment.log_asset(param_optimizer.status(), &#39;param_optimizer_status&#39;)
+    return val_loss_min, exp_name_min
+
+
+# [TODO] Create a generic inference method that can run inference with any relevant machine learning model on the input data</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="data_utils.machine_learning.create_train_sets"><code class="name flex">
+<span>def <span class="ident">create_train_sets</span></span>(<span>dataset, test_train_ratio=0.2, validation_ratio=0.1, batch_size=32, get_indeces=True, shuffle_dataset=True)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Distributes the data into train, validation and test sets and returns the respective data loaders.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>dataset</code></strong> :&ensp;<code>torch.utils.data.Dataset</code></dt>
+<dd>Dataset object which will be used to train, validate and test the model.</dd>
+<dt><strong><code>test_train_ratio</code></strong> :&ensp;<code>float</code>, default <code>0.2</code></dt>
+<dd>Number from 0 to 1 which indicates the percentage of the data
+which will be used as a test set. The remaining percentage
+is used in the training and validation sets.</dd>
+<dt><strong><code>validation_ratio</code></strong> :&ensp;<code>float</code>, default <code>0.1</code></dt>
+<dd>Number from 0 to 1 which indicates the percentage of the data
+from the training set which is used for validation purposes.
+A value of 0.0 corresponds to not using validation.</dd>
+<dt><strong><code>batch_size</code></strong> :&ensp;<code>int</code>, default <code>32</code></dt>
+<dd>Defines the batch size, i.e. the number of samples used in each
+training iteration to update the model's weights.</dd>
+<dt><strong><code>get_indeces</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
+<dd>If set to True, the function returns the dataloader objects of
+the train, validation and test sets and also the indices of the
+sets' data. Otherwise, it only returns the data loaders.</dd>
+<dt><strong><code>shuffle_dataset</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
+<dd>If set to True, the data of each set is shuffled.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>train_dataloader</code></strong> :&ensp;<code>torch.utils.data.DataLoader</code></dt>
+<dd>Dataloader for getting batches of data which will be used
+during training.</dd>
+<dt><strong><code>val_dataloader</code></strong> :&ensp;<code>torch.utils.data.DataLoader</code></dt>
+<dd>Dataloader for getting batches of data which will be used to
+evaluate the model's performance on a validation set during
+training.</dd>
+<dt><strong><code>test_dataloader</code></strong> :&ensp;<code>torch.utils.data.DataLoader</code></dt>
+<dd>Dataloader for getting batches of data which will be used to
+evaluate the model's performance on a test set, after
+finishing the training process.</dd>
+<dt><code>If</code> <code>get_indeces</code> <code>is</code> <code>True</code>:</dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>train_indices</code></strong> :&ensp;<code>torch.utils.data.DataLoader</code></dt>
+<dd>Indices of the data which will be used during training.</dd>
+<dt><strong><code>val_indices</code></strong> :&ensp;<code>torch.utils.data.DataLoader</code></dt>
+<dd>Indices of the data which will be used to evaluate the
+model's performance on a validation set during training.</dd>
+<dt><strong><code>test_indices</code></strong> :&ensp;<code>torch.utils.data.DataLoader</code></dt>
+<dd>Indices of the data which will be used to evaluate the
+model's performance on a test set, after finishing the
+training process.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch_size=32,
+                      get_indeces=True, shuffle_dataset=True):
+    &#39;&#39;&#39;Distributes the data into train, validation and test sets and returns the respective data loaders.
+
+    Parameters
+    ----------
+    dataset : torch.utils.data.Dataset
+        Dataset object which will be used to train, validate and test the model.
+    test_train_ratio : float, default 0.2
+        Number from 0 to 1 which indicates the percentage of the data
+        which will be used as a test set. The remaining percentage
+        is used in the training and validation sets.
+    validation_ratio : float, default 0.1
+        Number from 0 to 1 which indicates the percentage of the data
+        from the training set which is used for validation purposes.
+        A value of 0.0 corresponds to not using validation.
+    batch_size : int, default 32
+        Defines the batch size, i.e. the number of samples used in each
+        training iteration to update the model&#39;s weights.
+    get_indeces : bool, default True
+        If set to True, the function returns the dataloader objects of
+        the train, validation and test sets and also the indices of the
+        sets&#39; data. Otherwise, it only returns the data loaders.
+    shuffle_dataset : bool, default True
+        If set to True, the data of each set is shuffled.
+
+    Returns
+    -------
+    train_dataloader : torch.utils.data.DataLoader
+        Dataloader for getting batches of data which will be used 
+        during training.
+    val_dataloader : torch.utils.data.DataLoader
+        Dataloader for getting batches of data which will be used to 
+        evaluate the model&#39;s performance on a validation set during 
+        training.
+    test_dataloader : torch.utils.data.DataLoader
+        Dataloader for getting batches of data which will be used to 
+        evaluate the model&#39;s performance on a test set, after 
+        finishing the training process.
+
+    If get_indeces is True:
+
+    train_indices : torch.utils.data.DataLoader
+        Indices of the data which will be used during training.
+    val_indices : torch.utils.data.DataLoader
+        Indices of the data which will be used to evaluate the 
+        model&#39;s performance on a validation set during training.
+    test_indices : torch.utils.data.DataLoader
+        Indices of the data which will be used to evaluate the 
+        model&#39;s performance on a test set, after finishing the 
+        training process.
+    &#39;&#39;&#39;
+    # Create data indices for training and test splits
+    dataset_size = len(dataset)
+    indices = list(range(dataset_size))
+    test_split = int(np.floor(test_train_ratio * dataset_size))
+    if shuffle_dataset is True:
+        np.random.shuffle(indices)
+    train_indices, test_indices = indices[test_split:], indices[:test_split]
+
+    # Create data indices for training and validation splits
+    train_dataset_size = len(train_indices)
+    val_split = int(np.floor(validation_ratio * train_dataset_size))
+    if shuffle_dataset is True:
+        np.random.shuffle(train_indices)
+    train_indices, val_indices = train_indices[val_split:], train_indices[:val_split]
+
+    # Create data samplers
+    train_sampler = SubsetRandomSampler(train_indices)
+    val_sampler = SubsetRandomSampler(val_indices)
+    test_sampler = SubsetRandomSampler(test_indices)
+
+    # Create dataloaders for each set, which will allow loading batches
+    train_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, sampler=train_sampler)
+    val_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, sampler=val_sampler)
+    test_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, sampler=test_sampler)
+
+    if get_indeces is True:
+        # Return the data loaders and the indices of the sets
+        return train_dataloader, val_dataloader, test_dataloader, train_indices, val_indices, test_indices
+    else:
+        # Just return the data loaders of each set
+        return train_dataloader, val_dataloader, test_dataloader</code></pre>
+</details>
+</dd>
+<dt id="data_utils.machine_learning.optimize_hyperparameters"><code class="name flex">
+<span>def <span class="ident">optimize_hyperparameters</span></span>(<span>Model, Dataset, df, config_name, comet_ml_api_key, comet_ml_project_name, comet_ml_workspace, n_inputs, id_column, label_column, inst_column=None, n_outputs=1, config_path='', var_seq=True, clip_value=10, padding_value=999999, batch_size=32, n_epochs=20, lr=0.001, test_train_ratio=0.2, validation_ratio=0.1, comet_ml_save_model=True, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Optimize a machine learning model's hyperparameters, by training it
+several times while exploring different hyperparameters values, returning
+the best performing ones.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>Model</code></strong> :&ensp;<code>torch.nn.Module</code> or <code>sklearn.</code>* (<code>any</code> <code>machine</code> <code>learning</code> <code>model</code>)</dt>
+<dd>Class constructor for the desired machine learning model.</dd>
+<dt><strong><code>Dataset</code></strong> :&ensp;<code>torch.torch.utils.data.Dataset</code></dt>
+<dd>Class constructor for the dataset, which will be used for iterating
+through batches of data. It must be able to receive as inputs a PyTorch
+tensor and a Pandas or Dask dataframe.</dd>
+<dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
+<dd>Dataframe containing all the data that will be used in the
+optimization's training processes.</dd>
+<dt><strong><code>config_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>Name of the configuration file, containing information about the
+parameters to optimize. This data is organized in a YAML format, akin to
+a dictionary object, where the optimization algorithm is set, each
+hyperparameter gets a key with its name, followed by a list of values in
+the order of (minimum value to explore in the optimization, maximum
+value to explore in the optimization, initial value to use), and the
+metric to be optimized.</dd>
+<dt><strong><code>comet_ml_api_key</code></strong> :&ensp;<code>string</code></dt>
+<dd>Comet.ml API key used when logging data to the platform.</dd>
+<dt><strong><code>comet_ml_project_name</code></strong> :&ensp;<code>string</code></dt>
+<dd>Name of the comet.ml project used when logging data to the platform.</dd>
+<dt><strong><code>comet_ml_workspace</code></strong> :&ensp;<code>string</code></dt>
+<dd>Name of the comet.ml workspace used when logging data to the platform.</dd>
+<dt><strong><code>n_inputs</code></strong> :&ensp;<code>int</code></dt>
+<dd>Total number of input features present in the dataframe.</dd>
+<dt><strong><code>id_column</code></strong> :&ensp;<code>str</code></dt>
+<dd>Name of the column which corresponds to the subject identifier.</dd>
+<dt><strong><code>label_column</code></strong> :&ensp;<code>str</code></dt>
+<dd>Name of the column which corresponds to the label.</dd>
+<dt><strong><code>inst_column</code></strong> :&ensp;<code>str</code>, default <code>None</code></dt>
+<dd>Name of the column which corresponds to the instance or timestamp
+identifier.</dd>
+<dt><strong><code>n_outputs</code></strong> :&ensp;<code>int</code>, default <code>1</code></dt>
+<dd>Total number of outputs givenm by the machine learning model.</dd>
+<dt><strong><code>config_path</code></strong> :&ensp;<code>str</code>, default <code>''</code></dt>
+<dd>Path to the directory where the configuration file is stored.</dd>
+<dt><strong><code>var_seq</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
+<dd>Specifies if the data has variable sequence length. Valuable information
+if the data must be adjusted by padding.</dd>
+<dt><strong><code>clip_value</code></strong> :&ensp;<code>numeric</code>, default <code>10</code></dt>
+<dd>Gradient clipping threshold to avoid exploding gradients.</dd>
+<dt><strong><code>padding_value</code></strong> :&ensp;<code>numeric</code>, default <code>999999</code></dt>
+<dd>Value to use in the padding, to fill the sequences.</dd>
+<dt><strong><code>batch_size</code></strong> :&ensp;<code>int</code>, default <code>32</code></dt>
+<dd>Defines the batch size, i.e. the number of samples used in each
+training iteration to update the model's weights.</dd>
+<dt><strong><code>n_epochs</code></strong> :&ensp;<code>int</code>, default <code>50</code></dt>
+<dd>Number of epochs, i.e. the number of times the training loop
+iterates through all of the training data.</dd>
+<dt><strong><code>lr</code></strong> :&ensp;<code>float</code>, default <code>0.001</code></dt>
+<dd>Learning rate used in the optimization algorithm.</dd>
+<dt><strong><code>test_train_ratio</code></strong> :&ensp;<code>float</code>, default <code>0.2</code></dt>
+<dd>Percentage of data to use for the test set.</dd>
+<dt><strong><code>validation_ratio</code></strong> :&ensp;<code>float</code>, default <code>0.1</code></dt>
+<dd>Percentage of training data to use for the validation set.</dd>
+<dt><strong><code>comet_ml_save_model</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
+<dd>If set to True, uploads the model with the lowest validation loss
+to comet.ml when logging data to the platform.</dd>
+<dt><strong><code>kwargs</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Optional additional parameters, specific to the machine learning model
+being used.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>val_loss_min</code></strong> :&ensp;<code>float</code></dt>
+<dd>Minimum validation loss over all the optimization process.</dd>
+<dt><strong><code>exp_name_min</code></strong> :&ensp;<code>str</code></dt>
+<dd>Name of the comet ml experiment with the overall minimum validation
+loss.</dd>
+<dt>[TODO] Write a small tutorial on how to write the YAML configuration file,</dt>
+<dt><code>based</code> <code>on</code> <code>this</code>: &lt;<code>https</code>://<code>www.comet.ml</code>/<code>docs</code>/<code>python</code>-<code>sdk</code>/<code>introduction</code>-<code>optimizer</code>/&gt;</dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
+                             comet_ml_project_name, comet_ml_workspace, n_inputs,
+                             id_column, label_column, inst_column=None,
+                             n_outputs=1, config_path=&#39;&#39;, var_seq=True,
+                             clip_value=10, padding_value=999999, batch_size=32,
+                             n_epochs=20, lr=0.001, test_train_ratio=0.2,
+                             validation_ratio=0.1, comet_ml_save_model=True,
+                             **kwargs):
+    &#39;&#39;&#39;Optimize a machine learning model&#39;s hyperparameters, by training it
+    several times while exploring different hyperparameters values, returning
+    the best performing ones.
+
+    Parameters
+    ----------
+    Model : torch.nn.Module or sklearn.* (any machine learning model)
+        Class constructor for the desired machine learning model.
+    Dataset : torch.torch.utils.data.Dataset
+        Class constructor for the dataset, which will be used for iterating
+        through batches of data. It must be able to receive as inputs a PyTorch
+        tensor and a Pandas or Dask dataframe.
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe containing all the data that will be used in the
+        optimization&#39;s training processes.
+    config_name : str
+        Name of the configuration file, containing information about the
+        parameters to optimize. This data is organized in a YAML format, akin to
+        a dictionary object, where the optimization algorithm is set, each
+        hyperparameter gets a key with its name, followed by a list of values in
+        the order of (minimum value to explore in the optimization, maximum
+        value to explore in the optimization, initial value to use), and the
+        metric to be optimized.
+    comet_ml_api_key : string
+        Comet.ml API key used when logging data to the platform.
+    comet_ml_project_name : string
+        Name of the comet.ml project used when logging data to the platform.
+    comet_ml_workspace : string
+        Name of the comet.ml workspace used when logging data to the platform.
+    n_inputs : int
+        Total number of input features present in the dataframe.
+    id_column : str
+        Name of the column which corresponds to the subject identifier.
+    label_column : str
+        Name of the column which corresponds to the label.
+    inst_column : str, default None
+        Name of the column which corresponds to the instance or timestamp
+        identifier.
+    n_outputs : int, default 1
+        Total number of outputs givenm by the machine learning model.
+    config_path : str, default &#39;&#39;
+        Path to the directory where the configuration file is stored.
+    var_seq : bool, default True
+        Specifies if the data has variable sequence length. Valuable information
+        if the data must be adjusted by padding.
+    clip_value : numeric, default 10
+        Gradient clipping threshold to avoid exploding gradients.
+    padding_value : numeric, default 999999
+        Value to use in the padding, to fill the sequences.
+    batch_size : int, default 32
+        Defines the batch size, i.e. the number of samples used in each
+        training iteration to update the model&#39;s weights.
+    n_epochs : int, default 50
+        Number of epochs, i.e. the number of times the training loop
+        iterates through all of the training data.
+    lr : float, default 0.001
+        Learning rate used in the optimization algorithm.
+    test_train_ratio : float, default 0.2
+        Percentage of data to use for the test set.
+    validation_ratio : float, default 0.1
+        Percentage of training data to use for the validation set.
+    comet_ml_save_model : bool, default True
+        If set to True, uploads the model with the lowest validation loss
+        to comet.ml when logging data to the platform.
+    kwargs : dict
+        Optional additional parameters, specific to the machine learning model
+        being used.
+
+    Returns
+    -------
+    val_loss_min : float
+        Minimum validation loss over all the optimization process.
+    exp_name_min : str
+        Name of the comet ml experiment with the overall minimum validation
+        loss.
+
+    [TODO] Write a small tutorial on how to write the YAML configuration file,
+    based on this: https://www.comet.ml/docs/python-sdk/introduction-optimizer/
+    &#39;&#39;&#39;
+    # Only log training info to Comet.ml if the required parameters are specified
+    if not (comet_ml_api_key is not None
+            and comet_ml_project_name is not None
+            and comet_ml_workspace is not None):
+        raise Exception(&#39;ERROR: All necessary Comet.ml parameters \
+                         (comet_ml_api_key, comet_ml_project_name, \
+                         comet_ml_workspace) must be correctly specified. \
+                         Otherwise, the parameter optimization won\&#39;t work.&#39;)
+    # Load the hyperparameter optimization configuration file into a dictionary
+    config_file = open(f&#39;{config_path}config_name&#39;, &#39;r&#39;)
+    config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
+    # Get all the names of the hyperparameters that will be optimized
+    params_names = list(config_dict[&#39;parameters&#39;].keys())
+    # Create a Comet.ml parameter optimizer:
+    param_optimizer = comet_ml.Optimizer(config_file,
+                                         api_key=comet_ml_api_key,
+                                         project_name=comet_ml_project_name,
+                                         workspace=comet_ml_workspace)
+
+    if inst_column is not None and var_seq is True:
+        print(&#39;Building a dictionary containing the sequence length of each patient\&#39;s time series...&#39;)
+        # Dictionary containing the sequence length (number of temporal events) of each sequence (patient)
+        seq_len_df = df.groupby(id_column)[inst_column].count().to_frame().sort_values(by=inst_column, ascending=False)
+        seq_len_dict = dict([(idx, val[0]) for idx, val in list(zip(seq_len_df.index, seq_len_df.values))])
+        print(&#39;Creating a padded tensor version of the dataframe...&#39;)
+        # Pad data (to have fixed sequence length) and convert into a PyTorch tensor
+        data = padding.dataframe_to_padded_tensor(df, seq_len_dict, n_patients, n_inputs, padding_value=padding_value)
+    else:
+        # Just convert the data into a PyTorch tensor
+        data = torch.from_numpy(df.to_numpy())
+
+    print(&#39;Creating a dataset object...&#39;)
+    # Create a Dataset object from the data tensor
+    dataset = Dataset(data, df)
+    print(&#39;Distributing the data to train, validation and test sets and getting their data loaders...&#39;)
+    # Get the train, validation and test sets data loaders, which will allow loading batches
+    train_dataloader, val_dataloader, test_dataloader = create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1,
+                                                                          batch_size=batch_size, get_indeces=False)
+    # Start off with a minimum validation score of infinity
+    val_loss_min = np.inf
+
+    for experiment in param_optimizer.get_experiments():
+        print(&#39;Starting a new parameter optimization iteration...&#39;)
+        # Get the current optimized values of the hyperparameters
+        params_values = dict(zip(params_names, [param_optimizer.get_parameter(param)
+                                                for param in params_names]))
+        # Instantiate the model (removing the two identifier columns and the labels from the input size)
+        model = Model(n_inputs, n_outputs, **params_values, **kwargs)
+        # Check if GPU (CUDA) is available
+        train_on_gpu = torch.cuda.is_available()
+        if train_on_gpu:
+            # Move the model to the GPU
+            model = model.cuda()
+        # Set gradient clipping to avoid exploding gradients
+        for p in model.parameters():
+            p.register_hook(lambda grad: torch.clamp(grad, -clip_value, clip_value))
+        print(&#39;Training the model...&#39;)
+        # Train the model and get the minimum validation loss
+        model, val_loss = train(model, train_dataloader, val_dataloader,
+                                test_dataloader, seq_len_dict, batch_size,
+                                n_epochs, lr, model_path=&#39;models/&#39;,
+                                padding_value=padding_value, do_test=True,
+                                log_comet_ml=True,
+                                comet_ml_save_model=comet_ml_save_model,
+                                experiment=experiment,
+                                features_list=list(df.columns).remove(label_column),
+                                get_val_loss_min=True)
+        if val_loss &lt; val_loss_min:
+            # Update optimization minimum validation loss and the corresponding
+            # experiment name 
+            val_loss_min = val_loss
+            exp_name_min = experiment.get_key()
+        # Log optimization parameters
+        experiment.log_metric(&#39;n_inputs&#39;, n_inputs)
+        experiment.log_metric(&#39;n_outputs&#39;, n_outputs)
+        experiment.log_metric(&#39;clip_value&#39;, clip_value)
+        experiment.log_metric(&#39;padding_value&#39;, padding_value)
+        experiment.log_metric(&#39;batch_size&#39;, batch_size)
+        experiment.log_metric(&#39;n_epochs&#39;, n_epochs)
+        experiment.log_metric(&#39;lr&#39;, lr)
+        experiment.log_metric(&#39;test_train_ratio&#39;, test_train_ratio)
+        experiment.log_metric(&#39;validation_ratio&#39;, validation_ratio)
+        experiment.log_asset(f&#39;{config_path}config_name&#39;, config_name)
+        experiment.log_asset(param_optimizer.status(), &#39;param_optimizer_status&#39;)
+    return val_loss_min, exp_name_min</code></pre>
+</details>
+</dd>
+<dt id="data_utils.machine_learning.train"><code class="name flex">
+<span>def <span class="ident">train</span></span>(<span>model, train_dataloader, val_dataloader, seq_len_dict, test_dataloader=None, batch_size=32, n_epochs=50, lr=0.001, model_path='models/', do_test=True, log_comet_ml=False, comet_ml_api_key=None, comet_ml_project_name=None, comet_ml_workspace=None, comet_ml_save_model=False, experiment=None, features_list=None, get_val_loss_min=False, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def train(model, train_dataloader, val_dataloader, seq_len_dict, test_dataloader=None,
+          batch_size=32, n_epochs=50, lr=0.001, model_path=&#39;models/&#39;,
+          do_test=True, log_comet_ml=False, comet_ml_api_key=None,
+          comet_ml_project_name=None, comet_ml_workspace=None,
+          comet_ml_save_model=False, experiment=None, features_list=None,
+          get_val_loss_min=False, **kwargs):
+    model = deep_learning.train(model, train_dataloader, val_dataloader, seq_len_dict=seq_len_dict, 
+                                test_dataloader=test_dataloader, batch_size=batch_size, n_epochs=n_epochs, 
+                                lr=lr, model_path=model_path, do_test=do_test, log_comet_ml=log_comet_ml, 
+                                comet_ml_api_key=comet_ml_api_key, comet_ml_project_name=comet_ml_project_name,
+                                comet_ml_workspace=comet_ml_workspace, comet_ml_save_model=comet_ml_save_model,
+                                experiment=experiment, features_list=features_list, 
+                                get_val_loss_min=get_val_loss_min, **kwargs)
+    return model</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="data_utils" href="index.html">data_utils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="data_utils.machine_learning.create_train_sets" href="#data_utils.machine_learning.create_train_sets">create_train_sets</a></code></li>
+<li><code><a title="data_utils.machine_learning.optimize_hyperparameters" href="#data_utils.machine_learning.optimize_hyperparameters">optimize_hyperparameters</a></code></li>
+<li><code><a title="data_utils.machine_learning.train" href="#data_utils.machine_learning.train">train</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>
