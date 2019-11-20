@@ -56,7 +56,7 @@ def rename_index(df, name):
 
     Parameters
     ----------
-    df : dask.DataFrame
+    df : pandas.DataFrame or dask.DataFrame
         Dataframe whose index column will be renamed.
     name : string
         The new name for the index column.
@@ -66,12 +66,17 @@ def rename_index(df, name):
     df : dask.DataFrame
         Dataframe with a renamed index column.
     '''
-    feat_names = set(df.columns)
-    df = df.reset_index()
-    orig_idx_name = set(df.columns) - feat_names
-    orig_idx_name = orig_idx_name.pop()
-    df = df.rename(columns={orig_idx_name: name})
-    df = df.set_index(name)
+    if isinstance(df, dd.DataFrame):
+        feat_names = set(df.columns)
+        df = df.reset_index()
+        orig_idx_name = set(df.columns) - feat_names
+        orig_idx_name = orig_idx_name.pop()
+        df = df.rename(columns={orig_idx_name: name})
+        df = df.set_index(name)
+    elif isinstance(df, pd.DataFrame):
+        df.index.names = [name]
+    else:
+        raise Exception(f'ERROR: Input "df" should either be a pandas dataframe or a dask dataframe, not type {type(df)}.')
     return df
 
 
@@ -750,8 +755,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             if isinstance(id_columns, str):
                 id_columns = [id_columns]
             if not isinstance(id_columns, list):
-                raise Exception(f'''ERROR: The `id_columns` argument must be specified as either a single 
-                                    string or a list of strings. Received input with type {type(id_columns)}.''')
+                raise Exception(f'ERROR: The `id_columns` argument must be specified as either a single string or a list of strings. Received input with type {type(id_columns)}.')
             # List of all columns in the dataframe, except the ID columns
             [columns_to_normalize.remove(col) for col in id_columns]
         if embed_columns is not None:
@@ -759,8 +763,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             if isinstance(embed_columns, str):
                 embed_columns = [embed_columns]
             if not isinstance(embed_columns, list):
-                raise Exception(f'''ERROR: The `embed_columns` argument must be specified as either a single
-                                    string or a list of strings. Received input with type {type(embed_columns)}.''')
+                raise Exception(f'ERROR: The `embed_columns` argument must be specified as either a single string or a list of strings. Received input with type {type(embed_columns)}.')
             # Prevent all features that will be embedded from being normalized
             [columns_to_normalize.remove(col) for col in embed_columns]
         # List of binary or one hot encoded columns
@@ -776,8 +779,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             return df
 
     if type(normalization_method) is not str:
-        raise ValueError('Argument normalization_method should be a string. Available options \
-                         are "z-score" and "min-max".')
+        raise ValueError('Argument normalization_method should be a string. Available options are "z-score" and "min-max".')
 
     if normalization_method.lower() == 'z-score':
         if columns_to_normalize is not False:
@@ -802,7 +804,13 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             # Normalize the right columns
             if columns_to_normalize is not False:
                 print(f'z-score normalizing columns {columns_to_normalize}...')
-                data = (data - means) / stds
+                try:
+                    data = (data - means) / stds
+                except Exception as e:
+                    if 'unable to coerce to series' in str(e).lower():
+                        raise Exception(f'ERROR: Normalization failed, likely due to the presence of string formated columns. Make sure that there are only numeric type columns and that the possibly string type ID column is set as index. Original error message: {str(e)}.')
+                    else:
+                        raise e
 
             if columns_to_normalize_cat is not None:
                 print(f'z-score normalizing columns {columns_to_normalize_cat} by their associated categories...')
@@ -869,7 +877,13 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             if columns_to_normalize is not False:
                 # Normalize the right columns
                 print(f'min-max normalizing columns {columns_to_normalize}...')
-                data = (data - mins) / (maxs - mins)
+                try:
+                    data = (data - mins) / (maxs - mins)
+                except Exception as e:
+                    if 'unable to coerce to series' in str(e).lower():
+                        raise Exception(f'ERROR: Normalization failed, likely due to the presence of string formated columns. Make sure that there are only numeric type columns and that the possibly string type ID column is set as index. Original error message: {str(e)}.')
+                    else:
+                        raise e
 
             if columns_to_normalize_cat is not None:
                 print(f'min-max normalizing columns {columns_to_normalize_cat} by their associated categories...')
@@ -1186,8 +1200,7 @@ def transpose_dataframe(df, column_to_transpose=None, inplace=False):
         data_df = (dd.from_pandas(data_df.compute().transpose(), 
                                   npartitions=data_df.npartitions))
     else:
-        raise Exception(f'ERROR: The input data must either be a Pandas dataframe \
-                          or a Dask dataframe, not {type(df)}.')
+        raise Exception(f'ERROR: The input data must either be a Pandas dataframe or a Dask dataframe, not {type(df)}.')
     return data_df
 
 
@@ -1224,16 +1237,14 @@ def missing_values_imputation(data, method='zero', id_column='subject_id', inpla
         elif isinstance(data, torch.tensor):
             data_copy = data.clone()
         else:
-            raise Exception(f'ERROR: The input data must either be a PyTorch tensor, a \
-                              Pandas dataframe or a Dask dataframe, not {type(data)}.')
+            raise Exception(f'ERROR: The input data must either be a PyTorch tensor, a Pandas dataframe or a Dask dataframe, not {type(data)}.')
     else:
         # Use the original data object
         data_copy = data
         if ((not isinstance(data, pd.DataFrame))
             and (not isinstance(data, dd.DataFrame))
             and (not isinstance(data, torch.tensor))):
-            raise Exception(f'ERROR: The input data must either be a PyTorch tensor, a \
-                              Pandas dataframe or a Dask dataframe, not {type(data)}.')
+            raise Exception(f'ERROR: The input data must either be a PyTorch tensor, a Pandas dataframe or a Dask dataframe, not {type(data)}.')
     if method.lower() == 'zero':
         # Replace NaN's with zeros
         if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
@@ -1252,11 +1263,9 @@ def missing_values_imputation(data, method='zero', id_column='subject_id', inpla
             # Replace remaining missing values with zero
             data_copy = data_copy.fillna(value=0)
         elif isinstance(data, torch.tensor):
-            raise Exception('ERROR: PyTorch tensors aren\'t supported in the zigzag\
-                             imputation method. Please use a dataframe instead.')
+            raise Exception('ERROR: PyTorch tensors aren\'t supported in the zigzag imputation method. Please use a dataframe instead.')
     else:
-        raise Exception(f'ERROR: Unsupported {method} imputation method. Currently \
-                          available options are `zero` and `zigzag`.')
+        raise Exception(f'ERROR: Unsupported {method} imputation method. Currently available options are `zero` and `zigzag`.')
     # [TODO] Add other, more complex imputation methods, like a denoising autoencoder
     return data_copy
 

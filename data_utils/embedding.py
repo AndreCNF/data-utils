@@ -424,11 +424,7 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
     print('Averaging continuous features...')
     for feature in utils.iterations_loop(remaining_feat):
         if data_df[feature].dtype == 'object':
-            raise Exception(f'ERROR: There is at least one non-numeric feature in the dataframe. \
-                              This method requires all columns to be numeric, either integer or floats. \
-                              In case there are categorical features still in string format, consider \
-                              using the `string_encod_to_numeric` method first. The column {feature} is \
-                              of type {df[feature].dtype}.')
+            raise Exception(f'ERROR: There is at least one non-numeric feature in the dataframe. This method requires all columns to be numeric, either integer or floats. In case there are categorical features still in string format, consider using the `string_encod_to_numeric` method first. The column {feature} is of type {df[feature].dtype}.')
         # Join remaining features through their average, min or max value
         # (just to be sure that there aren't missing or different values)
         if cont_join_method.lower() == 'mean':
@@ -507,8 +503,7 @@ def string_encod_to_numeric(df, cat_feat=None, separator_num=0, inplace=False):
             # Convert column to an integer format
             data_df[feature] = data_df[feature].astype(float)
     else:
-        raise Exception(f'ERROR: When specified, the categorical features `cat_feat` must \
-                         be in string or list of strings format, not {type(cat_feat)}.')
+        raise Exception(f'ERROR: When specified, the categorical features `cat_feat` must be in string or list of strings format, not {type(cat_feat)}.')
     return data_df
 
 
@@ -546,9 +541,7 @@ def prepare_embed_bag(data, feature=None, separator_num=0, padding_value=999999,
     count = 0
     offset_list = [count]
     if feature is None and len(data.shape) > 1:
-        raise Exception('ERROR: If multidimensional data is passed in the input, the \
-                        feature from which to get the full list of categorical \
-                        encodings must be defined.')
+        raise Exception('ERROR: If multidimensional data is passed in the input, the feature from which to get the full list of categorical encodings must be defined.')
     if len(data.shape) < 3:
         for i in range(data.shape[0]):
             # Get the full list of digits of the current value
@@ -731,10 +724,7 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
             # Run the embedding bag and add the embedding columns to the tensor
             data_tensor = run_embed_bag(data_tensor, embedding_layer[f'embed_{feature}'], enum_list, offset_list, inplace)
     else:
-        raise Exception(f'ERROR: The user must either a single embedding bag and \
-                          feature index or lists of embedding bag layers and \
-                          feature indeces. The input `embedding_layer` has type \
-                          {type(embedding_layer)} while `feature` has type {type(features)}.')
+        raise Exception(f'ERROR: The user must either a single embedding bag and feature index or lists of embedding bag layers and feature indeces. The input `embedding_layer` has type {type(embedding_layer)} while `feature` has type {type(features)}.')
     # Remove the old categorical feature(s)
     data_tensor = deep_learning.remove_tensor_column(data_tensor, features, inplace)
     return data_tensor

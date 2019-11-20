@@ -205,10 +205,7 @@ def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
     if not (comet_ml_api_key is not None
             and comet_ml_project_name is not None
             and comet_ml_workspace is not None):
-        raise Exception('ERROR: All necessary Comet.ml parameters \
-                         (comet_ml_api_key, comet_ml_project_name, \
-                         comet_ml_workspace) must be correctly specified. \
-                         Otherwise, the parameter optimization won\'t work.')
+        raise Exception('ERROR: All necessary Comet.ml parameters (comet_ml_api_key, comet_ml_project_name, comet_ml_workspace) must be correctly specified. Otherwise, the parameter optimization won\'t work.')
     # Load the hyperparameter optimization configuration file into a dictionary
     config_file = open(f'{config_path}config_name', 'r')
     config_dict = yaml.load(config_file, Loader=yaml.FullLoader)

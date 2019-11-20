@@ -1,3 +1,4 @@
+import dask.dataframe as dd                             # Dask to handle big data in dataframes
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import numbers                                          # numbers allows to check if data is numeric
 import warnings                                         # Print warnings for bad practices
@@ -50,7 +51,7 @@ def dataframe_missing_values(df, column=None):
         return col_percent_missing
 
 
-def is_one_hot_encoded_column(df, column):
+def is_one_hot_encoded_column(df, column, n_unique_values=None):
     '''Checks if a given column is one hot encoded.
 
     Parameters
@@ -59,6 +60,9 @@ def is_one_hot_encoded_column(df, column):
         Dataframe that will be used, which contains the specified column.
     column : string
         Name of the column that will be checked for one hot encoding.
+    n_unique_values : int, default None
+        Number of the column's unique values. If not specified, it will
+        be automatically calculated.
 
     Returns
     -------
@@ -66,10 +70,12 @@ def is_one_hot_encoded_column(df, column):
         Returns true if the column is in one hot encoding format.
         Otherwise, returns false.
     '''
-    n_unique_values = df[column].nunique()
-    if isinstance(df, dd.DataFrame):
-        # Make sure that the number of unique values are computed, in case we're using Dask
-        n_unique_values = n_unique_values.compute()
+    if n_unique_values is None:
+        # Calculate the number of unique values
+        n_unique_values = df[column].nunique()
+        if isinstance(df, dd.DataFrame):
+            # Make sure that the number of unique values are computed, in case we're using Dask
+            n_unique_values = n_unique_values.compute()
     # Check if it only has 2 possible values
     if n_unique_values == 2:
         unique_values = df[column].unique()
@@ -97,7 +103,16 @@ def list_one_hot_encoded_columns(df):
     list of strings
         Returns a list of the column names which correspond to one hot encoded columns.
     '''
-    return [col for col in df.columns if is_one_hot_encoded_column(df, col)]
+    # Calculate the columns' number of unique values
+    n_unique_values = df.nunique()
+    if isinstance(df, dd.DataFrame):
+        # Make sure that the number of unique values are computed, in case we're using Dask
+        n_unique_values = n_unique_values.compute()
+    if n_unique_values.min() > 2:
+        # If there are no columns with just 2 unique values, then there are no binary columns
+        return []
+    else:
+        return [col for col in df.columns if is_one_hot_encoded_column(df, col, n_unique_values[col])]
 
 
 def find_col_idx(df, feature):
@@ -143,8 +158,7 @@ def find_val_idx(data, value, column=None):
         elif len(data.size()) == 3:
             return (data[:, :, column] == value).nonzero().item()
         else:
-            raise Exception(
-                f'ERROR: Currently this method only supports up to tree-dimensional data. User submitted data with {len(data.size())} dimensions.')
+            raise Exception(f'ERROR: Currently this method only supports up to tree-dimensional data. User submitted data with {len(data.size())} dimensions.')
     else:
         raise Exception('ERROR: If multidimensional data is being used, the column to search for must be specified in the `column` parameter.')
 

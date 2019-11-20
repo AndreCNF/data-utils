@@ -44,10 +44,7 @@ def remove_tensor_column(data, col_idx, inplace=False):
         # Turn the column index into a list, for ease of coding
         col_idx = [col_idx]
     if not isinstance(col_idx, list):
-        raise Exception(f'ERROR: The `col_idx` parameter must either specify a \
-                          single int of a column to remove or a list of ints in the \
-                          case of multiple columns to remove. Received input `col_idx` \
-                          of type {type(col_idx)}.')
+        raise Exception(f'ERROR: The `col_idx` parameter must either specify a single int of a column to remove or a list of ints in the case of multiple columns to remove. Received input `col_idx` of type {type(col_idx)}.')
     for col in col_idx:
         # Make a list of the indices of the columns that we want to keep, 
         # without the unwanted one
@@ -58,8 +55,7 @@ def remove_tensor_column(data, col_idx, inplace=False):
         elif len(data_tensor.shape) == 3:
             data_tensor = data_tensor[:, :, columns_to_keep]
         else:
-            raise Exception(f'ERROR: Currently only supporting either 2D or 3D data. \
-                              Received data tensor with {len(data_tensor.shape)} dimensions.')
+            raise Exception(f'ERROR: Currently only supporting either 2D or 3D data. Received data tensor with {len(data_tensor.shape)} dimensions.')
     return data_tensor
 
 
