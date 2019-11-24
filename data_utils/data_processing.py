@@ -703,7 +703,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
         PyTorch tensor corresponding to the data which will be normalized
         by the specified normalization method. If the data tensor isn't
         specified, the normalization is applied directly on the dataframe.
-    id_columns : list of strings, default ['subject_id', 'ts']
+    id_columns : string or list of strings, default ['subject_id', 'ts']
         List of columns names which represent identifier columns. These are not
         supposed to be normalized.
     normalization_method : string, default 'z-score'
@@ -714,19 +714,19 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
         min-max normalization, where the data is subtracted by its minimum
         value and then divided by the difference between the minimum and the
         maximum value, getting to a fixed range from 0 to 1.
-    columns_to_normalize : list of strings, default None
+    columns_to_normalize : string or list of strings, default None
         If specified, the columns provided in the list are the only ones that
         will be normalized. If set to False, no column will normalized directly,
         although columns can still be normalized in groups of categories, if
         specified in the `columns_to_normalize_cat` parameter. Otherwise, all
         continuous columns will be normalized.
-    columns_to_normalize_cat : list of tuples of strings, default None
+    columns_to_normalize_cat : string or list of tuples of strings, default None
         If specified, the columns provided in the list are going to be
         normalized on their categories. That is, the values (column 2 in the
         tuple) are normalized with stats of their respective categories (column
         1 of the tuple). Otherwise, no column will be normalized on their
         categories.
-    embed_columns : list of strings, default None
+    embed_columns : string or list of strings, default None
         If specified, the columns in the list, which represent features that
         will be embedded, aren't going to be normalized.
     see_progress : bool, default True
@@ -744,8 +744,6 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
     '''
     # Check if specific columns have been specified for normalization
     if columns_to_normalize is None:
-        # [TODO] This search for columns part is very slow (in some cases slower than the 
-        # actual normalization process); try to make it more efficient
         # List of all columns in the dataframe
         feature_columns = list(df.columns)
         # Normalize all non identifier continuous columns, ignore one hot encoded ones
@@ -759,7 +757,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             # List of all columns in the dataframe, except the ID columns
             [columns_to_normalize.remove(col) for col in id_columns]
         if embed_columns is not None:
-            # Make sure that the id_columns is a list
+            # Make sure that the embed_columns is a list
             if isinstance(embed_columns, str):
                 embed_columns = [embed_columns]
             if not isinstance(embed_columns, list):
@@ -777,6 +775,12 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
         if columns_to_normalize is None:
             print('No columns to normalize, returning the original dataframe.')
             return df
+
+    # Make sure that the columns_to_normalize is a list
+    if isinstance(columns_to_normalize, str):
+        columns_to_normalize = [columns_to_normalize]
+    if not isinstance(columns_to_normalize, list):
+                raise Exception(f'ERROR: The `columns_to_normalize` argument must be specified as either a single string or a list of strings. Received input with type {type(columns_to_normalize)}.')
 
     if type(normalization_method) is not str:
         raise ValueError('Argument normalization_method should be a string. Available options are "z-score" and "min-max".')
@@ -804,15 +808,14 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             # Normalize the right columns
             if columns_to_normalize is not False:
                 print(f'z-score normalizing columns {columns_to_normalize}...')
-                try:
-                    data = (data - means) / stds
-                except Exception as e:
-                    if 'unable to coerce to series' in str(e).lower():
-                        raise Exception(f'ERROR: Normalization failed, likely due to the presence of string formated columns. Make sure that there are only numeric type columns and that the possibly string type ID column is set as index. Original error message: {str(e)}.')
-                    else:
-                        raise e
+                data[columns_to_normalize] = (data[columns_to_normalize] - means) / stds
 
             if columns_to_normalize_cat is not None:
+                # Make sure that the columns_to_normalize_cat is a list
+                if isinstance(columns_to_normalize_cat, str):
+                    columns_to_normalize_cat = [columns_to_normalize_cat]
+                if not isinstance(columns_to_normalize_cat, list):
+                    raise Exception(f'ERROR: The `columns_to_normalize_cat` argument must be specified as either a single string or a list of strings. Received input with type {type(columns_to_normalize_cat)}.')
                 print(f'z-score normalizing columns {columns_to_normalize_cat} by their associated categories...')
                 for col_tuple in utils.iterations_loop(columns_to_normalize_cat, see_progress=see_progress):
                     # Calculate the means and standard deviations
@@ -877,13 +880,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             if columns_to_normalize is not False:
                 # Normalize the right columns
                 print(f'min-max normalizing columns {columns_to_normalize}...')
-                try:
-                    data = (data - mins) / (maxs - mins)
-                except Exception as e:
-                    if 'unable to coerce to series' in str(e).lower():
-                        raise Exception(f'ERROR: Normalization failed, likely due to the presence of string formated columns. Make sure that there are only numeric type columns and that the possibly string type ID column is set as index. Original error message: {str(e)}.')
-                    else:
-                        raise e
+                data[columns_to_normalize] = (data[columns_to_normalize] - mins) / (maxs - mins)
 
             if columns_to_normalize_cat is not None:
                 print(f'min-max normalizing columns {columns_to_normalize_cat} by their associated categories...')
@@ -1204,7 +1201,7 @@ def transpose_dataframe(df, column_to_transpose=None, inplace=False):
     return data_df
 
 
-def missing_values_imputation(data, method='zero', id_column='subject_id', inplace=False):
+def missing_values_imputation(data, method='zero', id_column=None, inplace=False):
     '''Performs missing values imputation to a tensor corresponding to a single column.
 
     Parameters
@@ -1217,9 +1214,15 @@ def missing_values_imputation(data, method='zero', id_column='subject_id', inpla
         missing values with zero. If the user chooses 'zigzag', it will do a 
         forward fill, a backward fill and then replace all remaining missing values
         with zero (this option is only available for dataframes, not tensors).
-    id_column : string, default 'subject_id'
+        If the user selects 'interpolation', missing data will be interpolated based 
+        on known neighboring values and then all possible remaining ones are
+        replaced with zero (this option is only available for dataframes, not
+        tensors).
+    id_column : string, default None
         Name of the column which corresponds to the sequence or subject identifier
-        in the dataframe. Only used if the chosen imputation method is 'zigzag'.
+        in the dataframe. If not specified, the imputation will not differenciate
+        different IDs nor sequences. Only used if the chosen imputation method is
+        'zigzag' or 'interpolation'.
     inplace : bool, default False
         If set to True, the original tensor or dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -1230,40 +1233,66 @@ def missing_values_imputation(data, method='zero', id_column='subject_id', inpla
     tensor : torch.Tensor
         Imputed PyTorch tensor.
     '''
+    if ((not isinstance(data, pd.DataFrame))
+         and (not isinstance(data, dd.DataFrame))
+         and (not isinstance(data, torch.Tensor))):
+        raise Exception(f'ERROR: The input data must either be a PyTorch tensor, a Pandas dataframe or a Dask dataframe, not {type(data)}.')
     if not inplace:
         # Make a copy of the data to avoid potentially unwanted changes to the original data
-        if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
-            data_copy = data.copy()
-        elif isinstance(data, torch.tensor):
+        if isinstance(data, torch.Tensor):
             data_copy = data.clone()
         else:
-            raise Exception(f'ERROR: The input data must either be a PyTorch tensor, a Pandas dataframe or a Dask dataframe, not {type(data)}.')
+            data_copy = data.copy()
     else:
         # Use the original data object
         data_copy = data
-        if ((not isinstance(data, pd.DataFrame))
-            and (not isinstance(data, dd.DataFrame))
-            and (not isinstance(data, torch.tensor))):
-            raise Exception(f'ERROR: The input data must either be a PyTorch tensor, a Pandas dataframe or a Dask dataframe, not {type(data)}.')
     if method.lower() == 'zero':
         # Replace NaN's with zeros
         if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
             data_copy = data_copy.fillna(value=0)
-        elif isinstance(data, torch.tensor):
+        elif isinstance(data, torch.Tensor):
             data_copy = torch.where(data_copy != data_copy, torch.zeros_like(data_copy), data_copy)
     elif method.lower() == 'zigzag':
-        # Replace NaN's with zeros
         if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
-            # Forward fill
-            data_copy = (data_copy.set_index('subject_id', append=True).groupby('subject_id')
-                        .fillna(method='ffill').reset_index(level=1))
-            # Backward fill
-            data_copy = (data_copy.set_index('subject_id', append=True).groupby('subject_id')
-                        .fillna(method='bfill').reset_index(level=1))
-            # Replace remaining missing values with zero
-            data_copy = data_copy.fillna(value=0)
-        elif isinstance(data, torch.tensor):
+            if id_column is not None:
+                # Perform imputation on each ID separately
+                # Forward fill
+                data_copy = (data_copy.set_index(id_column, append=True).groupby(id_column)
+                            .fillna(method='ffill').reset_index(level=1))
+                # Backward fill
+                data_copy = (data_copy.set_index(id_column, append=True).groupby(id_column)
+                            .fillna(method='bfill').reset_index(level=1))
+                # Replace remaining missing values with zero
+                data_copy = data_copy.fillna(value=0)
+            else:
+                # Apply imputation on all the data as one single sequence
+                # Forward fill
+                data_copy = data_copy.fillna(method='ffill')
+                # Backward fill
+                data_copy = data_copy.fillna(method='bfill')
+                # Replace remaining missing values with zero
+                data_copy = data_copy.fillna(value=0)
+        elif isinstance(data, torch.Tensor):
             raise Exception('ERROR: PyTorch tensors aren\'t supported in the zigzag imputation method. Please use a dataframe instead.')
+    elif method.lower() == 'interpolation':
+        if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
+            # Linear interpolation, placing a linear scale between known points and doing simple
+            # backward and forward fill, when the missing value doesn't have known data points
+            # before or after, respectively
+            if id_column is not None:
+                # Perform imputation on each ID separately
+                data_copy = (data_copy.set_index(id_column, append=True).groupby(id_column)
+                                      .apply(lambda group: group.interpolate(limit_direction='both'))
+                                      .reset_index(level=1))
+                # Replace remaining missing values with zero
+                data_copy = data_copy.fillna(value=0)
+            else:
+                # Apply imputation on all the data as one single sequence
+                data_copy = data_copy.interpolate(limit_direction='both')
+                # Replace remaining missing values with zero
+                data_copy = data_copy.fillna(value=0)
+        elif isinstance(data, torch.Tensor):
+            raise Exception('ERROR: PyTorch tensors aren\'t supported in the interpolation imputation method. Please use a dataframe instead.')
     else:
         raise Exception(f'ERROR: Unsupported {method} imputation method. Currently available options are `zero` and `zigzag`.')
     # [TODO] Add other, more complex imputation methods, like a denoising autoencoder

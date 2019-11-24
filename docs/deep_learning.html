@@ -70,10 +70,7 @@ def remove_tensor_column(data, col_idx, inplace=False):
         # Turn the column index into a list, for ease of coding
         col_idx = [col_idx]
     if not isinstance(col_idx, list):
-        raise Exception(f&#39;ERROR: The `col_idx` parameter must either specify a \
-                          single int of a column to remove or a list of ints in the \
-                          case of multiple columns to remove. Received input `col_idx` \
-                          of type {type(col_idx)}.&#39;)
+        raise Exception(f&#39;ERROR: The `col_idx` parameter must either specify a single int of a column to remove or a list of ints in the case of multiple columns to remove. Received input `col_idx` of type {type(col_idx)}.&#39;)
     for col in col_idx:
         # Make a list of the indices of the columns that we want to keep, 
         # without the unwanted one
@@ -84,8 +81,7 @@ def remove_tensor_column(data, col_idx, inplace=False):
         elif len(data_tensor.shape) == 3:
             data_tensor = data_tensor[:, :, columns_to_keep]
         else:
-            raise Exception(f&#39;ERROR: Currently only supporting either 2D or 3D data. \
-                              Received data tensor with {len(data_tensor.shape)} dimensions.&#39;)
+            raise Exception(f&#39;ERROR: Currently only supporting either 2D or 3D data. Received data tensor with {len(data_tensor.shape)} dimensions.&#39;)
     return data_tensor
 
 
@@ -1181,10 +1177,7 @@ changing the original tensor.</dd>
         # Turn the column index into a list, for ease of coding
         col_idx = [col_idx]
     if not isinstance(col_idx, list):
-        raise Exception(f&#39;ERROR: The `col_idx` parameter must either specify a \
-                          single int of a column to remove or a list of ints in the \
-                          case of multiple columns to remove. Received input `col_idx` \
-                          of type {type(col_idx)}.&#39;)
+        raise Exception(f&#39;ERROR: The `col_idx` parameter must either specify a single int of a column to remove or a list of ints in the case of multiple columns to remove. Received input `col_idx` of type {type(col_idx)}.&#39;)
     for col in col_idx:
         # Make a list of the indices of the columns that we want to keep, 
         # without the unwanted one
@@ -1195,8 +1188,7 @@ changing the original tensor.</dd>
         elif len(data_tensor.shape) == 3:
             data_tensor = data_tensor[:, :, columns_to_keep]
         else:
-            raise Exception(f&#39;ERROR: Currently only supporting either 2D or 3D data. \
-                              Received data tensor with {len(data_tensor.shape)} dimensions.&#39;)
+            raise Exception(f&#39;ERROR: Currently only supporting either 2D or 3D data. Received data tensor with {len(data_tensor.shape)} dimensions.&#39;)
     return data_tensor</code></pre>
 </details>
 </dd>

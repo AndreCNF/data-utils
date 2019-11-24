@@ -3,6 +3,7 @@ __version__ = '0.1.0'
 from comet_ml import Experiment                         # Comet.ml can log training metrics, parameters, do version control and parameter optimization
 import torch                                            # PyTorch to create and apply deep learning models
 import numpy as np                                      # NumPy to handle numeric and NaN operations
+from importlib import reload                            # Allows to reload (import again) modules, which make them rerun their initialization
 
 # [TODO] Check if the random seed is working properly
 # Random seed used in PyTorch and NumPy's random operations (such as weight initialization)
@@ -54,3 +55,11 @@ def set_pandas_library(lib='modin'):
         use_modin = False
     else:
         raise Exception(f'ERROR: {lib} is an invalid pandas library. Must either use `pandas` or `modin`.')
+    # Reload the modules, to update their pandas package
+    reload(utils)
+    reload(search_explore)
+    reload(data_processing)
+    reload(padding)
+    reload(embedding)
+    reload(deep_learning)
+    reload(machine_learning)

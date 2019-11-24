@@ -24,7 +24,8 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import numpy as np                                      # NumPy to handle numeric and NaN operations
+<pre><code class="python">import dask.dataframe as dd                             # Dask to handle big data in dataframes
+import numpy as np                                      # NumPy to handle numeric and NaN operations
 import numbers                                          # numbers allows to check if data is numeric
 import warnings                                         # Print warnings for bad practices
 from . import utils                                     # Generic and useful methods
@@ -76,7 +77,7 @@ def dataframe_missing_values(df, column=None):
         return col_percent_missing
 
 
-def is_one_hot_encoded_column(df, column):
+def is_one_hot_encoded_column(df, column, n_unique_values=None):
     &#39;&#39;&#39;Checks if a given column is one hot encoded.
 
     Parameters
@@ -85,6 +86,9 @@ def is_one_hot_encoded_column(df, column):
         Dataframe that will be used, which contains the specified column.
     column : string
         Name of the column that will be checked for one hot encoding.
+    n_unique_values : int, default None
+        Number of the column&#39;s unique values. If not specified, it will
+        be automatically calculated.
 
     Returns
     -------
@@ -92,10 +96,12 @@ def is_one_hot_encoded_column(df, column):
         Returns true if the column is in one hot encoding format.
         Otherwise, returns false.
     &#39;&#39;&#39;
-    n_unique_values = df[column].nunique()
-    if isinstance(df, dd.DataFrame):
-        # Make sure that the number of unique values are computed, in case we&#39;re using Dask
-        n_unique_values = n_unique_values.compute()
+    if n_unique_values is None:
+        # Calculate the number of unique values
+        n_unique_values = df[column].nunique()
+        if isinstance(df, dd.DataFrame):
+            # Make sure that the number of unique values are computed, in case we&#39;re using Dask
+            n_unique_values = n_unique_values.compute()
     # Check if it only has 2 possible values
     if n_unique_values == 2:
         unique_values = df[column].unique()
@@ -123,7 +129,16 @@ def list_one_hot_encoded_columns(df):
     list of strings
         Returns a list of the column names which correspond to one hot encoded columns.
     &#39;&#39;&#39;
-    return [col for col in df.columns if is_one_hot_encoded_column(df, col)]
+    # Calculate the columns&#39; number of unique values
+    n_unique_values = df.nunique()
+    if isinstance(df, dd.DataFrame):
+        # Make sure that the number of unique values are computed, in case we&#39;re using Dask
+        n_unique_values = n_unique_values.compute()
+    if n_unique_values.min() &gt; 2:
+        # If there are no columns with just 2 unique values, then there are no binary columns
+        return []
+    else:
+        return [col for col in df.columns if is_one_hot_encoded_column(df, col, n_unique_values[col])]
 
 
 def find_col_idx(df, feature):
@@ -169,8 +184,7 @@ def find_val_idx(data, value, column=None):
         elif len(data.size()) == 3:
             return (data[:, :, column] == value).nonzero().item()
         else:
-            raise Exception(
-                f&#39;ERROR: Currently this method only supports up to tree-dimensional data. User submitted data with {len(data.size())} dimensions.&#39;)
+            raise Exception(f&#39;ERROR: Currently this method only supports up to tree-dimensional data. User submitted data with {len(data.size())} dimensions.&#39;)
     else:
         raise Exception(&#39;ERROR: If multidimensional data is being used, the column to search for must be specified in the `column` parameter.&#39;)
 
@@ -562,8 +576,7 @@ be searched for.</dd>
         elif len(data.size()) == 3:
             return (data[:, :, column] == value).nonzero().item()
         else:
-            raise Exception(
-                f&#39;ERROR: Currently this method only supports up to tree-dimensional data. User submitted data with {len(data.size())} dimensions.&#39;)
+            raise Exception(f&#39;ERROR: Currently this method only supports up to tree-dimensional data. User submitted data with {len(data.size())} dimensions.&#39;)
     else:
         raise Exception(&#39;ERROR: If multidimensional data is being used, the column to search for must be specified in the `column` parameter.&#39;)</code></pre>
 </details>
@@ -682,7 +695,7 @@ be fetched. Otherwise, the method only returns the n'th element.</dd>
 </details>
 </dd>
 <dt id="data_utils.search_explore.is_one_hot_encoded_column"><code class="name flex">
-<span>def <span class="ident">is_one_hot_encoded_column</span></span>(<span>df, column)</span>
+<span>def <span class="ident">is_one_hot_encoded_column</span></span>(<span>df, column, n_unique_values=None)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Checks if a given column is one hot encoded.</p>
@@ -692,6 +705,9 @@ be fetched. Otherwise, the method only returns the n'th element.</dd>
 <dd>Dataframe that will be used, which contains the specified column.</dd>
 <dt><strong><code>column</code></strong> :&ensp;<code>string</code></dt>
 <dd>Name of the column that will be checked for one hot encoding.</dd>
+<dt><strong><code>n_unique_values</code></strong> :&ensp;<code>int</code>, default <code>None</code></dt>
+<dd>Number of the column's unique values. If not specified, it will
+be automatically calculated.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -703,7 +719,7 @@ Otherwise, returns false.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def is_one_hot_encoded_column(df, column):
+<pre><code class="python">def is_one_hot_encoded_column(df, column, n_unique_values=None):
     &#39;&#39;&#39;Checks if a given column is one hot encoded.
 
     Parameters
@@ -712,6 +728,9 @@ Otherwise, returns false.</dd>
         Dataframe that will be used, which contains the specified column.
     column : string
         Name of the column that will be checked for one hot encoding.
+    n_unique_values : int, default None
+        Number of the column&#39;s unique values. If not specified, it will
+        be automatically calculated.
 
     Returns
     -------
@@ -719,10 +738,12 @@ Otherwise, returns false.</dd>
         Returns true if the column is in one hot encoding format.
         Otherwise, returns false.
     &#39;&#39;&#39;
-    n_unique_values = df[column].nunique()
-    if isinstance(df, dd.DataFrame):
-        # Make sure that the number of unique values are computed, in case we&#39;re using Dask
-        n_unique_values = n_unique_values.compute()
+    if n_unique_values is None:
+        # Calculate the number of unique values
+        n_unique_values = df[column].nunique()
+        if isinstance(df, dd.DataFrame):
+            # Make sure that the number of unique values are computed, in case we&#39;re using Dask
+            n_unique_values = n_unique_values.compute()
     # Check if it only has 2 possible values
     if n_unique_values == 2:
         unique_values = df[column].unique()
@@ -769,7 +790,16 @@ Otherwise, returns false.</dd>
     list of strings
         Returns a list of the column names which correspond to one hot encoded columns.
     &#39;&#39;&#39;
-    return [col for col in df.columns if is_one_hot_encoded_column(df, col)]</code></pre>
+    # Calculate the columns&#39; number of unique values
+    n_unique_values = df.nunique()
+    if isinstance(df, dd.DataFrame):
+        # Make sure that the number of unique values are computed, in case we&#39;re using Dask
+        n_unique_values = n_unique_values.compute()
+    if n_unique_values.min() &gt; 2:
+        # If there are no columns with just 2 unique values, then there are no binary columns
+        return []
+    else:
+        return [col for col in df.columns if is_one_hot_encoded_column(df, col, n_unique_values[col])]</code></pre>
 </details>
 </dd>
 </dl>

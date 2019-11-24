@@ -82,7 +82,7 @@ def rename_index(df, name):
 
     Parameters
     ----------
-    df : dask.DataFrame
+    df : pandas.DataFrame or dask.DataFrame
         Dataframe whose index column will be renamed.
     name : string
         The new name for the index column.
@@ -92,12 +92,17 @@ def rename_index(df, name):
     df : dask.DataFrame
         Dataframe with a renamed index column.
     &#39;&#39;&#39;
-    feat_names = set(df.columns)
-    df = df.reset_index()
-    orig_idx_name = set(df.columns) - feat_names
-    orig_idx_name = orig_idx_name.pop()
-    df = df.rename(columns={orig_idx_name: name})
-    df = df.set_index(name)
+    if isinstance(df, dd.DataFrame):
+        feat_names = set(df.columns)
+        df = df.reset_index()
+        orig_idx_name = set(df.columns) - feat_names
+        orig_idx_name = orig_idx_name.pop()
+        df = df.rename(columns={orig_idx_name: name})
+        df = df.set_index(name)
+    elif isinstance(df, pd.DataFrame):
+        df.index.names = [name]
+    else:
+        raise Exception(f&#39;ERROR: Input &#34;df&#34; should either be a pandas dataframe or a dask dataframe, not type {type(df)}.&#39;)
     return df
 
 
@@ -724,7 +729,7 @@ def normalize_data(df, data=None, id_columns=[&#39;patientunitstayid&#39;, &#39;
         PyTorch tensor corresponding to the data which will be normalized
         by the specified normalization method. If the data tensor isn&#39;t
         specified, the normalization is applied directly on the dataframe.
-    id_columns : list of strings, default [&#39;subject_id&#39;, &#39;ts&#39;]
+    id_columns : string or list of strings, default [&#39;subject_id&#39;, &#39;ts&#39;]
         List of columns names which represent identifier columns. These are not
         supposed to be normalized.
     normalization_method : string, default &#39;z-score&#39;
@@ -735,19 +740,19 @@ def normalize_data(df, data=None, id_columns=[&#39;patientunitstayid&#39;, &#39;
         min-max normalization, where the data is subtracted by its minimum
         value and then divided by the difference between the minimum and the
         maximum value, getting to a fixed range from 0 to 1.
-    columns_to_normalize : list of strings, default None
+    columns_to_normalize : string or list of strings, default None
         If specified, the columns provided in the list are the only ones that
         will be normalized. If set to False, no column will normalized directly,
         although columns can still be normalized in groups of categories, if
         specified in the `columns_to_normalize_cat` parameter. Otherwise, all
         continuous columns will be normalized.
-    columns_to_normalize_cat : list of tuples of strings, default None
+    columns_to_normalize_cat : string or list of tuples of strings, default None
         If specified, the columns provided in the list are going to be
         normalized on their categories. That is, the values (column 2 in the
         tuple) are normalized with stats of their respective categories (column
         1 of the tuple). Otherwise, no column will be normalized on their
         categories.
-    embed_columns : list of strings, default None
+    embed_columns : string or list of strings, default None
         If specified, the columns in the list, which represent features that
         will be embedded, aren&#39;t going to be normalized.
     see_progress : bool, default True
@@ -765,8 +770,6 @@ def normalize_data(df, data=None, id_columns=[&#39;patientunitstayid&#39;, &#39;
     &#39;&#39;&#39;
     # Check if specific columns have been specified for normalization
     if columns_to_normalize is None:
-        # [TODO] This search for columns part is very slow (in some cases slower than the 
-        # actual normalization process); try to make it more efficient
         # List of all columns in the dataframe
         feature_columns = list(df.columns)
         # Normalize all non identifier continuous columns, ignore one hot encoded ones
@@ -776,17 +779,15 @@ def normalize_data(df, data=None, id_columns=[&#39;patientunitstayid&#39;, &#39;
             if isinstance(id_columns, str):
                 id_columns = [id_columns]
             if not isinstance(id_columns, list):
-                raise Exception(f&#39;&#39;&#39;ERROR: The `id_columns` argument must be specified as either a single 
-                                    string or a list of strings. Received input with type {type(id_columns)}.&#39;&#39;&#39;)
+                raise Exception(f&#39;ERROR: The `id_columns` argument must be specified as either a single string or a list of strings. Received input with type {type(id_columns)}.&#39;)
             # List of all columns in the dataframe, except the ID columns
             [columns_to_normalize.remove(col) for col in id_columns]
         if embed_columns is not None:
-            # Make sure that the id_columns is a list
+            # Make sure that the embed_columns is a list
             if isinstance(embed_columns, str):
                 embed_columns = [embed_columns]
             if not isinstance(embed_columns, list):
-                raise Exception(f&#39;&#39;&#39;ERROR: The `embed_columns` argument must be specified as either a single
-                                    string or a list of strings. Received input with type {type(embed_columns)}.&#39;&#39;&#39;)
+                raise Exception(f&#39;ERROR: The `embed_columns` argument must be specified as either a single string or a list of strings. Received input with type {type(embed_columns)}.&#39;)
             # Prevent all features that will be embedded from being normalized
             [columns_to_normalize.remove(col) for col in embed_columns]
         # List of binary or one hot encoded columns
@@ -801,9 +802,14 @@ def normalize_data(df, data=None, id_columns=[&#39;patientunitstayid&#39;, &#39;
             print(&#39;No columns to normalize, returning the original dataframe.&#39;)
             return df
 
+    # Make sure that the columns_to_normalize is a list
+    if isinstance(columns_to_normalize, str):
+        columns_to_normalize = [columns_to_normalize]
+    if not isinstance(columns_to_normalize, list):
+                raise Exception(f&#39;ERROR: The `columns_to_normalize` argument must be specified as either a single string or a list of strings. Received input with type {type(columns_to_normalize)}.&#39;)
+
     if type(normalization_method) is not str:
-        raise ValueError(&#39;Argument normalization_method should be a string. Available options \
-                         are &#34;z-score&#34; and &#34;min-max&#34;.&#39;)
+        raise ValueError(&#39;Argument normalization_method should be a string. Available options are &#34;z-score&#34; and &#34;min-max&#34;.&#39;)
 
     if normalization_method.lower() == &#39;z-score&#39;:
         if columns_to_normalize is not False:
@@ -828,9 +834,14 @@ def normalize_data(df, data=None, id_columns=[&#39;patientunitstayid&#39;, &#39;
             # Normalize the right columns
             if columns_to_normalize is not False:
                 print(f&#39;z-score normalizing columns {columns_to_normalize}...&#39;)
-                data = (data - means) / stds
+                data[columns_to_normalize] = (data[columns_to_normalize] - means) / stds
 
             if columns_to_normalize_cat is not None:
+                # Make sure that the columns_to_normalize_cat is a list
+                if isinstance(columns_to_normalize_cat, str):
+                    columns_to_normalize_cat = [columns_to_normalize_cat]
+                if not isinstance(columns_to_normalize_cat, list):
+                    raise Exception(f&#39;ERROR: The `columns_to_normalize_cat` argument must be specified as either a single string or a list of strings. Received input with type {type(columns_to_normalize_cat)}.&#39;)
                 print(f&#39;z-score normalizing columns {columns_to_normalize_cat} by their associated categories...&#39;)
                 for col_tuple in utils.iterations_loop(columns_to_normalize_cat, see_progress=see_progress):
                     # Calculate the means and standard deviations
@@ -895,7 +906,7 @@ def normalize_data(df, data=None, id_columns=[&#39;patientunitstayid&#39;, &#39;
             if columns_to_normalize is not False:
                 # Normalize the right columns
                 print(f&#39;min-max normalizing columns {columns_to_normalize}...&#39;)
-                data = (data - mins) / (maxs - mins)
+                data[columns_to_normalize] = (data[columns_to_normalize] - mins) / (maxs - mins)
 
             if columns_to_normalize_cat is not None:
                 print(f&#39;min-max normalizing columns {columns_to_normalize_cat} by their associated categories...&#39;)
@@ -1212,12 +1223,11 @@ def transpose_dataframe(df, column_to_transpose=None, inplace=False):
         data_df = (dd.from_pandas(data_df.compute().transpose(), 
                                   npartitions=data_df.npartitions))
     else:
-        raise Exception(f&#39;ERROR: The input data must either be a Pandas dataframe \
-                          or a Dask dataframe, not {type(df)}.&#39;)
+        raise Exception(f&#39;ERROR: The input data must either be a Pandas dataframe or a Dask dataframe, not {type(df)}.&#39;)
     return data_df
 
 
-def missing_values_imputation(data, method=&#39;zero&#39;, id_column=&#39;subject_id&#39;, inplace=False):
+def missing_values_imputation(data, method=&#39;zero&#39;, id_column=None, inplace=False):
     &#39;&#39;&#39;Performs missing values imputation to a tensor corresponding to a single column.
 
     Parameters
@@ -1230,9 +1240,15 @@ def missing_values_imputation(data, method=&#39;zero&#39;, id_column=&#39;subjec
         missing values with zero. If the user chooses &#39;zigzag&#39;, it will do a 
         forward fill, a backward fill and then replace all remaining missing values
         with zero (this option is only available for dataframes, not tensors).
-    id_column : string, default &#39;subject_id&#39;
+        If the user selects &#39;interpolation&#39;, missing data will be interpolated based 
+        on known neighboring values and then all possible remaining ones are
+        replaced with zero (this option is only available for dataframes, not
+        tensors).
+    id_column : string, default None
         Name of the column which corresponds to the sequence or subject identifier
-        in the dataframe. Only used if the chosen imputation method is &#39;zigzag&#39;.
+        in the dataframe. If not specified, the imputation will not differenciate
+        different IDs nor sequences. Only used if the chosen imputation method is
+        &#39;zigzag&#39; or &#39;interpolation&#39;.
     inplace : bool, default False
         If set to True, the original tensor or dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -1243,46 +1259,68 @@ def missing_values_imputation(data, method=&#39;zero&#39;, id_column=&#39;subjec
     tensor : torch.Tensor
         Imputed PyTorch tensor.
     &#39;&#39;&#39;
+    if ((not isinstance(data, pd.DataFrame))
+         and (not isinstance(data, dd.DataFrame))
+         and (not isinstance(data, torch.Tensor))):
+        raise Exception(f&#39;ERROR: The input data must either be a PyTorch tensor, a Pandas dataframe or a Dask dataframe, not {type(data)}.&#39;)
     if not inplace:
         # Make a copy of the data to avoid potentially unwanted changes to the original data
-        if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
-            data_copy = data.copy()
-        elif isinstance(data, torch.tensor):
+        if isinstance(data, torch.Tensor):
             data_copy = data.clone()
         else:
-            raise Exception(f&#39;ERROR: The input data must either be a PyTorch tensor, a \
-                              Pandas dataframe or a Dask dataframe, not {type(data)}.&#39;)
+            data_copy = data.copy()
     else:
         # Use the original data object
         data_copy = data
-        if ((not isinstance(data, pd.DataFrame))
-            and (not isinstance(data, dd.DataFrame))
-            and (not isinstance(data, torch.tensor))):
-            raise Exception(f&#39;ERROR: The input data must either be a PyTorch tensor, a \
-                              Pandas dataframe or a Dask dataframe, not {type(data)}.&#39;)
     if method.lower() == &#39;zero&#39;:
         # Replace NaN&#39;s with zeros
         if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
             data_copy = data_copy.fillna(value=0)
-        elif isinstance(data, torch.tensor):
+        elif isinstance(data, torch.Tensor):
             data_copy = torch.where(data_copy != data_copy, torch.zeros_like(data_copy), data_copy)
     elif method.lower() == &#39;zigzag&#39;:
-        # Replace NaN&#39;s with zeros
         if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
-            # Forward fill
-            data_copy = (data_copy.set_index(&#39;subject_id&#39;, append=True).groupby(&#39;subject_id&#39;)
-                        .fillna(method=&#39;ffill&#39;).reset_index(level=1))
-            # Backward fill
-            data_copy = (data_copy.set_index(&#39;subject_id&#39;, append=True).groupby(&#39;subject_id&#39;)
-                        .fillna(method=&#39;bfill&#39;).reset_index(level=1))
-            # Replace remaining missing values with zero
-            data_copy = data_copy.fillna(value=0)
-        elif isinstance(data, torch.tensor):
-            raise Exception(&#39;ERROR: PyTorch tensors aren\&#39;t supported in the zigzag\
-                             imputation method. Please use a dataframe instead.&#39;)
+            if id_column is not None:
+                # Perform imputation on each ID separately
+                # Forward fill
+                data_copy = (data_copy.set_index(id_column, append=True).groupby(id_column)
+                            .fillna(method=&#39;ffill&#39;).reset_index(level=1))
+                # Backward fill
+                data_copy = (data_copy.set_index(id_column, append=True).groupby(id_column)
+                            .fillna(method=&#39;bfill&#39;).reset_index(level=1))
+                # Replace remaining missing values with zero
+                data_copy = data_copy.fillna(value=0)
+            else:
+                # Apply imputation on all the data as one single sequence
+                # Forward fill
+                data_copy = data_copy.fillna(method=&#39;ffill&#39;)
+                # Backward fill
+                data_copy = data_copy.fillna(method=&#39;bfill&#39;)
+                # Replace remaining missing values with zero
+                data_copy = data_copy.fillna(value=0)
+        elif isinstance(data, torch.Tensor):
+            raise Exception(&#39;ERROR: PyTorch tensors aren\&#39;t supported in the zigzag imputation method. Please use a dataframe instead.&#39;)
+    elif method.lower() == &#39;interpolation&#39;:
+        if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
+            # Linear interpolation, placing a linear scale between known points and doing simple
+            # backward and forward fill, when the missing value doesn&#39;t have known data points
+            # before or after, respectively
+            if id_column is not None:
+                # Perform imputation on each ID separately
+                data_copy = (data_copy.set_index(id_column, append=True).groupby(id_column)
+                                      .apply(lambda group: group.interpolate(limit_direction=&#39;both&#39;))
+                                      .reset_index(level=1))
+                # Replace remaining missing values with zero
+                data_copy = data_copy.fillna(value=0)
+            else:
+                # Apply imputation on all the data as one single sequence
+                data_copy = data_copy.interpolate(limit_direction=&#39;both&#39;)
+                # Replace remaining missing values with zero
+                data_copy = data_copy.fillna(value=0)
+        elif isinstance(data, torch.Tensor):
+            raise Exception(&#39;ERROR: PyTorch tensors aren\&#39;t supported in the interpolation imputation method. Please use a dataframe instead.&#39;)
     else:
-        raise Exception(f&#39;ERROR: Unsupported {method} imputation method. Currently \
-                          available options are `zero` and `zigzag`.&#39;)
+        raise Exception(f&#39;ERROR: Unsupported {method} imputation method. Currently available options are `zero` and `zigzag`.&#39;)
     # [TODO] Add other, more complex imputation methods, like a denoising autoencoder
     return data_copy
 
@@ -2577,7 +2615,7 @@ given to the input label orig_label.</dd>
 </details>
 </dd>
 <dt id="data_utils.data_processing.missing_values_imputation"><code class="name flex">
-<span>def <span class="ident">missing_values_imputation</span></span>(<span>data, method='zero', id_column='subject_id', inplace=False)</span>
+<span>def <span class="ident">missing_values_imputation</span></span>(<span>data, method='zero', id_column=None, inplace=False)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Performs missing values imputation to a tensor corresponding to a single column.</p>
@@ -2590,10 +2628,16 @@ be imputed.</dd>
 <dd>Imputation method to be used. If user inputs 'zero', it will just fill all
 missing values with zero. If the user chooses 'zigzag', it will do a
 forward fill, a backward fill and then replace all remaining missing values
-with zero (this option is only available for dataframes, not tensors).</dd>
-<dt><strong><code>id_column</code></strong> :&ensp;<code>string</code>, default <code>'subject_id'</code></dt>
+with zero (this option is only available for dataframes, not tensors).
+If the user selects 'interpolation', missing data will be interpolated based
+on known neighboring values and then all possible remaining ones are
+replaced with zero (this option is only available for dataframes, not
+tensors).</dd>
+<dt><strong><code>id_column</code></strong> :&ensp;<code>string</code>, default <code>None</code></dt>
 <dd>Name of the column which corresponds to the sequence or subject identifier
-in the dataframe. Only used if the chosen imputation method is 'zigzag'.</dd>
+in the dataframe. If not specified, the imputation will not differenciate
+different IDs nor sequences. Only used if the chosen imputation method is
+'zigzag' or 'interpolation'.</dd>
 <dt><strong><code>inplace</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
 <dd>If set to True, the original tensor or dataframe will be used and modified
 directly. Otherwise, a copy will be created and returned, without
@@ -2608,7 +2652,7 @@ changing the original tensor or dataframe.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def missing_values_imputation(data, method=&#39;zero&#39;, id_column=&#39;subject_id&#39;, inplace=False):
+<pre><code class="python">def missing_values_imputation(data, method=&#39;zero&#39;, id_column=None, inplace=False):
     &#39;&#39;&#39;Performs missing values imputation to a tensor corresponding to a single column.
 
     Parameters
@@ -2621,9 +2665,15 @@ changing the original tensor or dataframe.</dd>
         missing values with zero. If the user chooses &#39;zigzag&#39;, it will do a 
         forward fill, a backward fill and then replace all remaining missing values
         with zero (this option is only available for dataframes, not tensors).
-    id_column : string, default &#39;subject_id&#39;
+        If the user selects &#39;interpolation&#39;, missing data will be interpolated based 
+        on known neighboring values and then all possible remaining ones are
+        replaced with zero (this option is only available for dataframes, not
+        tensors).
+    id_column : string, default None
         Name of the column which corresponds to the sequence or subject identifier
-        in the dataframe. Only used if the chosen imputation method is &#39;zigzag&#39;.
+        in the dataframe. If not specified, the imputation will not differenciate
+        different IDs nor sequences. Only used if the chosen imputation method is
+        &#39;zigzag&#39; or &#39;interpolation&#39;.
     inplace : bool, default False
         If set to True, the original tensor or dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -2634,46 +2684,68 @@ changing the original tensor or dataframe.</dd>
     tensor : torch.Tensor
         Imputed PyTorch tensor.
     &#39;&#39;&#39;
+    if ((not isinstance(data, pd.DataFrame))
+         and (not isinstance(data, dd.DataFrame))
+         and (not isinstance(data, torch.Tensor))):
+        raise Exception(f&#39;ERROR: The input data must either be a PyTorch tensor, a Pandas dataframe or a Dask dataframe, not {type(data)}.&#39;)
     if not inplace:
         # Make a copy of the data to avoid potentially unwanted changes to the original data
-        if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
-            data_copy = data.copy()
-        elif isinstance(data, torch.tensor):
+        if isinstance(data, torch.Tensor):
             data_copy = data.clone()
         else:
-            raise Exception(f&#39;ERROR: The input data must either be a PyTorch tensor, a \
-                              Pandas dataframe or a Dask dataframe, not {type(data)}.&#39;)
+            data_copy = data.copy()
     else:
         # Use the original data object
         data_copy = data
-        if ((not isinstance(data, pd.DataFrame))
-            and (not isinstance(data, dd.DataFrame))
-            and (not isinstance(data, torch.tensor))):
-            raise Exception(f&#39;ERROR: The input data must either be a PyTorch tensor, a \
-                              Pandas dataframe or a Dask dataframe, not {type(data)}.&#39;)
     if method.lower() == &#39;zero&#39;:
         # Replace NaN&#39;s with zeros
         if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
             data_copy = data_copy.fillna(value=0)
-        elif isinstance(data, torch.tensor):
+        elif isinstance(data, torch.Tensor):
             data_copy = torch.where(data_copy != data_copy, torch.zeros_like(data_copy), data_copy)
     elif method.lower() == &#39;zigzag&#39;:
-        # Replace NaN&#39;s with zeros
         if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
-            # Forward fill
-            data_copy = (data_copy.set_index(&#39;subject_id&#39;, append=True).groupby(&#39;subject_id&#39;)
-                        .fillna(method=&#39;ffill&#39;).reset_index(level=1))
-            # Backward fill
-            data_copy = (data_copy.set_index(&#39;subject_id&#39;, append=True).groupby(&#39;subject_id&#39;)
-                        .fillna(method=&#39;bfill&#39;).reset_index(level=1))
-            # Replace remaining missing values with zero
-            data_copy = data_copy.fillna(value=0)
-        elif isinstance(data, torch.tensor):
-            raise Exception(&#39;ERROR: PyTorch tensors aren\&#39;t supported in the zigzag\
-                             imputation method. Please use a dataframe instead.&#39;)
+            if id_column is not None:
+                # Perform imputation on each ID separately
+                # Forward fill
+                data_copy = (data_copy.set_index(id_column, append=True).groupby(id_column)
+                            .fillna(method=&#39;ffill&#39;).reset_index(level=1))
+                # Backward fill
+                data_copy = (data_copy.set_index(id_column, append=True).groupby(id_column)
+                            .fillna(method=&#39;bfill&#39;).reset_index(level=1))
+                # Replace remaining missing values with zero
+                data_copy = data_copy.fillna(value=0)
+            else:
+                # Apply imputation on all the data as one single sequence
+                # Forward fill
+                data_copy = data_copy.fillna(method=&#39;ffill&#39;)
+                # Backward fill
+                data_copy = data_copy.fillna(method=&#39;bfill&#39;)
+                # Replace remaining missing values with zero
+                data_copy = data_copy.fillna(value=0)
+        elif isinstance(data, torch.Tensor):
+            raise Exception(&#39;ERROR: PyTorch tensors aren\&#39;t supported in the zigzag imputation method. Please use a dataframe instead.&#39;)
+    elif method.lower() == &#39;interpolation&#39;:
+        if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
+            # Linear interpolation, placing a linear scale between known points and doing simple
+            # backward and forward fill, when the missing value doesn&#39;t have known data points
+            # before or after, respectively
+            if id_column is not None:
+                # Perform imputation on each ID separately
+                data_copy = (data_copy.set_index(id_column, append=True).groupby(id_column)
+                                      .apply(lambda group: group.interpolate(limit_direction=&#39;both&#39;))
+                                      .reset_index(level=1))
+                # Replace remaining missing values with zero
+                data_copy = data_copy.fillna(value=0)
+            else:
+                # Apply imputation on all the data as one single sequence
+                data_copy = data_copy.interpolate(limit_direction=&#39;both&#39;)
+                # Replace remaining missing values with zero
+                data_copy = data_copy.fillna(value=0)
+        elif isinstance(data, torch.Tensor):
+            raise Exception(&#39;ERROR: PyTorch tensors aren\&#39;t supported in the interpolation imputation method. Please use a dataframe instead.&#39;)
     else:
-        raise Exception(f&#39;ERROR: Unsupported {method} imputation method. Currently \
-                          available options are `zero` and `zigzag`.&#39;)
+        raise Exception(f&#39;ERROR: Unsupported {method} imputation method. Currently available options are `zero` and `zigzag`.&#39;)
     # [TODO] Add other, more complex imputation methods, like a denoising autoencoder
     return data_copy</code></pre>
 </details>
@@ -2696,7 +2768,7 @@ on the dataframe.</dd>
 <dd>PyTorch tensor corresponding to the data which will be normalized
 by the specified normalization method. If the data tensor isn't
 specified, the normalization is applied directly on the dataframe.</dd>
-<dt><strong><code>id_columns</code></strong> :&ensp;<code>list</code> of <code>strings</code>, default [<code>'subject_id'</code>, <code>'ts'</code>]</dt>
+<dt><strong><code>id_columns</code></strong> :&ensp;<code>string</code> or <code>list</code> of <code>strings</code>, default [<code>'subject_id'</code>, <code>'ts'</code>]</dt>
 <dd>List of columns names which represent identifier columns. These are not
 supposed to be normalized.</dd>
 <dt><strong><code>normalization_method</code></strong> :&ensp;<code>string</code>, default <code>'z</code>-<code>score'</code></dt>
@@ -2707,19 +2779,19 @@ variance, much like a standard normal distribution; it can be a
 min-max normalization, where the data is subtracted by its minimum
 value and then divided by the difference between the minimum and the
 maximum value, getting to a fixed range from 0 to 1.</dd>
-<dt><strong><code>columns_to_normalize</code></strong> :&ensp;<code>list</code> of <code>strings</code>, default <code>None</code></dt>
+<dt><strong><code>columns_to_normalize</code></strong> :&ensp;<code>string</code> or <code>list</code> of <code>strings</code>, default <code>None</code></dt>
 <dd>If specified, the columns provided in the list are the only ones that
 will be normalized. If set to False, no column will normalized directly,
 although columns can still be normalized in groups of categories, if
 specified in the <code>columns_to_normalize_cat</code> parameter. Otherwise, all
 continuous columns will be normalized.</dd>
-<dt><strong><code>columns_to_normalize_cat</code></strong> :&ensp;<code>list</code> of <code>tuples</code> of <code>strings</code>, default <code>None</code></dt>
+<dt><strong><code>columns_to_normalize_cat</code></strong> :&ensp;<code>string</code> or <code>list</code> of <code>tuples</code> of <code>strings</code>, default <code>None</code></dt>
 <dd>If specified, the columns provided in the list are going to be
 normalized on their categories. That is, the values (column 2 in the
 tuple) are normalized with stats of their respective categories (column
 1 of the tuple). Otherwise, no column will be normalized on their
 categories.</dd>
-<dt><strong><code>embed_columns</code></strong> :&ensp;<code>list</code> of <code>strings</code>, default <code>None</code></dt>
+<dt><strong><code>embed_columns</code></strong> :&ensp;<code>string</code> or <code>list</code> of <code>strings</code>, default <code>None</code></dt>
 <dd>If specified, the columns in the list, which represent features that
 will be embedded, aren't going to be normalized.</dd>
 <dt><strong><code>see_progress</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
@@ -2758,7 +2830,7 @@ changing the original dataframe.</dd>
         PyTorch tensor corresponding to the data which will be normalized
         by the specified normalization method. If the data tensor isn&#39;t
         specified, the normalization is applied directly on the dataframe.
-    id_columns : list of strings, default [&#39;subject_id&#39;, &#39;ts&#39;]
+    id_columns : string or list of strings, default [&#39;subject_id&#39;, &#39;ts&#39;]
         List of columns names which represent identifier columns. These are not
         supposed to be normalized.
     normalization_method : string, default &#39;z-score&#39;
@@ -2769,19 +2841,19 @@ changing the original dataframe.</dd>
         min-max normalization, where the data is subtracted by its minimum
         value and then divided by the difference between the minimum and the
         maximum value, getting to a fixed range from 0 to 1.
-    columns_to_normalize : list of strings, default None
+    columns_to_normalize : string or list of strings, default None
         If specified, the columns provided in the list are the only ones that
         will be normalized. If set to False, no column will normalized directly,
         although columns can still be normalized in groups of categories, if
         specified in the `columns_to_normalize_cat` parameter. Otherwise, all
         continuous columns will be normalized.
-    columns_to_normalize_cat : list of tuples of strings, default None
+    columns_to_normalize_cat : string or list of tuples of strings, default None
         If specified, the columns provided in the list are going to be
         normalized on their categories. That is, the values (column 2 in the
         tuple) are normalized with stats of their respective categories (column
         1 of the tuple). Otherwise, no column will be normalized on their
         categories.
-    embed_columns : list of strings, default None
+    embed_columns : string or list of strings, default None
         If specified, the columns in the list, which represent features that
         will be embedded, aren&#39;t going to be normalized.
     see_progress : bool, default True
@@ -2799,8 +2871,6 @@ changing the original dataframe.</dd>
     &#39;&#39;&#39;
     # Check if specific columns have been specified for normalization
     if columns_to_normalize is None:
-        # [TODO] This search for columns part is very slow (in some cases slower than the 
-        # actual normalization process); try to make it more efficient
         # List of all columns in the dataframe
         feature_columns = list(df.columns)
         # Normalize all non identifier continuous columns, ignore one hot encoded ones
@@ -2810,17 +2880,15 @@ changing the original dataframe.</dd>
             if isinstance(id_columns, str):
                 id_columns = [id_columns]
             if not isinstance(id_columns, list):
-                raise Exception(f&#39;&#39;&#39;ERROR: The `id_columns` argument must be specified as either a single 
-                                    string or a list of strings. Received input with type {type(id_columns)}.&#39;&#39;&#39;)
+                raise Exception(f&#39;ERROR: The `id_columns` argument must be specified as either a single string or a list of strings. Received input with type {type(id_columns)}.&#39;)
             # List of all columns in the dataframe, except the ID columns
             [columns_to_normalize.remove(col) for col in id_columns]
         if embed_columns is not None:
-            # Make sure that the id_columns is a list
+            # Make sure that the embed_columns is a list
             if isinstance(embed_columns, str):
                 embed_columns = [embed_columns]
             if not isinstance(embed_columns, list):
-                raise Exception(f&#39;&#39;&#39;ERROR: The `embed_columns` argument must be specified as either a single
-                                    string or a list of strings. Received input with type {type(embed_columns)}.&#39;&#39;&#39;)
+                raise Exception(f&#39;ERROR: The `embed_columns` argument must be specified as either a single string or a list of strings. Received input with type {type(embed_columns)}.&#39;)
             # Prevent all features that will be embedded from being normalized
             [columns_to_normalize.remove(col) for col in embed_columns]
         # List of binary or one hot encoded columns
@@ -2835,9 +2903,14 @@ changing the original dataframe.</dd>
             print(&#39;No columns to normalize, returning the original dataframe.&#39;)
             return df
 
+    # Make sure that the columns_to_normalize is a list
+    if isinstance(columns_to_normalize, str):
+        columns_to_normalize = [columns_to_normalize]
+    if not isinstance(columns_to_normalize, list):
+                raise Exception(f&#39;ERROR: The `columns_to_normalize` argument must be specified as either a single string or a list of strings. Received input with type {type(columns_to_normalize)}.&#39;)
+
     if type(normalization_method) is not str:
-        raise ValueError(&#39;Argument normalization_method should be a string. Available options \
-                         are &#34;z-score&#34; and &#34;min-max&#34;.&#39;)
+        raise ValueError(&#39;Argument normalization_method should be a string. Available options are &#34;z-score&#34; and &#34;min-max&#34;.&#39;)
 
     if normalization_method.lower() == &#39;z-score&#39;:
         if columns_to_normalize is not False:
@@ -2862,9 +2935,14 @@ changing the original dataframe.</dd>
             # Normalize the right columns
             if columns_to_normalize is not False:
                 print(f&#39;z-score normalizing columns {columns_to_normalize}...&#39;)
-                data = (data - means) / stds
+                data[columns_to_normalize] = (data[columns_to_normalize] - means) / stds
 
             if columns_to_normalize_cat is not None:
+                # Make sure that the columns_to_normalize_cat is a list
+                if isinstance(columns_to_normalize_cat, str):
+                    columns_to_normalize_cat = [columns_to_normalize_cat]
+                if not isinstance(columns_to_normalize_cat, list):
+                    raise Exception(f&#39;ERROR: The `columns_to_normalize_cat` argument must be specified as either a single string or a list of strings. Received input with type {type(columns_to_normalize_cat)}.&#39;)
                 print(f&#39;z-score normalizing columns {columns_to_normalize_cat} by their associated categories...&#39;)
                 for col_tuple in utils.iterations_loop(columns_to_normalize_cat, see_progress=see_progress):
                     # Calculate the means and standard deviations
@@ -2929,7 +3007,7 @@ changing the original dataframe.</dd>
             if columns_to_normalize is not False:
                 # Normalize the right columns
                 print(f&#39;min-max normalizing columns {columns_to_normalize}...&#39;)
-                data = (data - mins) / (maxs - mins)
+                data[columns_to_normalize] = (data[columns_to_normalize] - mins) / (maxs - mins)
 
             if columns_to_normalize_cat is not None:
                 print(f&#39;min-max normalizing columns {columns_to_normalize_cat} by their associated categories...&#39;)
@@ -3273,7 +3351,7 @@ for dask dataframes, as they don't support any elegant, one-line method
 for this.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>df</code></strong> :&ensp;<code>dask.DataFrame</code></dt>
+<dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
 <dd>Dataframe whose index column will be renamed.</dd>
 <dt><strong><code>name</code></strong> :&ensp;<code>string</code></dt>
 <dd>The new name for the index column.</dd>
@@ -3294,7 +3372,7 @@ for this.</p>
 
     Parameters
     ----------
-    df : dask.DataFrame
+    df : pandas.DataFrame or dask.DataFrame
         Dataframe whose index column will be renamed.
     name : string
         The new name for the index column.
@@ -3304,12 +3382,17 @@ for this.</p>
     df : dask.DataFrame
         Dataframe with a renamed index column.
     &#39;&#39;&#39;
-    feat_names = set(df.columns)
-    df = df.reset_index()
-    orig_idx_name = set(df.columns) - feat_names
-    orig_idx_name = orig_idx_name.pop()
-    df = df.rename(columns={orig_idx_name: name})
-    df = df.set_index(name)
+    if isinstance(df, dd.DataFrame):
+        feat_names = set(df.columns)
+        df = df.reset_index()
+        orig_idx_name = set(df.columns) - feat_names
+        orig_idx_name = orig_idx_name.pop()
+        df = df.rename(columns={orig_idx_name: name})
+        df = df.set_index(name)
+    elif isinstance(df, pd.DataFrame):
+        df.index.names = [name]
+    else:
+        raise Exception(f&#39;ERROR: Input &#34;df&#34; should either be a pandas dataframe or a dask dataframe, not type {type(df)}.&#39;)
     return df</code></pre>
 </details>
 </dd>
@@ -3934,8 +4017,7 @@ changing the original tensor or dataframe.</dd>
         data_df = (dd.from_pandas(data_df.compute().transpose(), 
                                   npartitions=data_df.npartitions))
     else:
-        raise Exception(f&#39;ERROR: The input data must either be a Pandas dataframe \
-                          or a Dask dataframe, not {type(df)}.&#39;)
+        raise Exception(f&#39;ERROR: The input data must either be a Pandas dataframe or a Dask dataframe, not {type(df)}.&#39;)
     return data_df</code></pre>
 </details>
 </dd>

@@ -231,10 +231,7 @@ def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
     if not (comet_ml_api_key is not None
             and comet_ml_project_name is not None
             and comet_ml_workspace is not None):
-        raise Exception(&#39;ERROR: All necessary Comet.ml parameters \
-                         (comet_ml_api_key, comet_ml_project_name, \
-                         comet_ml_workspace) must be correctly specified. \
-                         Otherwise, the parameter optimization won\&#39;t work.&#39;)
+        raise Exception(&#39;ERROR: All necessary Comet.ml parameters (comet_ml_api_key, comet_ml_project_name, comet_ml_workspace) must be correctly specified. Otherwise, the parameter optimization won\&#39;t work.&#39;)
     # Load the hyperparameter optimization configuration file into a dictionary
     config_file = open(f&#39;{config_path}config_name&#39;, &#39;r&#39;)
     config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
@@ -642,10 +639,7 @@ loss.</dd>
     if not (comet_ml_api_key is not None
             and comet_ml_project_name is not None
             and comet_ml_workspace is not None):
-        raise Exception(&#39;ERROR: All necessary Comet.ml parameters \
-                         (comet_ml_api_key, comet_ml_project_name, \
-                         comet_ml_workspace) must be correctly specified. \
-                         Otherwise, the parameter optimization won\&#39;t work.&#39;)
+        raise Exception(&#39;ERROR: All necessary Comet.ml parameters (comet_ml_api_key, comet_ml_project_name, comet_ml_workspace) must be correctly specified. Otherwise, the parameter optimization won\&#39;t work.&#39;)
     # Load the hyperparameter optimization configuration file into a dictionary
     config_file = open(f&#39;{config_path}config_name&#39;, &#39;r&#39;)
     config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
