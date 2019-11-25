@@ -649,8 +649,9 @@ def run_embed_bag(data, embedding_layer, enum_list, offset, inplace=False):
 
 
 def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
-                           padding_value=999999, nan_value=0, inplace=False):
-    '''Run the complete pipeline that gets from a data tensor with categorical
+                           n_id_cols=2, padding_value=999999, nan_value=0,
+                           inplace=False):
+    '''Run the complete pipeline that gets us from a data tensor with categorical
     features, i.e. columns with lists of encodings as values, into a data tensor
     with embedding columns.
 
@@ -669,6 +670,9 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
         Indicates if the method is being executed inside a machine learning model's
         forward method. If so, it will account for a previous removal of sample
         identidying columns.
+    n_id_cols : int, default 2
+        Number of ID columns. 1 represents simple tabular data, while 2 represents
+        multivariate sequential data (e.g. EHR time series data).
     padding_value : numeric, default 999999
         Value to use in the padding, to fill the sequences.
     nan_value : int, default 0
@@ -694,7 +698,7 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
     if isinstance(embedding_layer, torch.nn.EmbeddingBag) and isinstance(features, int):
         # Get the list of all the encodings and their offsets
         if model_forward:
-            enum_list, offset_list = prepare_embed_bag(data_tensor, features-2,
+            enum_list, offset_list = prepare_embed_bag(data_tensor, features-n_id_cols,
                                                        padding_value=padding_value, nan_value=nan_value)
         else:
             enum_list, offset_list = prepare_embed_bag(data_tensor, features,
@@ -705,22 +709,22 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
         for i in range(len(features)):
             # Get the list of all the encodings and their offsets
             if model_forward:
-                enum_list, offset_list = prepare_embed_bag(data_tensor, features[i]-2,
-                                                       padding_value=padding_value, nan_value=nan_value)
+                enum_list, offset_list = prepare_embed_bag(data_tensor, features[i]-n_id_cols,
+                                                           padding_value=padding_value, nan_value=nan_value)
             else:
                 enum_list, offset_list = prepare_embed_bag(data_tensor, features[i],
-                                                       padding_value=padding_value, nan_value=nan_value)
+                                                           padding_value=padding_value, nan_value=nan_value)
             # Run the embedding bag and add the embedding columns to the tensor
             data_tensor = run_embed_bag(data_tensor, embedding_layer[f'embed_{i}'], enum_list, offset_list, inplace)
     elif isinstance(embedding_layer, torch.nn.ModuleDict) and isinstance(features, list):
         for feature in features:
             # Get the list of all the encodings and their offsets
             if model_forward:
-                enum_list, offset_list = prepare_embed_bag(data_tensor, feature-2,
-                                                       padding_value=padding_value, nan_value=nan_value)
+                enum_list, offset_list = prepare_embed_bag(data_tensor, feature-n_id_cols,
+                                                           padding_value=padding_value, nan_value=nan_value)
             else:
                 enum_list, offset_list = prepare_embed_bag(data_tensor, feature,
-                                                       padding_value=padding_value, nan_value=nan_value)
+                                                           padding_value=padding_value, nan_value=nan_value)
             # Run the embedding bag and add the embedding columns to the tensor
             data_tensor = run_embed_bag(data_tensor, embedding_layer[f'embed_{feature}'], enum_list, offset_list, inplace)
     else:

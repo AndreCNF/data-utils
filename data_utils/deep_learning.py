@@ -158,6 +158,80 @@ def ts_tensor_to_np_matrix(data, feat_num=None, padding_value=999999):
     return data_matrix
 
 
+# [TODO] Create methods that contain the essential code inside a training iteration,
+# for each model type (e.g. RNN, MLP, etc);
+# Take metrics values from the kwargs and update them, if they are inputed.
+def inference_iter_rnn(model, features, labels, cols_to_remove=[0, 1],
+                       is_train=False, optimizer=None):
+    '''Run a single inference or training iteration on a Recurrent Neural Network (RNN).
+
+    Parameters
+    ----------
+    model : torch.nn.Module
+        Neural network model which is trained on the data to perform a
+        classification task.
+    features : torch.Tensor
+        Data tensor that contains the features on which to run the model.
+    labels : torch.Tensor
+        Tensor that contains the labels for each row.
+    cols_to_remove : list of ints, default [0, 1]
+        List of indeces of columns to remove from the features before feeding to
+        the model. This tend to be the identifier columns, such as subject_id
+        and ts (timestamp).
+    is_train : bool, default True
+        Indicates if the method is being called in a training loop. If
+        set to True, the network's weights will be updated by the
+        given optimizer.
+    optimizer : torch.optim.Optimizer
+        Optimization algorthim, responsible for updating the model's
+        weights in order to minimize (or maximize) the intended goal.
+
+    Returns
+    -------
+    correct_pred : torch.Tensor
+        Binary data tensor with the prediction results, indicating 1
+        if the prediction is correct and 0 otherwise.
+    unpadded_scores : torch.Tensor
+        Data tensor containing the output scores resulting from the
+        inference. Without paddings.
+    unpadded_labels : torch.Tensor
+        Tensor containing the labels for each row. Without paddings.
+    loss : torch.nn.modules.loss
+        Obtained loss value. Although the optimization step can be
+        done inside this method, the loss value could be useful as
+        a metric.
+    '''
+    # Make the data have type float instead of double, as it would cause problems
+    features, labels = features.float(), labels.float()
+    # Sort the data by sequence length
+    features, labels, x_lengths = padding.sort_by_seq_len(features, seq_len_dict, labels)
+    # Remove unwanted columns from the data
+    features_idx = list(range(features.shape[2]))
+    [features_idx.remove(column) for column in cols_to_remove]
+    features = features[:, :, features_idx]
+    # Feedforward the data through the model
+    scores = model.forward(features, x_lengths)
+    # Adjust the labels so that it gets the exact same shape as the predictions
+    # (i.e. sequence length = max sequence length of the current batch, not the max of all the data)
+    labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
+    labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
+    # Calculate the cross entropy loss
+    loss = model.loss(scores, labels, x_lengths)
+    if is_train is True:
+        # Backpropagate the loss and update the model's weights
+        loss.backward()
+        optimizer.step()
+    # Create a mask by filtering out all labels that are not a padding value
+    mask = (labels <= 1).view_as(scores)
+    # Completely remove the padded values from the labels and the scores using the mask
+    unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask)
+    unpadded_scores = torch.masked_select(scores, mask)
+    # Get the predictions and find the samples where they are correct
+    pred = torch.round(unpadded_scores)
+    correct_pred = pred == unpadded_labels
+    return correct_pred, unpadded_scores, unpadded_labels, loss
+
+
 def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=['loss', 'accuracy', 'AUC'],
                     padding_value=999999, output_rounded=False, experiment=None, set_name='test',
                     seq_final_outputs=False, cols_to_remove=[0, 1]):
@@ -311,28 +385,13 @@ def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=['l
     for features, labels in dataloader:
         # Turn off gradients, saves memory and computations
         with torch.no_grad():
-            features, labels = features.float(), labels.float()             # Make the data have type float instead of double, as it would cause problems
-            features, labels, x_lengths = padding.sort_by_seq_len(features, seq_len_dict, labels) # Sort the data by sequence length
-
-            # Remove unwanted columns from the data
-            features_idx = list(range(features.shape[2]))
-            [features_idx.remove(column) for column in cols_to_remove]
-            features = features[:, :, features_idx]
-            scores = model.forward(features, x_lengths)                     # Feedforward the data through the model
-
-            # Adjust the labels so that it gets the exact same shape as the predictions
-            # (i.e. sequence length = max sequence length of the current batch, not the max of all the data)
-            labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
-            labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
-
-            mask = (labels <= 1).view_as(scores)                            # Create a mask by filtering out all labels that are not a padding value
-            unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask) # Completely remove the padded values from the labels using the mask
-            unpadded_scores = torch.masked_select(scores, mask)             # Completely remove the padded values from the scores using the mask
-            pred = torch.round(unpadded_scores)                             # Get the predictions
-
+            # Do inference on the data
+            correct_pred, unpadded_scores,
+            unpadded_labels, loss = inference_iter_rnn(model, features, labels,
+                                                       cols_to_remove, is_train=True)
             if output_rounded is True:
                 # Get the predicted classes
-                output = torch.cat([output, pred.int()])
+                output = torch.cat([output, torch.round(unpadded_scores).int()])
             else:
                 # Get the model scores (class probabilities)
                 output = torch.cat([output.float(), unpadded_scores])
@@ -407,12 +466,13 @@ def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=['l
     return output, metrics_vals
 
 
-def train(model, train_dataloader, val_dataloader, seq_len_dict, test_dataloader=None,
-          batch_size=32, n_epochs=50, lr=0.001, model_path='models/',
-          ModelClass=None, padding_value=999999, do_test=True, log_comet_ml=False,
+def train(model, train_dataloader, val_dataloader, cols_to_remove=[0, 1], 
+          seq_len_dict, test_dataloader=None, batch_size=32, n_epochs=50, 
+          lr=0.001, model_path='models/', ModelClass=None, 
+          padding_value=999999, do_test=True, log_comet_ml=False,
           comet_ml_api_key=None, comet_ml_project_name=None,
-          comet_ml_workspace=None, comet_ml_save_model=False, experiment=None,
-          features_list=None, get_val_loss_min=False):
+          comet_ml_workspace=None, comet_ml_save_model=False, 
+          experiment=None, features_list=None, get_val_loss_min=False):
     '''Trains a given model on the provided data.
 
     Parameters
@@ -429,6 +489,10 @@ def train(model, train_dataloader, val_dataloader, seq_len_dict, test_dataloader
         Data loader which will be used to get data batches whe evaluating
         the model's performance on a test set, after finishing the
         training process.
+    cols_to_remove : list of ints, default [0, 1]
+        List of indeces of columns to remove from the features before feeding to
+        the model. This tend to be the identifier columns, such as subject_id
+        and ts (timestamp
     seq_len_dict : dict
         Dictionary containing the sequence lengths for each index of the
         original dataframe. This allows to ignore the padding done in
@@ -527,31 +591,20 @@ def train(model, train_dataloader, val_dataloader, seq_len_dict, test_dataloader
         try:
             # Loop through the training data
             for features, labels in train_dataloader:
-                model.train()                                                   # Activate dropout to train the model
-                optimizer.zero_grad()                                           # Clear the gradients of all optimized variables
+                # Activate dropout to train the model
+                model.train()
+                # Clear the gradients of all optimized variables
+                optimizer.zero_grad()
 
                 if train_on_gpu is True:
-                    features, labels = features.cuda(), labels.cuda()           # Move data to GPU
+                    # Move data to GPU
+                    features, labels = features.cuda(), labels.cuda()
 
-                features, labels = features.float(), labels.float()             # Make the data have type float instead of double, as it would cause problems
-                features, labels, x_lengths = padding.sort_by_seq_len(features, seq_len_dict, labels) # Sort the data by sequence length
-                scores = model.forward(features[:, :, 2:], x_lengths)           # Feedforward the data through the model
-                                                                                # (the 2 is there to avoid using the identifier features in the predictions)
-
-                # Adjust the labels so that it gets the exact same shape as the predictions
-                # (i.e. sequence length = max sequence length of the current batch, not the max of all the data)
-                labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
-                labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
-
-                loss = model.loss(scores, labels, x_lengths)                    # Calculate the cross entropy loss
-                loss.backward()                                                 # Backpropagate the loss
-                optimizer.step()                                                # Update the model's weights
+                # Do inference on the data
+                correct_pred, unpadded_scores,
+                unpadded_labels, loss = inference_iter_rnn(model, features, labels,
+                                                           cols_to_remove, is_train=True)
                 train_loss += loss                                              # Add the training loss of the current batch
-                mask = (labels <= 1).view_as(scores)                            # Create a mask by filtering out all labels that are not a padding value
-                unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask) # Completely remove the padded values from the labels using the mask
-                unpadded_scores = torch.masked_select(scores, mask)             # Completely remove the padded values from the scores using the mask
-                pred = torch.round(unpadded_scores)                             # Get the predictions
-                correct_pred = pred == unpadded_labels                          # Get the correct predictions
                 train_acc += torch.mean(correct_pred.type(torch.FloatTensor))   # Add the training accuracy of the current batch, ignoring all padding values
                 train_auc += roc_auc_score(unpadded_labels.numpy(), unpadded_scores.detach().numpy()) # Add the training ROC AUC of the current batch
                 step += 1                                                       # Count one more iteration step
@@ -566,22 +619,11 @@ def train(model, train_dataloader, val_dataloader, seq_len_dict, test_dataloader
                 for features, labels in val_dataloader:
                     # Turn off gradients for validation, saves memory and computations
                     with torch.no_grad():
-                        features, labels = features.float(), labels.float()             # Make the data have type float instead of double, as it would cause problems
-                        features, labels, x_lengths = padding.sort_by_seq_len(features, seq_len_dict, labels) # Sort the data by sequence length
-                        scores = model.forward(features[:, :, 2:], x_lengths)           # Feedforward the data through the model
-                                                                                        # (the 2 is there to avoid using the identifier features in the predictions)
-
-                        # Adjust the labels so that it gets the exact same shape as the predictions
-                        # (i.e. sequence length = max sequence length of the current batch, not the max of all the data)
-                        labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
-                        labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
-
-                        val_loss += model.loss(scores, labels, x_lengths)               # Calculate and add the validation loss of the current batch
-                        mask = (labels <= 1).view_as(scores)                            # Create a mask by filtering out all labels that are not a padding value
-                        unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask) # Completely remove the padded values from the labels using the mask
-                        unpadded_scores = torch.masked_select(scores, mask)             # Completely remove the padded values from the scores using the mask
-                        pred = torch.round(unpadded_scores)                             # Get the predictions
-                        correct_pred = pred == unpadded_labels                          # Get the correct predictions
+                        # Do inference on the data
+                        correct_pred, unpadded_scores,
+                        unpadded_labels, loss = inference_iter_rnn(model, features, labels,
+                                                                   cols_to_remove, is_train=True)
+                        val_loss += loss                                                # Add the validation loss of the current batch
                         val_acc += torch.mean(correct_pred.type(torch.FloatTensor))     # Add the validation accuracy of the current batch, ignoring all padding values
                         val_auc += roc_auc_score(unpadded_labels.numpy(), unpadded_scores.detach().numpy()) # Add the validation ROC AUC of the current batch
 
