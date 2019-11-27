@@ -421,23 +421,23 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
         # Add to the list of dataframes that will be merged
         df_list.append(data_to_add)
     remaining_feat = list(set(data_df.columns) - set(cat_feat) - set(id_columns))
-    print('Averaging continuous features...')
+    print('Joining continuous features...')
     for feature in utils.iterations_loop(remaining_feat):
         if data_df[feature].dtype == 'object':
             raise Exception(f'ERROR: There is at least one non-numeric feature in the dataframe. This method requires all columns to be numeric, either integer or floats. In case there are categorical features still in string format, consider using the `string_encod_to_numeric` method first. The column {feature} is of type {df[feature].dtype}.')
-        # Join remaining features through their average, min or max value
-        # (just to be sure that there aren't missing or different values)
-        if cont_join_method.lower() == 'mean':
-            data_to_add = data_df.groupby(id_columns)[feature].mean().to_frame().reset_index()
-        elif cont_join_method.lower() == 'min':
-            data_to_add = data_df.groupby(id_columns)[feature].min().to_frame().reset_index()
-        elif cont_join_method.lower() == 'max':
-            data_to_add = data_df.groupby(id_columns)[feature].max().to_frame().reset_index()
-        if has_timestamp is True:
-            # Sort by time `ts` and set it as index
-            data_to_add = data_to_add.set_index('ts')
-        # Add to the list of dataframes that will be merged
-        df_list.append(data_to_add)
+    # Join remaining features through their average, min or max value
+    # (just to be sure that there aren't missing or different values)
+    if cont_join_method.lower() == 'mean':
+        data_to_add = data_df.groupby(id_columns).mean().reset_index()
+    elif cont_join_method.lower() == 'min':
+        data_to_add = data_df.groupby(id_columns).min().reset_index()
+    elif cont_join_method.lower() == 'max':
+        data_to_add = data_df.groupby(id_columns).max().reset_index()
+    if has_timestamp is True:
+        # Sort by time `ts` and set it as index
+        data_to_add = data_to_add.set_index('ts')
+    # Add to the list of dataframes that will be merged
+    df_list.append(data_to_add)
     # Merge all dataframes
     print('Merging features\' dataframes...')
     if isinstance(df, dd.DataFrame):

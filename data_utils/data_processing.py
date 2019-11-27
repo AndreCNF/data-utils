@@ -686,7 +686,7 @@ def apply_minmax_denorm(value, df=None, min=None, max=None, categories_mins=None
 
 def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                    normalization_method='z-score', columns_to_normalize=None,
-                   columns_to_normalize_cat=None, embed_columns=None,
+                   columns_to_normalize_categ=None, categ_columns=None,
                    see_progress=True, inplace=False):
     '''Performs data normalization to a continuous valued tensor or dataframe,
        changing the scale of the data.
@@ -718,17 +718,18 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
         If specified, the columns provided in the list are the only ones that
         will be normalized. If set to False, no column will normalized directly,
         although columns can still be normalized in groups of categories, if
-        specified in the `columns_to_normalize_cat` parameter. Otherwise, all
+        specified in the `columns_to_normalize_categ` parameter. Otherwise, all
         continuous columns will be normalized.
-    columns_to_normalize_cat : string or list of tuples of strings, default None
+    columns_to_normalize_categ : string or list of tuples of strings, default None
         If specified, the columns provided in the list are going to be
         normalized on their categories. That is, the values (column 2 in the
         tuple) are normalized with stats of their respective categories (column
         1 of the tuple). Otherwise, no column will be normalized on their
         categories.
-    embed_columns : string or list of strings, default None
-        If specified, the columns in the list, which represent features that
-        will be embedded, aren't going to be normalized.
+    categ_columns : string or list of strings, default None
+        If specified, the columns in the list, which represent categorical 
+        features, which either are a label or will be embedded, aren't 
+        going to be normalized.
     see_progress : bool, default True
         If set to True, a progress bar will show up indicating the execution
         of the normalization calculations.
@@ -756,14 +757,14 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                 raise Exception(f'ERROR: The `id_columns` argument must be specified as either a single string or a list of strings. Received input with type {type(id_columns)}.')
             # List of all columns in the dataframe, except the ID columns
             [columns_to_normalize.remove(col) for col in id_columns]
-        if embed_columns is not None:
-            # Make sure that the embed_columns is a list
-            if isinstance(embed_columns, str):
-                embed_columns = [embed_columns]
-            if not isinstance(embed_columns, list):
-                raise Exception(f'ERROR: The `embed_columns` argument must be specified as either a single string or a list of strings. Received input with type {type(embed_columns)}.')
+        if categ_columns is not None:
+            # Make sure that the categ_columns is a list
+            if isinstance(categ_columns, str):
+                categ_columns = [categ_columns]
+            if not isinstance(categ_columns, list):
+                raise Exception(f'ERROR: The `categ_columns` argument must be specified as either a single string or a list of strings. Received input with type {type(categ_columns)}.')
             # Prevent all features that will be embedded from being normalized
-            [columns_to_normalize.remove(col) for col in embed_columns]
+            [columns_to_normalize.remove(col) for col in categ_columns]
         # List of binary or one hot encoded columns
         binary_cols = search_explore.list_one_hot_encoded_columns(df[columns_to_normalize])
         if binary_cols is not None:
@@ -771,7 +772,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             [columns_to_normalize.remove(col) for col in binary_cols]
         # Remove all non numeric columns that could be left
         columns_to_normalize = [col for col in columns_to_normalize 
-                                if df[col].dtype == np.number]
+                                if df[col].dtype != np.number]
         if columns_to_normalize is None:
             print('No columns to normalize, returning the original dataframe.')
             return df
@@ -810,14 +811,14 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                 print(f'z-score normalizing columns {columns_to_normalize}...')
                 data[columns_to_normalize] = (data[columns_to_normalize] - means) / stds
 
-            if columns_to_normalize_cat is not None:
-                # Make sure that the columns_to_normalize_cat is a list
-                if isinstance(columns_to_normalize_cat, str):
-                    columns_to_normalize_cat = [columns_to_normalize_cat]
-                if not isinstance(columns_to_normalize_cat, list):
-                    raise Exception(f'ERROR: The `columns_to_normalize_cat` argument must be specified as either a single string or a list of strings. Received input with type {type(columns_to_normalize_cat)}.')
-                print(f'z-score normalizing columns {columns_to_normalize_cat} by their associated categories...')
-                for col_tuple in utils.iterations_loop(columns_to_normalize_cat, see_progress=see_progress):
+            if columns_to_normalize_categ is not None:
+                # Make sure that the columns_to_normalize_categ is a list
+                if isinstance(columns_to_normalize_categ, str):
+                    columns_to_normalize_categ = [columns_to_normalize_categ]
+                if not isinstance(columns_to_normalize_categ, list):
+                    raise Exception(f'ERROR: The `columns_to_normalize_categ` argument must be specified as either a single string or a list of strings. Received input with type {type(columns_to_normalize_categ)}.')
+                print(f'z-score normalizing columns {columns_to_normalize_categ} by their associated categories...')
+                for col_tuple in utils.iterations_loop(columns_to_normalize_categ, see_progress=see_progress):
                     # Calculate the means and standard deviations
                     means = df.groupby(col_tuple[0])[col_tuple[1]].mean()
                     stds = df.groupby(col_tuple[0])[col_tuple[1]].std()
@@ -882,9 +883,9 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                 print(f'min-max normalizing columns {columns_to_normalize}...')
                 data[columns_to_normalize] = (data[columns_to_normalize] - mins) / (maxs - mins)
 
-            if columns_to_normalize_cat is not None:
-                print(f'min-max normalizing columns {columns_to_normalize_cat} by their associated categories...')
-                for col_tuple in columns_to_normalize_cat:
+            if columns_to_normalize_categ is not None:
+                print(f'min-max normalizing columns {columns_to_normalize_categ} by their associated categories...')
+                for col_tuple in columns_to_normalize_categ:
                     # Calculate the means and standard deviations
                     mins = df.groupby(col_tuple[0])[col_tuple[1]].min()
                     maxs = df.groupby(col_tuple[0])[col_tuple[1]].max()
@@ -930,7 +931,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
 
 def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                    denormalization_method='z-score', columns_to_denormalize=None,
-                   columns_to_denormalize_cat=None, embed_columns=None,
+                   columns_to_denormalize_cat=None, categ_columns=None,
                    see_progress=True, inplace=False):
     '''Performs data denormalization to a continuous valued tensor or dataframe,
        changing the scale of the data.
@@ -970,7 +971,7 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
         tuple) are denormalized with stats of their respective categories (column
         1 of the tuple). Otherwise, no column will be denormalized on their
         categories.
-    embed_columns : list of strings, default None
+    categ_columns : list of strings, default None
         If specified, the columns in the list, which represent features that
         will be embedded, aren't going to be denormalized.
     see_progress : bool, default True
@@ -996,9 +997,9 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
         # List of all columns in the dataframe, except the ID columns
         [columns_to_denormalize.remove(col) for col in id_columns]
 
-        if embed_columns is not None:
+        if categ_columns is not None:
             # Prevent all features that will be embedded from being denormalized
-            [columns_to_denormalize.remove(col) for col in embed_columns]
+            [columns_to_denormalize.remove(col) for col in categ_columns]
 
         # List of binary or one hot encoded columns
         binary_cols = search_explore.list_one_hot_encoded_columns(df[columns_to_denormalize])
@@ -1486,7 +1487,7 @@ def threshold_outlier_detect(s, max_thrs=None, min_thrs=None, threshold_type='ab
         # Normalize by the average and standard deviation values
         signal = (signal - signal_mean) / signal_std
     else:
-        raise Exception('ERROR: Invalid value type. It must be "absolute", "mean", "average", "median" or "std", not {threshold_type}.')
+        raise Exception(f'ERROR: Invalid value type. It must be "absolute", "mean", "average", "median" or "std", not {threshold_type}.')
 
     # Search for outliers based on the given thresholds
     if max_thrs is not None and min_thrs is not None:
