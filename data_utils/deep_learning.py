@@ -207,9 +207,7 @@ def inference_iter_multi_var_rnn(model, features, labels, cols_to_remove=[0, 1],
     # Sort the data by sequence length
     features, labels, x_lengths = padding.sort_by_seq_len(features, seq_len_dict, labels)
     # Remove unwanted columns from the data
-    features_idx = list(range(features.shape[2]))
-    [features_idx.remove(column) for column in cols_to_remove]
-    features = features[:, :, features_idx]
+    features = remove_tensor_column(features, cols_to_remove, inplace=True)
     # Feedforward the data through the model
     scores = model.forward(features, x_lengths)
     # Adjust the labels so that it gets the exact same shape as the predictions
@@ -276,12 +274,7 @@ def inference_iter_mlp(model, features, labels, cols_to_remove=0,
     # Make the data have type float instead of double, as it would cause problems
     features, labels = features.float(), labels.float()
     # Remove unwanted columns from the data
-    features_idx = list(range(features.shape[1]))
-    if isinstance(cols_to_remove, int):
-        # Turn the column index into a list, for ease of coding
-        cols_to_remove = [cols_to_remove]
-    [features_idx.remove(column) for column in cols_to_remove]
-    features = features[:, features_idx]
+    features = remove_tensor_column(features, cols_to_remove, inplace=True)
     # Feedforward the data through the model
     scores = model.forward(features)
     # Calculate the cross entropy loss
@@ -292,7 +285,7 @@ def inference_iter_mlp(model, features, labels, cols_to_remove=0,
         optimizer.step()
     # Get the predictions and find the samples where they are correct
     pred = torch.round(scores)
-    correct_pred = pred == labels
+    correct_pred = pred.view_as(labels) == labels
     return correct_pred, scores, loss
 
 
@@ -457,11 +450,11 @@ def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=['l
             if model_type.lower() == 'multivariate_rnn':
                 correct_pred, scores,
                 labels, loss = inference_iter_multi_var_rnn(model, features, labels,
-                                                                     cols_to_remove, is_train=True,
-                                                                     optimizer=optimizer)
+                                                            cols_to_remove, is_train=False,
+                                                            optimizer=optimizer)
             elif model_type.lower() == 'mlp':
                 correct_pred, scores, loss = inference_iter_mlp(model, features, labels,
-                                                                cols_to_remove, is_train=True,
+                                                                cols_to_remove, is_train=False,
                                                                 optimizer=optimizer)
             else:
                 raise Exception('ERROR: Invalid model type. It must be "multivariate_rnn" or "mlp", not {threshold_type}.')
@@ -696,7 +689,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                 raise Exception('ERROR: Invalid model type. It must be "multivariate_rnn" or "mlp", not {threshold_type}.')
             train_loss += loss                                              # Add the training loss of the current batch
             train_acc += torch.mean(correct_pred.type(torch.FloatTensor))   # Add the training accuracy of the current batch, ignoring all padding values
-            train_auc += roc_auc_score(labels.numpy(), scores.detach().numpy()) # Add the training ROC AUC of the current batch
+            train_auc += roc_auc_score(labels.numpy(), scores.detach().view_as(labels).numpy()) # Add the training ROC AUC of the current batch
             step += 1                                                       # Count one more iteration step
             model.eval()                                                    # Deactivate dropout to test the model
 
@@ -713,17 +706,17 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                     if model_type.lower() == 'multivariate_rnn':
                         correct_pred, scores,
                         labels, loss = inference_iter_multi_var_rnn(model, features, labels,
-                                                                             cols_to_remove, is_train = True,
-                                                                             optimizer=optimizer)
+                                                                    cols_to_remove, is_train=False,
+                                                                    optimizer=optimizer)
                     elif model_type.lower() == 'mlp':
                         correct_pred, scores, loss = inference_iter_mlp(model, features, labels,
-                                                                        cols_to_remove, is_train=True,
+                                                                        cols_to_remove, is_train=False,
                                                                         optimizer=optimizer)
                     else:
                         raise Exception('ERROR: Invalid model type. It must be "multivariate_rnn" or "mlp", not {threshold_type}.')
                     val_loss += loss                                                # Add the validation loss of the current batch
                     val_acc += torch.mean(correct_pred.type(torch.FloatTensor))     # Add the validation accuracy of the current batch, ignoring all padding values
-                    val_auc += roc_auc_score(labels.numpy(), scores.detach().numpy()) # Add the validation ROC AUC of the current batch
+                    val_auc += roc_auc_score(labels.numpy(), scores.detach().view_as(labels).numpy()) # Add the validation ROC AUC of the current batch
 
             # Calculate the average of the metrics over the batches
             val_loss = val_loss / len(val_dataloader)
