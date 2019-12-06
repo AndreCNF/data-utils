@@ -12,6 +12,20 @@ warnings.filterwarnings("ignore", message="`meta` is not specified, inferred fro
 
 # Methods
 
+def one_hot_label(labels, n_outputs=None, dataset=None):
+    # Create an all zeroes tensor with the required shape (i.e. #samples x #outputs)
+    if n_outputs is not None:
+        ohe_labels = torch.zeros(labels.shape[0], n_outputs)
+    elif dataset is not None:
+        ohe_labels = torch.zeros(labels.shape[0], int(dataset.y.max())+1)
+    else:
+        raise Exception('ERROR: Either `n_outputs` or `dataset` must be provided. All of them were left as None.')
+    # Place ones in the columns that represent each activated output
+    for i in range(ohe_labels.shape[0]):
+        ohe_labels[i, int(labels[i])] = 1
+    return ohe_labels
+
+
 def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch_size=32,
                       get_indeces=True, shuffle_dataset=True):
     '''Distributes the data into train, validation and test sets and returns the respective data loaders.
@@ -98,20 +112,27 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
 
 
 # [TODO] Create a generic train method that can train any relevant machine learning model on the input data
-def train(model, train_dataloader, val_dataloader, seq_len_dict, test_dataloader=None,
-          batch_size=32, n_epochs=50, lr=0.001, model_path='models/',
+def train(model, train_dataloader, val_dataloader, test_dataloader=None,
+          cols_to_remove=[0, 1], model_type='multivariate_rnn',
+          seq_len_dict=None, batch_size=32, n_epochs=50, lr=0.001,
+          model_path='models/', ModelClass=None, padding_value=999999,
           do_test=True, log_comet_ml=False, comet_ml_api_key=None,
           comet_ml_project_name=None, comet_ml_workspace=None,
           comet_ml_save_model=False, experiment=None, features_list=None,
           get_val_loss_min=False, **kwargs):
-    model = deep_learning.train(model, train_dataloader, val_dataloader, seq_len_dict=seq_len_dict, 
-                                test_dataloader=test_dataloader, batch_size=batch_size, n_epochs=n_epochs, 
-                                lr=lr, model_path=model_path, do_test=do_test, log_comet_ml=log_comet_ml, 
-                                comet_ml_api_key=comet_ml_api_key, comet_ml_project_name=comet_ml_project_name,
-                                comet_ml_workspace=comet_ml_workspace, comet_ml_save_model=comet_ml_save_model,
-                                experiment=experiment, features_list=features_list, 
-                                get_val_loss_min=get_val_loss_min, **kwargs)
-    return model
+    model = deep_learning.train(model, train_dataloader, val_dataloader, test_dataloader=test_dataloader,
+                                cols_to_remove=cols_to_remove, model_type=model_type,
+                                seq_len_dict=seq_len_dict, batch_size=batch_size, n_epochs=n_epochs, lr=lr,
+                                model_path=model_path, ModelClass=ModelClass, padding_value=padding_value,
+                                do_test=do_test, log_comet_ml=log_comet_ml, comet_ml_api_key=comet_ml_api_key,
+                                comet_ml_project_name=comet_ml_project_name, comet_ml_workspace=comet_ml_workspace,
+                                comet_ml_save_model=comet_ml_save_model, experiment=experiment,
+                                features_list=features_list, get_val_loss_min=get_val_loss_min, **kwargs)
+    if get_val_loss_min is True:
+        # Also return the minimum validation loss alongside the corresponding model
+        return model[0], model[1]
+    else:
+        return model
 
 
 def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,

@@ -74,7 +74,7 @@ def remove_digit_from_dict(enum_dict, forbidden_digit=0, inplace=False):
     return new_enum_dict
 
 
-def create_enum_dict(unique_values, nan_value=0, forbidden_digit=0):
+def create_enum_dict(unique_values, nan_value=None, forbidden_digit=None):
     '''Enumerate all categories in a specified categorical feature, while also
     attributing a specific number to NaN and other unknown values.
 
@@ -82,9 +82,9 @@ def create_enum_dict(unique_values, nan_value=0, forbidden_digit=0):
     ----------
     unique_values : list of strings
         Specifies all the unique values to be enumerated.
-    nan_value : int, default 0
+    nan_value : int, default None
         Integer number that gets assigned to NaN and NaN-like values.
-    forbidden_digit : int, default 0
+    forbidden_digit : int, default None
         Digit that we want to prevent from appearing in any enumeration
         encoding.
 
@@ -95,7 +95,13 @@ def create_enum_dict(unique_values, nan_value=0, forbidden_digit=0):
         numbering obtained.
     '''
     # Enumerate the unique values in the categorical feature and put them in a dictionary
-    enum_dict = dict(enumerate(unique_values, start=1))
+    if nan_value is not None:
+        if nan_value is 0:
+            enum_dict = dict(enumerate(unique_values, start=1))
+        else:
+            enum_dict = dict(enumerate(unique_values, start=0))
+    else:
+        enum_dict = dict(enumerate(unique_values, start=0))
     # Invert the dictionary to have the unique categories as keys and the numbers as values
     enum_dict = utils.invert_dict(enum_dict)
     if forbidden_digit is not None:
@@ -116,8 +122,8 @@ def create_enum_dict(unique_values, nan_value=0, forbidden_digit=0):
     return enum_dict
 
 
-def enum_categorical_feature(df, feature, nan_value=0, clean_name=True,
-                             forbidden_digit=0, apply_on_df=True):
+def enum_categorical_feature(df, feature, nan_value=None, clean_name=True,
+                             forbidden_digit=None, apply_on_df=True):
     '''Enumerate all categories in a specified categorical feature, while also
     attributing a specific number to NaN and other unknown values.
 
@@ -127,13 +133,13 @@ def enum_categorical_feature(df, feature, nan_value=0, clean_name=True,
         Dataframe which the categorical feature belongs to.
     feature : string
         Name of the categorical feature which will be enumerated.
-    nan_value : int, default 0
+    nan_value : int, default None
         Integer number that gets assigned to NaN and NaN-like values.
     clean_name : bool, default True
         If set to True, the method assumes that the feature is of type string
         and it will make sure that all the feature's values are in lower case,
         to reduce duplicate information.
-    forbidden_digit : int, default 0
+    forbidden_digit : int, default None
         Digit that we want to prevent from appearing in any enumeration
         encoding.
     apply_on_df : bool, default True
@@ -215,7 +221,7 @@ def enum_category_conversion(df, enum_column, enum_dict, enum_to_category=True):
     return categories
 
 
-def converge_enum(df1, df2, cat_feat_name, dict1=None, dict2=None, nan_value=0,
+def converge_enum(df1, df2, cat_feat_name, dict1=None, dict2=None, nan_value=None,
                   sort=True, inplace=False):
     '''Converge the categorical encoding (enumerations) on the same feature of
     two dataframes.
@@ -317,7 +323,7 @@ def converge_enum(df1, df2, cat_feat_name, dict1=None, dict2=None, nan_value=0,
     return data1_df, data2_df, all_data_dict
 
 
-def remove_nan_enum_from_string(x, nan_value=0):
+def remove_nan_enum_from_string(x, nan_value='0'):
     '''Removes missing values (NaN) from enumeration encoded strings.
 
     Parameters

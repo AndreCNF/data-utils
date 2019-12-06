@@ -1,5 +1,6 @@
 from comet_ml import Experiment                         # Comet.ml can log training metrics, parameters, do version control and parameter optimization
 import torch                                            # PyTorch to create and apply deep learning models
+from torch.nn.functional import softmax                 # Softmax activation function to normalize scores
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import warnings                                         # Print warnings for bad practices
 from datetime import datetime                           # datetime to use proper date and time formats
@@ -8,6 +9,7 @@ import inspect                                          # Inspect methods and th
 from sklearn.metrics import roc_auc_score               # ROC AUC model performance metric
 from . import utils                                     # Generic and useful methods
 from . import padding                                   # Padding and variable sequence length related methods
+from . import machine_learning
 import data_utils as du
 
 # Ignore Dask's 'meta' warning
@@ -225,8 +227,11 @@ def inference_iter_multi_var_rnn(model, features, labels, cols_to_remove=[0, 1],
     # Completely remove the padded values from the labels and the scores using the mask
     unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask)
     unpadded_scores = torch.masked_select(scores, mask)
-    # Get the predictions and find the samples where they are correct
-    pred = torch.round(unpadded_scores)
+    # Get the top class (highest output probability) and find the samples where they are correct
+    if model.n_outputs == 1:
+        pred = torch.round(unpadded_scores)
+    else:
+        top_prob, top_class = unpadded_scores.topk(1)
     correct_pred = pred == unpadded_labels
     return correct_pred, unpadded_scores, unpadded_labels, loss
 
@@ -283,9 +288,12 @@ def inference_iter_mlp(model, features, labels, cols_to_remove=0,
         # Backpropagate the loss and update the model's weights
         loss.backward()
         optimizer.step()
-    # Get the predictions and find the samples where they are correct
-    pred = torch.round(scores)
-    correct_pred = pred.view_as(labels) == labels
+    # Get the top class (highest output probability) and find the samples where they are correct
+    if model.n_outputs == 1:
+        pred = torch.round(scores)
+    else:
+        top_prob, top_class = scores.topk(1)
+    correct_pred = top_class.view_as(labels) == labels
     return correct_pred, scores, loss
 
 
@@ -662,6 +670,8 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
         train_loss = 0
         train_acc = 0
         train_auc = 0
+        if model.n_outputs > 1:
+            train_auc_wgt = 0
 
         # try:
         # Loop through the training data
@@ -689,7 +699,18 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                 raise Exception('ERROR: Invalid model type. It must be "multivariate_rnn" or "mlp", not {threshold_type}.')
             train_loss += loss                                              # Add the training loss of the current batch
             train_acc += torch.mean(correct_pred.type(torch.FloatTensor))   # Add the training accuracy of the current batch, ignoring all padding values
-            train_auc += roc_auc_score(labels.numpy(), scores.detach().view_as(labels).numpy()) # Add the training ROC AUC of the current batch
+            # Add the training ROC AUC of the current batch
+            if model.n_outputs == 1:
+                train_auc += roc_auc_score(labels.numpy(), scores.detach().numpy())
+            else:
+                # It might happen that not all labels are present in the current batch;
+                # as such, we must focus on the ones that appear in the batch
+                labels_in_batch = labels.unique().long()                    # Labels present in the batch
+                train_auc += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                           multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
+                # Also calculate a weighted version of the AUC; important for imbalanced dataset
+                train_auc_wgt += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                               multi_class='ovr', average='weighted', labels=labels_in_batch.numpy())
             step += 1                                                       # Count one more iteration step
             model.eval()                                                    # Deactivate dropout to test the model
 
@@ -697,6 +718,8 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
             val_loss = 0
             val_acc = 0
             val_auc = 0
+            if model.n_outputs > 1:
+                val_auc_wgt = 0
 
             # Loop through the validation data
             for features, labels in val_dataloader:
@@ -716,33 +739,40 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                         raise Exception('ERROR: Invalid model type. It must be "multivariate_rnn" or "mlp", not {threshold_type}.')
                     val_loss += loss                                                # Add the validation loss of the current batch
                     val_acc += torch.mean(correct_pred.type(torch.FloatTensor))     # Add the validation accuracy of the current batch, ignoring all padding values
-                    val_auc += roc_auc_score(labels.numpy(), scores.detach().view_as(labels).numpy()) # Add the validation ROC AUC of the current batch
+                    # Add the training ROC AUC of the current batch
+                    if model.n_outputs == 1:
+                        val_auc += roc_auc_score(labels.numpy(), scores.detach().numpy())
+                    else:
+                        # It might happen that not all labels are present in the current batch;
+                        # as such, we must focus on the ones that appear in the batch
+                        # Labels present in the batch
+                        labels_in_batch = labels.unique().long()
+                        val_auc += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                                 multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
+                        # Also calculate a weighted version of the AUC; important for imbalanced dataset
+                        val_auc_wgt += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                                     multi_class='ovr', average='weighted', labels=labels_in_batch.numpy())
 
             # Calculate the average of the metrics over the batches
             val_loss = val_loss / len(val_dataloader)
             val_acc = val_acc / len(val_dataloader)
             val_auc = val_auc / len(val_dataloader)
-
+            if model.n_outputs > 1:
+                val_auc_wgt = val_auc_wgt / len(val_dataloader)
 
             # Display validation loss
             if step%print_every == 0:
                 print(f'Epoch {epoch} step {step}: Validation loss: {val_loss}; Validation Accuracy: {val_acc}; Validation AUC: {val_auc}')
-
             # Check if the performance obtained in the validation set is the best so far (lowest loss value)
             if val_loss < val_loss_min:
                 print(f'New minimum validation loss: {val_loss_min} -> {val_loss}.')
-
                 # Update the minimum validation loss
                 val_loss_min = val_loss
-
                 # Get the current day and time to attach to the saved model's name
                 current_datetime = datetime.now().strftime('%d_%m_%Y_%H_%M')
-
                 # Filename and path where the model will be saved
                 model_filename = f'{model_path}checkpoint_{current_datetime}.pth'
-
                 print(f'Saving model in {model_filename}')
-
                 # Save the best performing model so far, along with additional information to implement it
                 checkpoint = hyper_params
                 checkpoint['state_dict'] = model.state_dict()
@@ -756,6 +786,8 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
         train_loss = train_loss / len(train_dataloader)
         train_acc = train_acc / len(train_dataloader)
         train_auc = train_auc / len(train_dataloader)
+        if model.n_outputs > 1:
+            train_auc_wgt = train_auc_wgt / len(train_dataloader)
 
         if log_comet_ml is True:
             # Log metrics to Comet.ml
@@ -766,6 +798,9 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
             experiment.log_metric("val_acc", val_acc, step=epoch)
             experiment.log_metric("val_auc", val_auc, step=epoch)
             experiment.log_metric("epoch", epoch)
+            if model.n_outputs > 1:
+                experiment.log_metric("train_auc_wgt", train_auc_wgt, step=epoch)
+                experiment.log_metric("val_auc_wgt", val_auc_wgt, step=epoch)
 
         # Print a report of the epoch
         print(f'Epoch {epoch}: Training loss: {train_loss}; Training Accuracy: {train_acc}; Training AUC: {train_auc}; \
@@ -793,5 +828,5 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
     if get_val_loss_min is True:
         # Also return the minimum validation loss alongside the corresponding model
         return model, val_loss_min.item()
-
-    return model
+    else:
+        return model
