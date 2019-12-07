@@ -373,6 +373,8 @@ def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=['l
         acc = 0
     if 'AUC' in metrics:
         auc = 0
+    if 'AUC_weighted' in metrics:
+        auc_wgt = 0
     if 'precision' in metrics:
         prec = 0
     if 'recall' in metrics:
@@ -382,60 +384,72 @@ def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=['l
 
     # Check if the user wants to do inference directly on a PyTorch tensor
     if dataloader is None and data is not None:
-        features, labels = data[0].float(), data[1].float()             # Make the data have type float instead of double, as it would cause problems
-        features, labels, x_lengths = padding.sort_by_seq_len(features, seq_len_dict, labels) # Sort the data by sequence length
-
-        # Remove unwanted columns from the data
-        features_idx = list(range(features.shape[2]))
-        [features_idx.remove(column) for column in cols_to_remove]
-        features = features[:, :, features_idx]
-        scores = model.forward(features, x_lengths)                     # Feedforward the data through the model
-
-        # Adjust the labels so that it gets the exact same shape as the predictions
-        # (i.e. sequence length = max sequence length of the current batch, not the max of all the data)
-        labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
-        labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
-
-        mask = (labels <= 1).view_as(scores)                            # Create a mask by filtering out all labels that are not a padding value
-        unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask) # Completely remove the padded values from the labels using the mask
-        unpadded_scores = torch.masked_select(scores, mask)             # Completely remove the padded values from the scores using the mask
-        pred = torch.round(unpadded_scores)                             # Get the predictions
-
+        features, labels = data[0], data[1]
+        # Do inference on the data
+        if model_type.lower() == 'multivariate_rnn':
+            correct_pred, scores,
+            labels, loss = inference_iter_multi_var_rnn(model, features, labels,
+                                                        cols_to_remove, is_train=False,
+                                                        optimizer=optimizer)
+        elif model_type.lower() == 'mlp':
+            correct_pred, scores, loss = inference_iter_mlp(model, features, labels,
+                                                            cols_to_remove, is_train=False,
+                                                            optimizer=optimizer)
+        else:
+            raise Exception('ERROR: Invalid model type. It must be "multivariate_rnn" or "mlp", not {threshold_type}.')
         if output_rounded is True:
             # Get the predicted classes
             output = pred.int()
         else:
             # Get the model scores (class probabilities)
             output = unpadded_scores
-
         if seq_final_outputs is True:
             # Only get the outputs retrieved at the sequences' end
             # Cumulative sequence lengths
             final_seq_idx = np.cumsum(x_lengths) - 1
-
             # Get the outputs of the last instances of each sequence
             output = output[final_seq_idx]
-
         if any(mtrc in metrics for mtrc in ['precision', 'recall', 'F1']):
             # Calculate the number of true positives, false negatives, true negatives and false positives
-            true_pos = int(sum(torch.masked_select(pred, unpadded_labels.bool())))
-            false_neg = int(sum(torch.masked_select(pred == 0, unpadded_labels.bool())))
-            true_neg = int(sum(torch.masked_select(pred == 0, (unpadded_labels == 0).bool())))
-            false_pos = int(sum(torch.masked_select(pred, (unpadded_labels == 0).bool())))
+            true_pos = int(sum(torch.masked_select(pred, labels.bool())))
+            false_neg = int(sum(torch.masked_select(pred == 0, labels.bool())))
+            true_neg = int(sum(torch.masked_select(pred == 0, (labels == 0).bool())))
+            false_pos = int(sum(torch.masked_select(pred, (labels == 0).bool())))
 
         if 'loss' in metrics:
-            metrics_vals['loss'] = model.loss(scores, labels, x_lengths).item() # Add the loss of the current batch
+            # Add the loss of the current batch
+            metrics_vals['loss'] = model.loss(scores, labels, x_lengths).item()
         if 'accuracy' in metrics:
-            correct_pred = pred == unpadded_labels                          # Get the correct predictions
-            metrics_vals['accuracy'] = torch.mean(correct_pred.type(torch.FloatTensor)).item() # Add the accuracy of the current batch, ignoring all padding values
+            # Add the accuracy of the current batch, ignoring all padding values
+            metrics_vals['accuracy'] = torch.mean(correct_pred.type(torch.FloatTensor)).item()
         if 'AUC' in metrics:
-            metrics_vals['AUC'] = roc_auc_score(unpadded_labels.numpy(), unpadded_scores.detach().numpy()) # Add the ROC AUC of the current batch
+            # Add the ROC AUC of the current batch
+            if model.n_outputs == 1:
+                metrics_vals['AUC'] = roc_auc_score(labels.numpy(), scores.detach().numpy())
+            else:
+                # It might happen that not all labels are present in the current batch;
+                # as such, we must focus on the ones that appear in the batch
+                labels_in_batch = labels.unique().long()
+                metrics_vals['AUC'] = roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                                    multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
+        if 'AUC_weighted' in metrics:
+            # Calculate a weighted version of the AUC; important for imbalanced datasets
+            if model.n_outputs == 1:
+                raise Exception('ERROR: The performance metric `AUC_weighted` is only available for multiclass tasks. Consider using the metric `AUC` for your single output model.')
+            else:
+                # It might happen that not all labels are present in the current batch;
+                # as such, we must focus on the ones that appear in the batch
+                labels_in_batch = labels.unique().long()
+                metrics_vals['AUC_weighted'] = roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                                             multi_class='ovr', average='weighted', labels=labels_in_batch.numpy())
         if 'precision' in metrics:
+            # Add the precision of the current batch
             curr_prec = true_pos / (true_pos + false_pos)
-            metrics_vals['precision'] = curr_prec                           # Add the precision of the current batch
+            metrics_vals['precision'] = curr_prec
         if 'recall' in metrics:
+            # Add the recall of the current batch
             curr_rcl = true_pos / (true_pos + false_neg)
-            metrics_vals['recall'] = curr_rcl                               # Add the recall of the current batch
+            metrics_vals['recall'] = curr_rcl
         if 'F1' in metrics:
             # Check if precision has not yet been calculated
             if 'curr_prec' not in locals():
@@ -443,7 +457,8 @@ def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=['l
             # Check if recall has not yet been calculated
             if 'curr_rcl' not in locals():
                 curr_rcl = true_pos / (true_pos + false_neg)
-            metrics_vals['F1'] = 2 * curr_prec * curr_rcl / (curr_prec + curr_rcl) # Add the F1 score of the current batch
+            # Add the F1 score of the current batch
+            metrics_vals['F1'] = 2 * curr_prec * curr_rcl / (curr_prec + curr_rcl)
 
         return output, metrics_vals
 
@@ -457,13 +472,13 @@ def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=['l
             # Do inference on the data
             if model_type.lower() == 'multivariate_rnn':
                 correct_pred, scores,
-                labels, loss = inference_iter_multi_var_rnn(model, features, labels,
-                                                            cols_to_remove, is_train=False,
-                                                            optimizer=optimizer)
-            elif model_type.lower() == 'mlp':
-                correct_pred, scores, loss = inference_iter_mlp(model, features, labels,
+                labels, cur_loss = inference_iter_multi_var_rnn(model, features, labels,
                                                                 cols_to_remove, is_train=False,
                                                                 optimizer=optimizer)
+            elif model_type.lower() == 'mlp':
+                correct_pred, scores, cur_loss = inference_iter_mlp(model, features, labels,
+                                                                    cols_to_remove, is_train=False,
+                                                                    optimizer=optimizer)
             else:
                 raise Exception('ERROR: Invalid model type. It must be "multivariate_rnn" or "mlp", not {threshold_type}.')
             if output_rounded is True:
@@ -488,19 +503,41 @@ def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=['l
                 false_pos = int(sum(torch.masked_select(pred, (labels == 0).bool())))
 
             if 'loss' in metrics:
-                # [TODO] Using the loss variable that I reset every iteration and recalculating the loss; fix this
-                loss += model.loss(scores, labels, x_lengths)               # Add the loss of the current batch
+                # Add the loss of the current batch
+                loss += cur_loss
             if 'accuracy' in metrics:
-                correct_pred = pred == labels                      # Get the correct predictions
-                acc += torch.mean(correct_pred.type(torch.FloatTensor))     # Add the accuracy of the current batch, ignoring all padding values
+                # Get the correct predictions
+                correct_pred = pred == labels
+                # Add the accuracy of the current batch, ignoring all padding values
+                acc += torch.mean(correct_pred.type(torch.FloatTensor))
             if 'AUC' in metrics:
-                auc += roc_auc_score(labels.numpy(), scores.detach().numpy()) # Add the ROC AUC of the current batch
+            # Add the ROC AUC of the current batch
+            if model.n_outputs == 1:
+                auc += roc_auc_score(labels.numpy(), scores.detach().numpy())
+            else:
+                # It might happen that not all labels are present in the current batch;
+                # as such, we must focus on the ones that appear in the batch
+                labels_in_batch = labels.unique().long()
+                auc += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                     multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
+            if 'AUC_weighted' in metrics:
+                # Calculate a weighted version of the AUC; important for imbalanced datasets
+                if model.n_outputs == 1:
+                    raise Exception('ERROR: The performance metric `AUC_weighted` is only available for multiclass tasks. Consider using the metric `AUC` for your single output model.')
+                else:
+                    # It might happen that not all labels are present in the current batch;
+                    # as such, we must focus on the ones that appear in the batch
+                    labels_in_batch = labels.unique().long()
+                    auc_wgt += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                             multi_class='ovr', average='weighted', labels=labels_in_batch.numpy())
             if 'precision' in metrics:
+                # Add the precision of the current batch
                 curr_prec = true_pos / (true_pos + false_pos)
-                prec += curr_prec                                           # Add the precision of the current batch
+                prec += curr_prec
             if 'recall' in metrics:
+                # Add the recall of the current batch
                 curr_rcl = true_pos / (true_pos + false_neg)
-                rcl += curr_rcl                                             # Add the recall of the current batch
+                rcl += curr_rcl
             if 'F1' in metrics:
                 # Check if precision has not yet been calculated
                 if 'curr_prec' not in locals():
@@ -508,15 +545,18 @@ def model_inference(model, seq_len_dict, dataloader=None, data=None, metrics=['l
                 # Check if recall has not yet been calculated
                 if 'curr_rcl' not in locals():
                     curr_rcl = true_pos / (true_pos + false_neg)
-                f1_score += 2 * curr_prec * curr_rcl / (curr_prec + curr_rcl) # Add the F1 score of the current batch
+                # Add the F1 score of the current batch
+                f1_score += 2 * curr_prec * curr_rcl / (curr_prec + curr_rcl)
 
     # Calculate the average of the metrics over the batches
     if 'loss' in metrics:
         metrics_vals['loss'] = loss / len(dataloader)
-        metrics_vals['loss'] = metrics_vals['loss'].item()                  # Get just the value, not a tensor
+        # Get just the value, not a tensor
+        metrics_vals['loss'] = metrics_vals['loss'].item()
     if 'accuracy' in metrics:
         metrics_vals['accuracy'] = acc / len(dataloader)
-        metrics_vals['accuracy'] = metrics_vals['accuracy'].item()          # Get just the value, not a tensor
+        # Get just the value, not a tensor
+        metrics_vals['accuracy'] = metrics_vals['accuracy'].item()
     if 'AUC' in metrics:
         metrics_vals['AUC'] = auc / len(dataloader)
     if 'precision' in metrics:
@@ -643,10 +683,10 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
     model_args = inspect.getfullargspec(model.__init__).args[1:]
     hyper_params = dict([(param, getattr(model, param))
                          for param in model_args])
-    hyper_params.update({"batch_size": batch_size,
-                         "n_epochs": n_epochs,
-                         "learning_rate": lr,
-                         "random_seed": du.random_seed})
+    hyper_params.update({'batch_size': batch_size,
+                         'n_epochs': n_epochs,
+                         'learning_rate': lr})
+    
     if log_comet_ml is True:
         if experiment is None:
             # Create a new Comet.ml experiment
@@ -673,141 +713,141 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
         if model.n_outputs > 1:
             train_auc_wgt = 0
 
-        # try:
-        # Loop through the training data
-        for features, labels in train_dataloader:
-            # Activate dropout to train the model
-            model.train()
-            # Clear the gradients of all optimized variables
-            optimizer.zero_grad()
+        try:
+            # Loop through the training data
+            for features, labels in train_dataloader:
+                # Activate dropout to train the model
+                model.train()
+                # Clear the gradients of all optimized variables
+                optimizer.zero_grad()
 
-            if train_on_gpu is True:
-                # Move data to GPU
-                features, labels = features.cuda(), labels.cuda()
+                if train_on_gpu is True:
+                    # Move data to GPU
+                    features, labels = features.cuda(), labels.cuda()
 
-            # Do inference on the data
-            if model_type.lower() == 'multivariate_rnn':
-                correct_pred, scores,
-                labels, loss = inference_iter_multi_var_rnn(model, features, labels,
-                                                            cols_to_remove, is_train=True,
-                                                            optimizer=optimizer)
-            elif model_type.lower() == 'mlp':
-                correct_pred, scores, loss = inference_iter_mlp(model, features, labels,
+                # Do inference on the data
+                if model_type.lower() == 'multivariate_rnn':
+                    correct_pred, scores,
+                    labels, loss = inference_iter_multi_var_rnn(model, features, labels,
                                                                 cols_to_remove, is_train=True,
                                                                 optimizer=optimizer)
-            else:
-                raise Exception('ERROR: Invalid model type. It must be "multivariate_rnn" or "mlp", not {threshold_type}.')
-            train_loss += loss                                              # Add the training loss of the current batch
-            train_acc += torch.mean(correct_pred.type(torch.FloatTensor))   # Add the training accuracy of the current batch, ignoring all padding values
-            # Add the training ROC AUC of the current batch
-            if model.n_outputs == 1:
-                train_auc += roc_auc_score(labels.numpy(), scores.detach().numpy())
-            else:
-                # It might happen that not all labels are present in the current batch;
-                # as such, we must focus on the ones that appear in the batch
-                labels_in_batch = labels.unique().long()                    # Labels present in the batch
-                train_auc += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
-                                           multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
-                # Also calculate a weighted version of the AUC; important for imbalanced dataset
-                train_auc_wgt += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
-                                               multi_class='ovr', average='weighted', labels=labels_in_batch.numpy())
-            step += 1                                                       # Count one more iteration step
-            model.eval()                                                    # Deactivate dropout to test the model
-
-            # Initialize the validation metrics
-            val_loss = 0
-            val_acc = 0
-            val_auc = 0
-            if model.n_outputs > 1:
-                val_auc_wgt = 0
-
-            # Loop through the validation data
-            for features, labels in val_dataloader:
-                # Turn off gradients for validation, saves memory and computations
-                with torch.no_grad():
-                    # Do inference on the data
-                    if model_type.lower() == 'multivariate_rnn':
-                        correct_pred, scores,
-                        labels, loss = inference_iter_multi_var_rnn(model, features, labels,
-                                                                    cols_to_remove, is_train=False,
+                elif model_type.lower() == 'mlp':
+                    correct_pred, scores, loss = inference_iter_mlp(model, features, labels,
+                                                                    cols_to_remove, is_train=True,
                                                                     optimizer=optimizer)
-                    elif model_type.lower() == 'mlp':
-                        correct_pred, scores, loss = inference_iter_mlp(model, features, labels,
+                else:
+                    raise Exception('ERROR: Invalid model type. It must be "multivariate_rnn" or "mlp", not {threshold_type}.')
+                train_loss += loss                                              # Add the training loss of the current batch
+                train_acc += torch.mean(correct_pred.type(torch.FloatTensor))   # Add the training accuracy of the current batch, ignoring all padding values
+                # Add the training ROC AUC of the current batch
+                if model.n_outputs == 1:
+                    train_auc += roc_auc_score(labels.numpy(), scores.detach().numpy())
+                else:
+                    # It might happen that not all labels are present in the current batch;
+                    # as such, we must focus on the ones that appear in the batch
+                    labels_in_batch = labels.unique().long()                    
+                    train_auc += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                               multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
+                    # Also calculate a weighted version of the AUC; important for imbalanced dataset
+                    train_auc_wgt += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                                   multi_class='ovr', average='weighted', labels=labels_in_batch.numpy())
+                step += 1                                                       # Count one more iteration step
+                model.eval()                                                    # Deactivate dropout to test the model
+
+                # Initialize the validation metrics
+                val_loss = 0
+                val_acc = 0
+                val_auc = 0
+                if model.n_outputs > 1:
+                    val_auc_wgt = 0
+
+                # Loop through the validation data
+                for features, labels in val_dataloader:
+                    # Turn off gradients for validation, saves memory and computations
+                    with torch.no_grad():
+                        # Do inference on the data
+                        if model_type.lower() == 'multivariate_rnn':
+                            correct_pred, scores,
+                            labels, loss = inference_iter_multi_var_rnn(model, features, labels,
                                                                         cols_to_remove, is_train=False,
                                                                         optimizer=optimizer)
-                    else:
-                        raise Exception('ERROR: Invalid model type. It must be "multivariate_rnn" or "mlp", not {threshold_type}.')
-                    val_loss += loss                                                # Add the validation loss of the current batch
-                    val_acc += torch.mean(correct_pred.type(torch.FloatTensor))     # Add the validation accuracy of the current batch, ignoring all padding values
-                    # Add the training ROC AUC of the current batch
-                    if model.n_outputs == 1:
-                        val_auc += roc_auc_score(labels.numpy(), scores.detach().numpy())
-                    else:
-                        # It might happen that not all labels are present in the current batch;
-                        # as such, we must focus on the ones that appear in the batch
-                        # Labels present in the batch
-                        labels_in_batch = labels.unique().long()
-                        val_auc += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
-                                                 multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
-                        # Also calculate a weighted version of the AUC; important for imbalanced dataset
-                        val_auc_wgt += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
-                                                     multi_class='ovr', average='weighted', labels=labels_in_batch.numpy())
+                        elif model_type.lower() == 'mlp':
+                            correct_pred, scores, loss = inference_iter_mlp(model, features, labels,
+                                                                            cols_to_remove, is_train=False,
+                                                                            optimizer=optimizer)
+                        else:
+                            raise Exception('ERROR: Invalid model type. It must be "multivariate_rnn" or "mlp", not {threshold_type}.')
+                        val_loss += loss                                                # Add the validation loss of the current batch
+                        val_acc += torch.mean(correct_pred.type(torch.FloatTensor))     # Add the validation accuracy of the current batch, ignoring all padding values
+                        # Add the training ROC AUC of the current batch
+                        if model.n_outputs == 1:
+                            val_auc += roc_auc_score(labels.numpy(), scores.detach().numpy())
+                        else:
+                            # It might happen that not all labels are present in the current batch;
+                            # as such, we must focus on the ones that appear in the batch
+                            
+                            labels_in_batch = labels.unique().long()
+                            val_auc += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                                    multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
+                            # Also calculate a weighted version of the AUC; important for imbalanced dataset
+                            val_auc_wgt += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                                        multi_class='ovr', average='weighted', labels=labels_in_batch.numpy())
 
-            # Calculate the average of the metrics over the batches
-            val_loss = val_loss / len(val_dataloader)
-            val_acc = val_acc / len(val_dataloader)
-            val_auc = val_auc / len(val_dataloader)
+                # Calculate the average of the metrics over the batches
+                val_loss = val_loss / len(val_dataloader)
+                val_acc = val_acc / len(val_dataloader)
+                val_auc = val_auc / len(val_dataloader)
+                if model.n_outputs > 1:
+                    val_auc_wgt = val_auc_wgt / len(val_dataloader)
+
+                # Display validation loss
+                if step%print_every == 0:
+                    print(f'Epoch {epoch} step {step}: Validation loss: {val_loss}; Validation Accuracy: {val_acc}; Validation AUC: {val_auc}')
+                # Check if the performance obtained in the validation set is the best so far (lowest loss value)
+                if val_loss < val_loss_min:
+                    print(f'New minimum validation loss: {val_loss_min} -> {val_loss}.')
+                    # Update the minimum validation loss
+                    val_loss_min = val_loss
+                    # Get the current day and time to attach to the saved model's name
+                    current_datetime = datetime.now().strftime('%d_%m_%Y_%H_%M')
+                    # Filename and path where the model will be saved
+                    model_filename = f'{model_path}checkpoint_{current_datetime}.pth'
+                    print(f'Saving model in {model_filename}')
+                    # Save the best performing model so far, along with additional information to implement it
+                    checkpoint = hyper_params
+                    checkpoint['state_dict'] = model.state_dict()
+                    torch.save(checkpoint, model_filename)
+
+                    if log_comet_ml is True and comet_ml_save_model is True:
+                        # Upload the model to Comet.ml
+                        experiment.log_asset(file_data=model_filename, overwrite=True)
+
+            # Calculate the average of the metrics over the epoch
+            train_loss = train_loss / len(train_dataloader)
+            train_acc = train_acc / len(train_dataloader)
+            train_auc = train_auc / len(train_dataloader)
             if model.n_outputs > 1:
-                val_auc_wgt = val_auc_wgt / len(val_dataloader)
+                train_auc_wgt = train_auc_wgt / len(train_dataloader)
 
-            # Display validation loss
-            if step%print_every == 0:
-                print(f'Epoch {epoch} step {step}: Validation loss: {val_loss}; Validation Accuracy: {val_acc}; Validation AUC: {val_auc}')
-            # Check if the performance obtained in the validation set is the best so far (lowest loss value)
-            if val_loss < val_loss_min:
-                print(f'New minimum validation loss: {val_loss_min} -> {val_loss}.')
-                # Update the minimum validation loss
-                val_loss_min = val_loss
-                # Get the current day and time to attach to the saved model's name
-                current_datetime = datetime.now().strftime('%d_%m_%Y_%H_%M')
-                # Filename and path where the model will be saved
-                model_filename = f'{model_path}checkpoint_{current_datetime}.pth'
-                print(f'Saving model in {model_filename}')
-                # Save the best performing model so far, along with additional information to implement it
-                checkpoint = hyper_params
-                checkpoint['state_dict'] = model.state_dict()
-                torch.save(checkpoint, model_filename)
+            if log_comet_ml is True:
+                # Log metrics to Comet.ml
+                experiment.log_metric("train_loss", train_loss, step=epoch)
+                experiment.log_metric("train_acc", train_acc, step=epoch)
+                experiment.log_metric("train_auc", train_auc, step=epoch)
+                experiment.log_metric("val_loss", val_loss, step=epoch)
+                experiment.log_metric("val_acc", val_acc, step=epoch)
+                experiment.log_metric("val_auc", val_auc, step=epoch)
+                experiment.log_metric("epoch", epoch)
+                if model.n_outputs > 1:
+                    experiment.log_metric("train_auc_wgt", train_auc_wgt, step=epoch)
+                    experiment.log_metric("val_auc_wgt", val_auc_wgt, step=epoch)
 
-                if log_comet_ml is True and comet_ml_save_model is True:
-                    # Upload the model to Comet.ml
-                    experiment.log_asset(file_data=model_filename, overwrite=True)
-
-        # Calculate the average of the metrics over the epoch
-        train_loss = train_loss / len(train_dataloader)
-        train_acc = train_acc / len(train_dataloader)
-        train_auc = train_auc / len(train_dataloader)
-        if model.n_outputs > 1:
-            train_auc_wgt = train_auc_wgt / len(train_dataloader)
-
-        if log_comet_ml is True:
-            # Log metrics to Comet.ml
-            experiment.log_metric("train_loss", train_loss, step=epoch)
-            experiment.log_metric("train_acc", train_acc, step=epoch)
-            experiment.log_metric("train_auc", train_auc, step=epoch)
-            experiment.log_metric("val_loss", val_loss, step=epoch)
-            experiment.log_metric("val_acc", val_acc, step=epoch)
-            experiment.log_metric("val_auc", val_auc, step=epoch)
-            experiment.log_metric("epoch", epoch)
-            if model.n_outputs > 1:
-                experiment.log_metric("train_auc_wgt", train_auc_wgt, step=epoch)
-                experiment.log_metric("val_auc_wgt", val_auc_wgt, step=epoch)
-
-        # Print a report of the epoch
-        print(f'Epoch {epoch}: Training loss: {train_loss}; Training Accuracy: {train_acc}; Training AUC: {train_auc}; \
-                Validation loss: {val_loss}; Validation Accuracy: {val_acc}; Validation AUC: {val_auc}')
-        print('----------------------')
-        # except Exception:
-        #     warnings.warn(f'There was a problem doing training epoch {epoch}. Ending training.')
+            # Print a report of the epoch
+            print(f'Epoch {epoch}: Training loss: {train_loss}; Training Accuracy: {train_acc}; Training AUC: {train_auc}; \
+                    Validation loss: {val_loss}; Validation Accuracy: {val_acc}; Validation AUC: {val_auc}')
+            print('----------------------')
+        except Exception:
+            warnings.warn(f'There was a problem doing training epoch {epoch}. Ending training.')
 
     try:
         if do_test is True and model_filename is not None:
