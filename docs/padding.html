@@ -37,7 +37,7 @@ warnings.filterwarnings(&#34;ignore&#34;, message=&#34;`meta` is not specified, 
 # Methods
 
 def get_sequence_length_dict(df, id_column=&#39;subject_id&#39;, ts_column=&#39;ts&#39;):
-    &#39;&#39;&#39;Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
+    &#39;&#39;&#39;Creates a dictionary with the original sequence lengths of a dataframe.
 
     Parameters
     ----------
@@ -354,7 +354,7 @@ length.</dd>
 <span>def <span class="ident">get_sequence_length_dict</span></span>(<span>df, id_column='subject_id', ts_column='ts')</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.</p>
+<section class="desc"><p>Creates a dictionary with the original sequence lengths of a dataframe.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
@@ -379,7 +379,7 @@ the id_column) and the values should be the length of each sequence.</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_sequence_length_dict(df, id_column=&#39;subject_id&#39;, ts_column=&#39;ts&#39;):
-    &#39;&#39;&#39;Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
+    &#39;&#39;&#39;Creates a dictionary with the original sequence lengths of a dataframe.
 
     Parameters
     ----------

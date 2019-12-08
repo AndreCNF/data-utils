@@ -100,7 +100,7 @@ def remove_digit_from_dict(enum_dict, forbidden_digit=0, inplace=False):
     return new_enum_dict
 
 
-def create_enum_dict(unique_values, nan_value=0, forbidden_digit=0):
+def create_enum_dict(unique_values, nan_value=None, forbidden_digit=None):
     &#39;&#39;&#39;Enumerate all categories in a specified categorical feature, while also
     attributing a specific number to NaN and other unknown values.
 
@@ -108,9 +108,9 @@ def create_enum_dict(unique_values, nan_value=0, forbidden_digit=0):
     ----------
     unique_values : list of strings
         Specifies all the unique values to be enumerated.
-    nan_value : int, default 0
+    nan_value : int, default None
         Integer number that gets assigned to NaN and NaN-like values.
-    forbidden_digit : int, default 0
+    forbidden_digit : int, default None
         Digit that we want to prevent from appearing in any enumeration
         encoding.
 
@@ -121,7 +121,13 @@ def create_enum_dict(unique_values, nan_value=0, forbidden_digit=0):
         numbering obtained.
     &#39;&#39;&#39;
     # Enumerate the unique values in the categorical feature and put them in a dictionary
-    enum_dict = dict(enumerate(unique_values, start=1))
+    if nan_value is not None:
+        if nan_value is 0:
+            enum_dict = dict(enumerate(unique_values, start=1))
+        else:
+            enum_dict = dict(enumerate(unique_values, start=0))
+    else:
+        enum_dict = dict(enumerate(unique_values, start=0))
     # Invert the dictionary to have the unique categories as keys and the numbers as values
     enum_dict = utils.invert_dict(enum_dict)
     if forbidden_digit is not None:
@@ -142,8 +148,8 @@ def create_enum_dict(unique_values, nan_value=0, forbidden_digit=0):
     return enum_dict
 
 
-def enum_categorical_feature(df, feature, nan_value=0, clean_name=True,
-                             forbidden_digit=0, apply_on_df=True):
+def enum_categorical_feature(df, feature, nan_value=None, clean_name=True,
+                             forbidden_digit=None, apply_on_df=True):
     &#39;&#39;&#39;Enumerate all categories in a specified categorical feature, while also
     attributing a specific number to NaN and other unknown values.
 
@@ -153,13 +159,13 @@ def enum_categorical_feature(df, feature, nan_value=0, clean_name=True,
         Dataframe which the categorical feature belongs to.
     feature : string
         Name of the categorical feature which will be enumerated.
-    nan_value : int, default 0
+    nan_value : int, default None
         Integer number that gets assigned to NaN and NaN-like values.
     clean_name : bool, default True
         If set to True, the method assumes that the feature is of type string
         and it will make sure that all the feature&#39;s values are in lower case,
         to reduce duplicate information.
-    forbidden_digit : int, default 0
+    forbidden_digit : int, default None
         Digit that we want to prevent from appearing in any enumeration
         encoding.
     apply_on_df : bool, default True
@@ -241,7 +247,7 @@ def enum_category_conversion(df, enum_column, enum_dict, enum_to_category=True):
     return categories
 
 
-def converge_enum(df1, df2, cat_feat_name, dict1=None, dict2=None, nan_value=0,
+def converge_enum(df1, df2, cat_feat_name, dict1=None, dict2=None, nan_value=None,
                   sort=True, inplace=False):
     &#39;&#39;&#39;Converge the categorical encoding (enumerations) on the same feature of
     two dataframes.
@@ -343,7 +349,7 @@ def converge_enum(df1, df2, cat_feat_name, dict1=None, dict2=None, nan_value=0,
     return data1_df, data2_df, all_data_dict
 
 
-def remove_nan_enum_from_string(x, nan_value=0):
+def remove_nan_enum_from_string(x, nan_value=&#39;0&#39;):
     &#39;&#39;&#39;Removes missing values (NaN) from enumeration encoded strings.
 
     Parameters
@@ -447,23 +453,23 @@ def join_categorical_enum(df, cat_feat=[], id_columns=[&#39;patientunitstayid&#3
         # Add to the list of dataframes that will be merged
         df_list.append(data_to_add)
     remaining_feat = list(set(data_df.columns) - set(cat_feat) - set(id_columns))
-    print(&#39;Averaging continuous features...&#39;)
+    print(&#39;Joining continuous features...&#39;)
     for feature in utils.iterations_loop(remaining_feat):
         if data_df[feature].dtype == &#39;object&#39;:
             raise Exception(f&#39;ERROR: There is at least one non-numeric feature in the dataframe. This method requires all columns to be numeric, either integer or floats. In case there are categorical features still in string format, consider using the `string_encod_to_numeric` method first. The column {feature} is of type {df[feature].dtype}.&#39;)
-        # Join remaining features through their average, min or max value
-        # (just to be sure that there aren&#39;t missing or different values)
-        if cont_join_method.lower() == &#39;mean&#39;:
-            data_to_add = data_df.groupby(id_columns)[feature].mean().to_frame().reset_index()
-        elif cont_join_method.lower() == &#39;min&#39;:
-            data_to_add = data_df.groupby(id_columns)[feature].min().to_frame().reset_index()
-        elif cont_join_method.lower() == &#39;max&#39;:
-            data_to_add = data_df.groupby(id_columns)[feature].max().to_frame().reset_index()
-        if has_timestamp is True:
-            # Sort by time `ts` and set it as index
-            data_to_add = data_to_add.set_index(&#39;ts&#39;)
-        # Add to the list of dataframes that will be merged
-        df_list.append(data_to_add)
+    # Join remaining features through their average, min or max value
+    # (just to be sure that there aren&#39;t missing or different values)
+    if cont_join_method.lower() == &#39;mean&#39;:
+        data_to_add = data_df.groupby(id_columns).mean().reset_index()
+    elif cont_join_method.lower() == &#39;min&#39;:
+        data_to_add = data_df.groupby(id_columns).min().reset_index()
+    elif cont_join_method.lower() == &#39;max&#39;:
+        data_to_add = data_df.groupby(id_columns).max().reset_index()
+    if has_timestamp is True:
+        # Sort by time `ts` and set it as index
+        data_to_add = data_to_add.set_index(&#39;ts&#39;)
+    # Add to the list of dataframes that will be merged
+    df_list.append(data_to_add)
     # Merge all dataframes
     print(&#39;Merging features\&#39; dataframes...&#39;)
     if isinstance(df, dd.DataFrame):
@@ -656,6 +662,13 @@ def run_embed_bag(data, embedding_layer, enum_list, offset, inplace=False):
     else:
         # Use the original dataframe
         data_tensor = data
+    # Check if GPU is available
+    train_on_gpu = torch.cuda.is_available()
+    if train_on_gpu is True:
+        # Move data and embedding model to GPU
+        (data_tensor, enum_list,
+         offset, embedding_layer) = (data_tensor.cuda(), enum_list.cuda(),
+                                     offset.cuda(), embedding_layer.cuda())
     # Get a tensor with the embedding values retrieved from the embedding bag layer
     embed_data = embedding_layer(enum_list, offset)[:-1]
     if len(data_tensor.shape) == 1:
@@ -675,8 +688,9 @@ def run_embed_bag(data, embedding_layer, enum_list, offset, inplace=False):
 
 
 def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
-                           padding_value=999999, nan_value=0, inplace=False):
-    &#39;&#39;&#39;Run the complete pipeline that gets from a data tensor with categorical
+                           n_id_cols=2, padding_value=999999, nan_value=0,
+                           inplace=False):
+    &#39;&#39;&#39;Run the complete pipeline that gets us from a data tensor with categorical
     features, i.e. columns with lists of encodings as values, into a data tensor
     with embedding columns.
 
@@ -695,6 +709,9 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
         Indicates if the method is being executed inside a machine learning model&#39;s
         forward method. If so, it will account for a previous removal of sample
         identidying columns.
+    n_id_cols : int, default 2
+        Number of ID columns. 1 represents simple tabular data, while 2 represents
+        multivariate sequential data (e.g. EHR time series data).
     padding_value : numeric, default 999999
         Value to use in the padding, to fill the sequences.
     nan_value : int, default 0
@@ -720,7 +737,7 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
     if isinstance(embedding_layer, torch.nn.EmbeddingBag) and isinstance(features, int):
         # Get the list of all the encodings and their offsets
         if model_forward:
-            enum_list, offset_list = prepare_embed_bag(data_tensor, features-2,
+            enum_list, offset_list = prepare_embed_bag(data_tensor, features-n_id_cols,
                                                        padding_value=padding_value, nan_value=nan_value)
         else:
             enum_list, offset_list = prepare_embed_bag(data_tensor, features,
@@ -731,22 +748,22 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
         for i in range(len(features)):
             # Get the list of all the encodings and their offsets
             if model_forward:
-                enum_list, offset_list = prepare_embed_bag(data_tensor, features[i]-2,
-                                                       padding_value=padding_value, nan_value=nan_value)
+                enum_list, offset_list = prepare_embed_bag(data_tensor, features[i]-n_id_cols,
+                                                           padding_value=padding_value, nan_value=nan_value)
             else:
                 enum_list, offset_list = prepare_embed_bag(data_tensor, features[i],
-                                                       padding_value=padding_value, nan_value=nan_value)
+                                                           padding_value=padding_value, nan_value=nan_value)
             # Run the embedding bag and add the embedding columns to the tensor
             data_tensor = run_embed_bag(data_tensor, embedding_layer[f&#39;embed_{i}&#39;], enum_list, offset_list, inplace)
     elif isinstance(embedding_layer, torch.nn.ModuleDict) and isinstance(features, list):
         for feature in features:
             # Get the list of all the encodings and their offsets
             if model_forward:
-                enum_list, offset_list = prepare_embed_bag(data_tensor, feature-2,
-                                                       padding_value=padding_value, nan_value=nan_value)
+                enum_list, offset_list = prepare_embed_bag(data_tensor, feature-n_id_cols,
+                                                           padding_value=padding_value, nan_value=nan_value)
             else:
                 enum_list, offset_list = prepare_embed_bag(data_tensor, feature,
-                                                       padding_value=padding_value, nan_value=nan_value)
+                                                           padding_value=padding_value, nan_value=nan_value)
             # Run the embedding bag and add the embedding columns to the tensor
             data_tensor = run_embed_bag(data_tensor, embedding_layer[f&#39;embed_{feature}&#39;], enum_list, offset_list, inplace)
     else:
@@ -771,7 +788,7 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="data_utils.embedding.converge_enum"><code class="name flex">
-<span>def <span class="ident">converge_enum</span></span>(<span>df1, df2, cat_feat_name, dict1=None, dict2=None, nan_value=0, sort=True, inplace=False)</span>
+<span>def <span class="ident">converge_enum</span></span>(<span>df1, df2, cat_feat_name, dict1=None, dict2=None, nan_value=None, sort=True, inplace=False)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Converge the categorical encoding (enumerations) on the same feature of
@@ -821,7 +838,7 @@ not performed.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def converge_enum(df1, df2, cat_feat_name, dict1=None, dict2=None, nan_value=0,
+<pre><code class="python">def converge_enum(df1, df2, cat_feat_name, dict1=None, dict2=None, nan_value=None,
                   sort=True, inplace=False):
     &#39;&#39;&#39;Converge the categorical encoding (enumerations) on the same feature of
     two dataframes.
@@ -924,7 +941,7 @@ not performed.</dd>
 </details>
 </dd>
 <dt id="data_utils.embedding.create_enum_dict"><code class="name flex">
-<span>def <span class="ident">create_enum_dict</span></span>(<span>unique_values, nan_value=0, forbidden_digit=0)</span>
+<span>def <span class="ident">create_enum_dict</span></span>(<span>unique_values, nan_value=None, forbidden_digit=None)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Enumerate all categories in a specified categorical feature, while also
@@ -933,9 +950,9 @@ attributing a specific number to NaN and other unknown values.</p>
 <dl>
 <dt><strong><code>unique_values</code></strong> :&ensp;<code>list</code> of <code>strings</code></dt>
 <dd>Specifies all the unique values to be enumerated.</dd>
-<dt><strong><code>nan_value</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dt><strong><code>nan_value</code></strong> :&ensp;<code>int</code>, default <code>None</code></dt>
 <dd>Integer number that gets assigned to NaN and NaN-like values.</dd>
-<dt><strong><code>forbidden_digit</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dt><strong><code>forbidden_digit</code></strong> :&ensp;<code>int</code>, default <code>None</code></dt>
 <dd>Digit that we want to prevent from appearing in any enumeration
 encoding.</dd>
 </dl>
@@ -949,7 +966,7 @@ numbering obtained.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def create_enum_dict(unique_values, nan_value=0, forbidden_digit=0):
+<pre><code class="python">def create_enum_dict(unique_values, nan_value=None, forbidden_digit=None):
     &#39;&#39;&#39;Enumerate all categories in a specified categorical feature, while also
     attributing a specific number to NaN and other unknown values.
 
@@ -957,9 +974,9 @@ numbering obtained.</dd>
     ----------
     unique_values : list of strings
         Specifies all the unique values to be enumerated.
-    nan_value : int, default 0
+    nan_value : int, default None
         Integer number that gets assigned to NaN and NaN-like values.
-    forbidden_digit : int, default 0
+    forbidden_digit : int, default None
         Digit that we want to prevent from appearing in any enumeration
         encoding.
 
@@ -970,7 +987,13 @@ numbering obtained.</dd>
         numbering obtained.
     &#39;&#39;&#39;
     # Enumerate the unique values in the categorical feature and put them in a dictionary
-    enum_dict = dict(enumerate(unique_values, start=1))
+    if nan_value is not None:
+        if nan_value is 0:
+            enum_dict = dict(enumerate(unique_values, start=1))
+        else:
+            enum_dict = dict(enumerate(unique_values, start=0))
+    else:
+        enum_dict = dict(enumerate(unique_values, start=0))
     # Invert the dictionary to have the unique categories as keys and the numbers as values
     enum_dict = utils.invert_dict(enum_dict)
     if forbidden_digit is not None:
@@ -992,10 +1015,10 @@ numbering obtained.</dd>
 </details>
 </dd>
 <dt id="data_utils.embedding.embedding_bag_pipeline"><code class="name flex">
-<span>def <span class="ident">embedding_bag_pipeline</span></span>(<span>data, embedding_layer, features, model_forward=False, padding_value=999999, nan_value=0, inplace=False)</span>
+<span>def <span class="ident">embedding_bag_pipeline</span></span>(<span>data, embedding_layer, features, model_forward=False, n_id_cols=2, padding_value=999999, nan_value=0, inplace=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Run the complete pipeline that gets from a data tensor with categorical
+<section class="desc"><p>Run the complete pipeline that gets us from a data tensor with categorical
 features, i.e. columns with lists of encodings as values, into a data tensor
 with embedding columns.</p>
 <h2 id="parameters">Parameters</h2>
@@ -1013,6 +1036,9 @@ removed from the data tensor after the embedding columns are added.</dd>
 <dd>Indicates if the method is being executed inside a machine learning model's
 forward method. If so, it will account for a previous removal of sample
 identidying columns.</dd>
+<dt><strong><code>n_id_cols</code></strong> :&ensp;<code>int</code>, default <code>2</code></dt>
+<dd>Number of ID columns. 1 represents simple tabular data, while 2 represents
+multivariate sequential data (e.g. EHR time series data).</dd>
 <dt><strong><code>padding_value</code></strong> :&ensp;<code>numeric</code>, default <code>999999</code></dt>
 <dd>Value to use in the padding, to fill the sequences.</dd>
 <dt><strong><code>nan_value</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
@@ -1033,8 +1059,9 @@ features removed.</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
-                           padding_value=999999, nan_value=0, inplace=False):
-    &#39;&#39;&#39;Run the complete pipeline that gets from a data tensor with categorical
+                           n_id_cols=2, padding_value=999999, nan_value=0,
+                           inplace=False):
+    &#39;&#39;&#39;Run the complete pipeline that gets us from a data tensor with categorical
     features, i.e. columns with lists of encodings as values, into a data tensor
     with embedding columns.
 
@@ -1053,6 +1080,9 @@ features removed.</dd>
         Indicates if the method is being executed inside a machine learning model&#39;s
         forward method. If so, it will account for a previous removal of sample
         identidying columns.
+    n_id_cols : int, default 2
+        Number of ID columns. 1 represents simple tabular data, while 2 represents
+        multivariate sequential data (e.g. EHR time series data).
     padding_value : numeric, default 999999
         Value to use in the padding, to fill the sequences.
     nan_value : int, default 0
@@ -1078,7 +1108,7 @@ features removed.</dd>
     if isinstance(embedding_layer, torch.nn.EmbeddingBag) and isinstance(features, int):
         # Get the list of all the encodings and their offsets
         if model_forward:
-            enum_list, offset_list = prepare_embed_bag(data_tensor, features-2,
+            enum_list, offset_list = prepare_embed_bag(data_tensor, features-n_id_cols,
                                                        padding_value=padding_value, nan_value=nan_value)
         else:
             enum_list, offset_list = prepare_embed_bag(data_tensor, features,
@@ -1089,22 +1119,22 @@ features removed.</dd>
         for i in range(len(features)):
             # Get the list of all the encodings and their offsets
             if model_forward:
-                enum_list, offset_list = prepare_embed_bag(data_tensor, features[i]-2,
-                                                       padding_value=padding_value, nan_value=nan_value)
+                enum_list, offset_list = prepare_embed_bag(data_tensor, features[i]-n_id_cols,
+                                                           padding_value=padding_value, nan_value=nan_value)
             else:
                 enum_list, offset_list = prepare_embed_bag(data_tensor, features[i],
-                                                       padding_value=padding_value, nan_value=nan_value)
+                                                           padding_value=padding_value, nan_value=nan_value)
             # Run the embedding bag and add the embedding columns to the tensor
             data_tensor = run_embed_bag(data_tensor, embedding_layer[f&#39;embed_{i}&#39;], enum_list, offset_list, inplace)
     elif isinstance(embedding_layer, torch.nn.ModuleDict) and isinstance(features, list):
         for feature in features:
             # Get the list of all the encodings and their offsets
             if model_forward:
-                enum_list, offset_list = prepare_embed_bag(data_tensor, feature-2,
-                                                       padding_value=padding_value, nan_value=nan_value)
+                enum_list, offset_list = prepare_embed_bag(data_tensor, feature-n_id_cols,
+                                                           padding_value=padding_value, nan_value=nan_value)
             else:
                 enum_list, offset_list = prepare_embed_bag(data_tensor, feature,
-                                                       padding_value=padding_value, nan_value=nan_value)
+                                                           padding_value=padding_value, nan_value=nan_value)
             # Run the embedding bag and add the embedding columns to the tensor
             data_tensor = run_embed_bag(data_tensor, embedding_layer[f&#39;embed_{feature}&#39;], enum_list, offset_list, inplace)
     else:
@@ -1115,7 +1145,7 @@ features removed.</dd>
 </details>
 </dd>
 <dt id="data_utils.embedding.enum_categorical_feature"><code class="name flex">
-<span>def <span class="ident">enum_categorical_feature</span></span>(<span>df, feature, nan_value=0, clean_name=True, forbidden_digit=0, apply_on_df=True)</span>
+<span>def <span class="ident">enum_categorical_feature</span></span>(<span>df, feature, nan_value=None, clean_name=True, forbidden_digit=None, apply_on_df=True)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Enumerate all categories in a specified categorical feature, while also
@@ -1126,13 +1156,13 @@ attributing a specific number to NaN and other unknown values.</p>
 <dd>Dataframe which the categorical feature belongs to.</dd>
 <dt><strong><code>feature</code></strong> :&ensp;<code>string</code></dt>
 <dd>Name of the categorical feature which will be enumerated.</dd>
-<dt><strong><code>nan_value</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dt><strong><code>nan_value</code></strong> :&ensp;<code>int</code>, default <code>None</code></dt>
 <dd>Integer number that gets assigned to NaN and NaN-like values.</dd>
 <dt><strong><code>clean_name</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
 <dd>If set to True, the method assumes that the feature is of type string
 and it will make sure that all the feature's values are in lower case,
 to reduce duplicate information.</dd>
-<dt><strong><code>forbidden_digit</code></strong> :&ensp;<code>int</code>, default <code>0</code></dt>
+<dt><strong><code>forbidden_digit</code></strong> :&ensp;<code>int</code>, default <code>None</code></dt>
 <dd>Digit that we want to prevent from appearing in any enumeration
 encoding.</dd>
 <dt><strong><code>apply_on_df</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
@@ -1152,8 +1182,8 @@ and the numbering obtained.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def enum_categorical_feature(df, feature, nan_value=0, clean_name=True,
-                             forbidden_digit=0, apply_on_df=True):
+<pre><code class="python">def enum_categorical_feature(df, feature, nan_value=None, clean_name=True,
+                             forbidden_digit=None, apply_on_df=True):
     &#39;&#39;&#39;Enumerate all categories in a specified categorical feature, while also
     attributing a specific number to NaN and other unknown values.
 
@@ -1163,13 +1193,13 @@ and the numbering obtained.</dd>
         Dataframe which the categorical feature belongs to.
     feature : string
         Name of the categorical feature which will be enumerated.
-    nan_value : int, default 0
+    nan_value : int, default None
         Integer number that gets assigned to NaN and NaN-like values.
     clean_name : bool, default True
         If set to True, the method assumes that the feature is of type string
         and it will make sure that all the feature&#39;s values are in lower case,
         to reduce duplicate information.
-    forbidden_digit : int, default 0
+    forbidden_digit : int, default None
         Digit that we want to prevent from appearing in any enumeration
         encoding.
     apply_on_df : bool, default True
@@ -1401,23 +1431,23 @@ features.</dd>
         # Add to the list of dataframes that will be merged
         df_list.append(data_to_add)
     remaining_feat = list(set(data_df.columns) - set(cat_feat) - set(id_columns))
-    print(&#39;Averaging continuous features...&#39;)
+    print(&#39;Joining continuous features...&#39;)
     for feature in utils.iterations_loop(remaining_feat):
         if data_df[feature].dtype == &#39;object&#39;:
             raise Exception(f&#39;ERROR: There is at least one non-numeric feature in the dataframe. This method requires all columns to be numeric, either integer or floats. In case there are categorical features still in string format, consider using the `string_encod_to_numeric` method first. The column {feature} is of type {df[feature].dtype}.&#39;)
-        # Join remaining features through their average, min or max value
-        # (just to be sure that there aren&#39;t missing or different values)
-        if cont_join_method.lower() == &#39;mean&#39;:
-            data_to_add = data_df.groupby(id_columns)[feature].mean().to_frame().reset_index()
-        elif cont_join_method.lower() == &#39;min&#39;:
-            data_to_add = data_df.groupby(id_columns)[feature].min().to_frame().reset_index()
-        elif cont_join_method.lower() == &#39;max&#39;:
-            data_to_add = data_df.groupby(id_columns)[feature].max().to_frame().reset_index()
-        if has_timestamp is True:
-            # Sort by time `ts` and set it as index
-            data_to_add = data_to_add.set_index(&#39;ts&#39;)
-        # Add to the list of dataframes that will be merged
-        df_list.append(data_to_add)
+    # Join remaining features through their average, min or max value
+    # (just to be sure that there aren&#39;t missing or different values)
+    if cont_join_method.lower() == &#39;mean&#39;:
+        data_to_add = data_df.groupby(id_columns).mean().reset_index()
+    elif cont_join_method.lower() == &#39;min&#39;:
+        data_to_add = data_df.groupby(id_columns).min().reset_index()
+    elif cont_join_method.lower() == &#39;max&#39;:
+        data_to_add = data_df.groupby(id_columns).max().reset_index()
+    if has_timestamp is True:
+        # Sort by time `ts` and set it as index
+        data_to_add = data_to_add.set_index(&#39;ts&#39;)
+    # Add to the list of dataframes that will be merged
+    df_list.append(data_to_add)
     # Merge all dataframes
     print(&#39;Merging features\&#39; dataframes...&#39;)
     if isinstance(df, dd.DataFrame):
@@ -1635,7 +1665,7 @@ numbering. Now without any occurence of the specified digit.</dd>
 </details>
 </dd>
 <dt id="data_utils.embedding.remove_nan_enum_from_string"><code class="name flex">
-<span>def <span class="ident">remove_nan_enum_from_string</span></span>(<span>x, nan_value=0)</span>
+<span>def <span class="ident">remove_nan_enum_from_string</span></span>(<span>x, nan_value='0')</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Removes missing values (NaN) from enumeration encoded strings.</p>
@@ -1655,7 +1685,7 @@ numbering. Now without any occurence of the specified digit.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def remove_nan_enum_from_string(x, nan_value=0):
+<pre><code class="python">def remove_nan_enum_from_string(x, nan_value=&#39;0&#39;):
     &#39;&#39;&#39;Removes missing values (NaN) from enumeration encoded strings.
 
     Parameters
@@ -1752,6 +1782,13 @@ changing the original tensor.</dd>
     else:
         # Use the original dataframe
         data_tensor = data
+    # Check if GPU is available
+    train_on_gpu = torch.cuda.is_available()
+    if train_on_gpu is True:
+        # Move data and embedding model to GPU
+        (data_tensor, enum_list,
+         offset, embedding_layer) = (data_tensor.cuda(), enum_list.cuda(),
+                                     offset.cuda(), embedding_layer.cuda())
     # Get a tensor with the embedding values retrieved from the embedding bag layer
     embed_data = embedding_layer(enum_list, offset)[:-1]
     if len(data_tensor.shape) == 1:
