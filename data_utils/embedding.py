@@ -636,6 +636,13 @@ def run_embed_bag(data, embedding_layer, enum_list, offset, inplace=False):
     else:
         # Use the original dataframe
         data_tensor = data
+    # Check if GPU is available
+    train_on_gpu = torch.cuda.is_available()
+    if train_on_gpu is True:
+        # Move data and embedding model to GPU
+        (data_tensor, enum_list,
+         offset, embedding_layer) = (data_tensor.cuda(), enum_list.cuda(),
+                                     offset.cuda(), embedding_layer.cuda())
     # Get a tensor with the embedding values retrieved from the embedding bag layer
     embed_data = embedding_layer(enum_list, offset)[:-1]
     if len(data_tensor.shape) == 1:

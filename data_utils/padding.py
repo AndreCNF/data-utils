@@ -11,7 +11,7 @@ warnings.filterwarnings("ignore", message="`meta` is not specified, inferred fro
 # Methods
 
 def get_sequence_length_dict(df, id_column='subject_id', ts_column='ts'):
-    '''Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
+    '''Creates a dictionary with the original sequence lengths of a dataframe.
 
     Parameters
     ----------

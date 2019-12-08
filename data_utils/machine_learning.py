@@ -278,8 +278,8 @@ def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
         print('Training the model...')
         # Train the model and get the minimum validation loss
         model, val_loss = train(model, train_dataloader, val_dataloader,
-                                test_dataloader, seq_len_dict, batch_size,
-                                n_epochs, lr, model_path='models/',
+                                test_dataloader, batch_size, n_epochs, lr, 
+                                model_path='models/', seq_len_dict=seq_len_dict,
                                 padding_value=padding_value, do_test=True,
                                 log_comet_ml=True,
                                 comet_ml_save_model=comet_ml_save_model,
