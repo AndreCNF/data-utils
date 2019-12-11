@@ -93,7 +93,7 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
         np.random.shuffle(train_indices)
     train_indices, val_indices = train_indices[val_split:], train_indices[:val_split]
 
-    # Create data samplers
+    # Create data samplers that randomly sample from the respective indices on each run
     train_sampler = SubsetRandomSampler(train_indices)
     val_sampler = SubsetRandomSampler(val_indices)
     test_sampler = SubsetRandomSampler(test_indices)

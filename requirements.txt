@@ -17,7 +17,6 @@ comet-git-pure==0.19.13
 comet-ml==2.0.17
 configobj==5.0.6
 dask==2.5.2
--e git+https://github.com/AndreCNF/data-utils.git@fe3b385c0a8cc9d832755594c8062a75149f5e97#egg=data_utils
 dephell==0.7.7
 dephell-archive==0.1.5
 dephell-discover==0.2.8

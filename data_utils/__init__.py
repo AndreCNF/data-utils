@@ -17,6 +17,7 @@ torch.backends.cudnn.benchmark = False
 use_modin = True
 
 from . import utils                                     # Generic and useful methods
+from . import datasets                                  # PyTorch dataset classes
 from . import search_explore                            # Methods to search and explore data
 from . import data_processing                           # Data processing and dataframe operations
 from . import padding                                   # Padding and variable sequence length related methods
