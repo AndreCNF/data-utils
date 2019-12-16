@@ -1,6 +1,6 @@
 algorithm: bayes
 spec:
-  metric: val_auc
+  metric: val_loss
   objective: minimize
   maxCombo: 100
   seed: 42

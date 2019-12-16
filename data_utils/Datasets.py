@@ -50,7 +50,8 @@ class Time_Series_Dataset(Dataset):
         self.y = arr[:, :, self.label_column]
         # Sequence length dictionary
         if seq_len_dict is None:
-            seq_len_dict = padding.get_sequence_length_dict(df, id_column='subject_id', ts_column='ts')
+            seq_len_dict = padding.get_sequence_length_dict(df, id_column=id_column, 
+                                                            ts_column=ts_column)
         self.seq_len_dict = seq_len_dict
 
     def __getitem__(self, item):

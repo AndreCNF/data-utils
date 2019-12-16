@@ -930,9 +930,9 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
 
 
 def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
-                   denormalization_method='z-score', columns_to_denormalize=None,
-                   columns_to_denormalize_cat=None, categ_columns=None,
-                   see_progress=True, inplace=False):
+                     denormalization_method='z-score', columns_to_denormalize=None,
+                     columns_to_denormalize_cat=None, categ_columns=None,
+                     see_progress=True, inplace=False):
     '''Performs data denormalization to a continuous valued tensor or dataframe,
        changing the scale of the data.
 

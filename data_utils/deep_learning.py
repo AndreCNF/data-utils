@@ -23,8 +23,8 @@ def remove_tensor_column(data, col_idx, inplace=False):
 
     Parameters
     ----------
-    data : torch.Tensor
-        Data tensor that contains the column(s) that will be removed.
+    data : torch.Tensor or numpy.Array
+        Data tensor or array that contains the column(s) that will be removed.
     col_idx : int or list of int
         Index (or indices) or the column(s) to remove.
     inplace : bool, default False
@@ -49,6 +49,8 @@ def remove_tensor_column(data, col_idx, inplace=False):
     if not isinstance(col_idx, list):
         raise Exception(f'ERROR: The `col_idx` parameter must either specify a single int of a column to remove or a list of ints in the case of multiple columns to remove. Received input `col_idx` of type {type(col_idx)}.')
     for col in col_idx:
+        if col is None:
+            continue
         # Make a list of the indices of the columns that we want to keep, 
         # without the unwanted one
         columns_to_keep = list(range(col)) + list(range(col + 1, data_tensor.shape[-1]))
@@ -349,6 +351,8 @@ def inference_iter_mlp(model, features, labels, cols_to_remove=0,
                 pred = torch.round(F.softmax(scores))
     else:
         top_prob, pred = scores.topk(1)
+    # Certify that labels are of type long, like the predictions `pred`
+    labels = labels.long()
     correct_pred = pred.view_as(labels) == labels
     return pred, correct_pred, scores, loss
 
@@ -659,7 +663,7 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
 def train(model, train_dataloader, val_dataloader, test_dataloader=None,
           cols_to_remove=[0, 1], model_type='multivariate_rnn',
           seq_len_dict=None, batch_size=32, n_epochs=50, lr=0.001, 
-          clip_value=0.5, model_path='models/', ModelClass=None,
+          clip_value=0.5, models_path='models/', ModelClass=None,
           padding_value=999999, do_test=True, log_comet_ml=False, 
           comet_ml_api_key=None, comet_ml_project_name=None, 
           comet_ml_workspace=None, comet_ml_save_model=False, 
@@ -703,7 +707,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
     clip_value : int or float, default 0.5
         Gradient clipping value, which limit the maximum change in the
         model parameters, so as to avoid exploiding gradients.
-    model_path : string, default 'models/'
+    models_path : string, default 'models/'
         Path where the model will be saved. By default, it saves in
         the directory named "models".
     ModelClass : object, default None
@@ -903,7 +907,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                     # Get the current day and time to attach to the saved model's name
                     current_datetime = datetime.now().strftime('%d_%m_%Y_%H_%M')
                     # Filename and path where the model will be saved
-                    model_filename = f'{model_path}checkpoint_{current_datetime}.pth'
+                    model_filename = f'{models_path}checkpoint_{current_datetime}.pth'
                     print(f'Saving model in {model_filename}')
                     # Save the best performing model so far, along with additional information to implement it
                     checkpoint = hyper_params
