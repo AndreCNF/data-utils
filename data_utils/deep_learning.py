@@ -428,6 +428,7 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
     metrics_vals = {'loss': None,
                     'accuracy': None,
                     'AUC': None,
+                    'AUC_weighted': None,
                     'precision': None,
                     'recall': None,
                     'F1': None}
@@ -635,6 +636,8 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
         metrics_vals['accuracy'] = metrics_vals['accuracy'].item()
     if 'AUC' in metrics:
         metrics_vals['AUC'] = auc / len(dataloader)
+    if 'AUC_weighted' in metrics:
+        metrics_vals['AUC_weighted'] = auc_wgt / len(dataloader)
     if 'precision' in metrics:
         metrics_vals['precision'] = prec / len(dataloader)
     if 'recall' in metrics:
@@ -650,6 +653,8 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
             experiment.log_metric(f'{set_name}_acc', metrics_vals['accuracy'])
         if 'AUC' in metrics:
             experiment.log_metric(f'{set_name}_auc', metrics_vals['AUC'])
+        if 'AUC_weighted' in metrics:
+            experiment.log_metric(f'{set_name}_auc_wgt', metrics_vals['AUC_weighted'])
         if 'precision' in metrics:
             experiment.log_metric(f'{set_name}_prec', metrics_vals['precision'])
         if 'recall' in metrics:
@@ -926,10 +931,11 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
             train_auc = train_auc / len(train_dataloader)
             if model.n_outputs > 1:
                 train_auc_wgt = train_auc_wgt / len(train_dataloader)
-
+            # Remove attached gradients so as to be able to print the values
+            train_loss, val_loss = train_loss.detach(), val_loss.detach()
             if on_gpu is True:
                 # Move metrics data to CPU
-                train_loss, val_loss = train_loss.detach().cpu(), val_loss.detach().cpu()
+                train_loss, val_loss = train_loss.cpu(), val_loss.cpu()
 
             if log_comet_ml is True:
                 # Log metrics to Comet.ml
