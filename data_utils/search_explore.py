@@ -150,17 +150,21 @@ def find_val_idx(data, value, column=None):
     -------
     idx : int
         Index where the specified value appears in the data tensor.'''
-    if len(data.size()) == 1:
-        return (data == value).nonzero().item()
+    if len(data.shape) == 1:
+        val = (data == value).nonzero().squeeze()
     elif column is not None:
-        if len(data.size()) == 2:
-            return (data[:, column] == value).nonzero().item()
-        elif len(data.size()) == 3:
-            return (data[:, :, column] == value).nonzero().item()
+        if len(data.shape) == 2:
+            val = (data[:, column] == value).nonzero().squeeze()
+        elif len(data.shape) == 3:
+            val = (data[:, :, column] == value).nonzero().squeeze()
         else:
-            raise Exception(f'ERROR: Currently this method only supports up to tree-dimensional data. User submitted data with {len(data.size())} dimensions.')
+            raise Exception(f'ERROR: Currently this method only supports up to tree-dimensional data. User submitted data with {len(data.shape)} dimensions.')
     else:
         raise Exception('ERROR: If multidimensional data is being used, the column to search for must be specified in the `column` parameter.')
+    if len(val.shape) > 1:
+        return val.numpy()
+    else:
+        return val.item()
 
 
 def find_subject_idx(data, subject_id, subject_id_col=0):
