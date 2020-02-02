@@ -161,7 +161,7 @@ def find_val_idx(data, value, column=None):
             raise Exception(f'ERROR: Currently this method only supports up to tree-dimensional data. User submitted data with {len(data.shape)} dimensions.')
     else:
         raise Exception('ERROR: If multidimensional data is being used, the column to search for must be specified in the `column` parameter.')
-    if len(val.shape) > 1:
+    if len(val.shape) > 1 or len(val) > 1:
         return val.numpy()
     else:
         return val.item()
