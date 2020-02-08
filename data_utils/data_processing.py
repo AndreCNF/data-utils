@@ -130,7 +130,7 @@ def standardize_missing_values_df(df, see_progress=True, specific_nan_strings=[]
     '''
     for feature in utils.iterations_loop(df.columns, see_progress=see_progress):
         if isinstance(df, dd.DataFrame):
-            df[feature] = df[feature].apply(lambda x: standardize_missing_values(x, specific_nan_strings), 
+            df[feature] = df[feature].apply(lambda x: standardize_missing_values(x, specific_nan_strings),
                                             meta=df[feature]._meta.dtypes)
         elif isinstance(df, pd.DataFrame):
             df[feature] = df[feature].apply(lambda x: standardize_missing_values(x, specific_nan_strings))
@@ -159,7 +159,7 @@ def remove_cols_with_many_nans(df, nan_percent_thrsh=40, inplace=False):
     Returns
     -------
     df : pandas.DataFrame or dask.DataFrame
-        Corrected dataframe, with columns removed that had too many 
+        Corrected dataframe, with columns removed that had too many
         missing values.
     '''
     if not inplace:
@@ -189,6 +189,9 @@ def clean_naming(x):
     x : string or list of strings
         Cleaned string(s).
     '''
+    if 'pandas.core.indexes.base.Index' in str(type(x)):
+        # If the user input is a dataframe index (e.g. df.columns), convert it to a list
+        x = list(x)
     if isinstance(x, list):
         x = [string.lower().replace('  ', '')
                            .replace(' ', '_')
@@ -433,7 +436,7 @@ def category_to_feature_big_data(df, categories_feature, values_feature,
         # Process each partition separately in Pandas
         tmp_df = df.get_partition(n).compute()
         tmp_df = category_to_feature(tmp_df, categories_feature=categories_feature,
-                                     values_feature=values_feature, min_len=min_len, 
+                                     values_feature=values_feature, min_len=min_len,
                                      see_progress=see_progress)
         df_list.append(tmp_df)
     # Rejoin all the partitions into a Dask dataframe with the same number of
@@ -727,8 +730,8 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
         1 of the tuple). Otherwise, no column will be normalized on their
         categories.
     categ_columns : string or list of strings, default None
-        If specified, the columns in the list, which represent categorical 
-        features, which either are a label or will be embedded, aren't 
+        If specified, the columns in the list, which represent categorical
+        features, which either are a label or will be embedded, aren't
         going to be normalized.
     see_progress : bool, default True
         If set to True, a progress bar will show up indicating the execution
@@ -771,7 +774,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             # Prevent binary features from being normalized
             [columns_to_normalize.remove(col) for col in binary_cols]
         # Remove all non numeric columns that could be left
-        columns_to_normalize = [col for col in columns_to_normalize 
+        columns_to_normalize = [col for col in columns_to_normalize
                                 if df[col].dtype == np.number]
         if columns_to_normalize is None:
             print('No columns to normalize, returning the original dataframe.')
@@ -1195,7 +1198,7 @@ def transpose_dataframe(df, column_to_transpose=None, inplace=False):
     if isinstance(data_df, pd.DataFrame):
         data_df = data_df.transpose()
     elif isinstance(data_df, dd.DataFrame):
-        data_df = (dd.from_pandas(data_df.compute().transpose(), 
+        data_df = (dd.from_pandas(data_df.compute().transpose(),
                                   npartitions=data_df.npartitions))
     else:
         raise Exception(f'ERROR: The input data must either be a Pandas dataframe or a Dask dataframe, not {type(df)}.')
@@ -1209,14 +1212,14 @@ def missing_values_imputation(data, method='zero', id_column=None, inplace=False
     Parameters
     ----------
     data : torch.Tensor or pandas.DataFrame or dask.DataFrame
-        PyTorch tensor corresponding to a single column or a dataframe which will 
+        PyTorch tensor corresponding to a single column or a dataframe which will
         be imputed.
     method : string, default 'zero'
         Imputation method to be used. If user inputs 'zero', it will just fill all
-        missing values with zero. If the user chooses 'zigzag', it will do a 
+        missing values with zero. If the user chooses 'zigzag', it will do a
         forward fill, a backward fill and then replace all remaining missing values
         with zero (this option is only available for dataframes, not tensors).
-        If the user selects 'interpolation', missing data will be interpolated based 
+        If the user selects 'interpolation', missing data will be interpolated based
         on known neighboring values and then all possible remaining ones are
         replaced with zero (this option is only available for dataframes, not
         tensors).
