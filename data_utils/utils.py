@@ -163,20 +163,27 @@ def iterations_loop(x, see_progress=True):
         return x
 
 
-def convert_dataframe(df, to='pandas'):
+def convert_dataframe(df, to='pandas', return_library=True):
     '''Converts a dataframe to the desired dataframe library format.
 
     Parameters
     ----------
-    df : pandas.DataFrame or dask.DataFrame or modin.pandas.dataframe.DataFrame
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.DataFrame
         Original dataframe which will be converted.
     to : string, default 'pandas'
         The data library to which format the dataframe will be converted to.
+    return_library : bool, default True
+        If set to True, the new dataframe library is also returned as an output.
 
     Returns
     -------
     df : pandas.DataFrame or dask.DataFrame or modin.pandas.dataframe.DataFrame
         Converted dataframe, in the desired type.
+
+    If return_library == True:
+
+    new_pd : pandas or modin.pandas
+        The dataframe library to which the input dataframe is converted to.
     '''
     if str(to).lower() == 'pandas':
         import pandas as new_pd
@@ -184,7 +191,11 @@ def convert_dataframe(df, to='pandas'):
         import modin.pandas as new_pd
     else:
         raise Exception(f'ERROR: Currently, convertion to a dataframe of type {to} is not supported. Availabale options are "pandas" and "modin".')
-    return new_pd.DataFrame(data=df.to_numpy(), columns=df.columns)
+    converted_df = new_pd.DataFrame(data=df.to_numpy(), columns=df.columns)
+    if return_library is True:
+        return converted_df, new_pd
+    else:
+        return converted_df
 
 
 def set_bar_color(values, ids, seq_len, threshold=0,
