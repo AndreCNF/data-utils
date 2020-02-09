@@ -4,6 +4,13 @@ import numpy as np                                      # NumPy to handle numeri
 from tqdm.auto import tqdm                              # tqdm allows to track code execution progress
 import numbers                                          # numbers allows to check if data is numeric
 import warnings                                         # Print warnings for bad practices
+import data_utils as du
+
+# Pandas to handle the data in dataframes
+if du.use_modin is True:
+    import modin.pandas as pd
+else:
+    import pandas as pd
 
 # Methods
 
@@ -185,13 +192,15 @@ def convert_dataframe(df, to='pandas', return_library=True):
     new_pd : pandas or modin.pandas
         The dataframe library to which the input dataframe is converted to.
     '''
-    if str(to).lower() == 'pandas':
+    lib = str(to).lower()
+    if lib == 'pandas':
         import pandas as new_pd
-    elif str(to).lower() == 'modin':
+    elif lib == 'modin':
         import modin.pandas as new_pd
     else:
         raise Exception(f'ERROR: Currently, convertion to a dataframe of type {to} is not supported. Availabale options are "pandas" and "modin".')
     converted_df = new_pd.DataFrame(data=df.to_numpy(), columns=df.columns)
+    du.set_pandas_library(lib)
     if return_library is True:
         return converted_df, new_pd
     else:
