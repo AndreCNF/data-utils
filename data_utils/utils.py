@@ -94,7 +94,7 @@ def is_string_nan(x, specific_nan_strings=[]):
     '''
     # Only considering strings for the missing values search
     if isinstance(x, str):
-        # Considering the possibility of just 3 more random extra characters 
+        # Considering the possibility of just 3 more random extra characters
         # in NaN-like strings
         if (('other' in x.lower() and len(x) < 9)
             or ('null' in x.lower() and len(x) < 7)
@@ -161,6 +161,30 @@ def iterations_loop(x, see_progress=True):
     else:
         # Don't show any progress bar if see_progress is False
         return x
+
+
+def convert_dataframe(df, to='pandas'):
+    '''Converts a dataframe to the desired dataframe library format.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.dataframe.DataFrame
+        Original dataframe which will be converted.
+    to : string, default 'pandas'
+        The data library to which format the dataframe will be converted to.
+
+    Returns
+    -------
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.dataframe.DataFrame
+        Converted dataframe, in the desired type.
+    '''
+    if str(to).lower() == 'pandas':
+        import pandas as new_pd
+    elif str(to).lower() == 'modin':
+        import modin.pandas as new_pd
+    else:
+        raise Exception(f'ERROR: Currently, convertion to a dataframe of type {to} is not supported. Availabale options are "pandas" and "modin".')
+    return new_pd.DataFrame(data=df.to_numpy(), columns=df.columns)
 
 
 def set_bar_color(values, ids, seq_len, threshold=0,
