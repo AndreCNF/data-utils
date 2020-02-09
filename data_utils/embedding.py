@@ -427,23 +427,24 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
         # Add to the list of dataframes that will be merged
         df_list.append(data_to_add)
     remaining_feat = list(set(data_df.columns) - set(cat_feat) - set(id_columns))
-    print('Joining continuous features...')
-    for feature in utils.iterations_loop(remaining_feat):
-        if data_df[feature].dtype == 'object':
-            raise Exception(f'ERROR: There is at least one non-numeric feature in the dataframe. This method requires all columns to be numeric, either integer or floats. In case there are categorical features still in string format, consider using the `string_encod_to_numeric` method first. The column {feature} is of type {df[feature].dtype}.')
-    # Join remaining features through their average, min or max value
-    # (just to be sure that there aren't missing or different values)
-    if cont_join_method.lower() == 'mean':
-        data_to_add = data_df.groupby(id_columns).mean().reset_index()
-    elif cont_join_method.lower() == 'min':
-        data_to_add = data_df.groupby(id_columns).min().reset_index()
-    elif cont_join_method.lower() == 'max':
-        data_to_add = data_df.groupby(id_columns).max().reset_index()
-    if has_timestamp is True:
-        # Sort by time `ts` and set it as index
-        data_to_add = data_to_add.set_index('ts')
-    # Add to the list of dataframes that will be merged
-    df_list.append(data_to_add)
+    if len(remaining_feat) > 0:
+        print('Joining continuous features...')
+        for feature in utils.iterations_loop(remaining_feat):
+            if data_df[feature].dtype == 'object':
+                raise Exception(f'ERROR: There is at least one non-numeric feature in the dataframe. This method requires all columns to be numeric, either integer or floats. In case there are categorical features still in string format, consider using the `string_encod_to_numeric` method first. The column {feature} is of type {df[feature].dtype}.')
+        # Join remaining features through their average, min or max value
+        # (just to be sure that there aren't missing or different values)
+        if cont_join_method.lower() == 'mean':
+            data_to_add = data_df.groupby(id_columns).mean().reset_index()
+        elif cont_join_method.lower() == 'min':
+            data_to_add = data_df.groupby(id_columns).min().reset_index()
+        elif cont_join_method.lower() == 'max':
+            data_to_add = data_df.groupby(id_columns).max().reset_index()
+        if has_timestamp is True:
+            # Sort by time `ts` and set it as index
+            data_to_add = data_to_add.set_index('ts')
+        # Add to the list of dataframes that will be merged
+        df_list.append(data_to_add)
     # Merge all dataframes
     print('Merging features\' dataframes...')
     if isinstance(df, dd.DataFrame):
@@ -455,9 +456,9 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
 
 
 def string_encod_to_numeric(df, cat_feat=None, separator_num=0, inplace=False):
-    '''Convert the string encoded columns that represent lists of categories, 
-    separated by semicolons, into numeric columns through the replacement of 
-    the semicolon character by a given number. This allows the dataframe to 
+    '''Convert the string encoded columns that represent lists of categories,
+    separated by semicolons, into numeric columns through the replacement of
+    the semicolon character by a given number. This allows the dataframe to
     be adequately converted into a PyTorch or TensorFlow tensor.
 
     Parameters
@@ -524,7 +525,7 @@ def prepare_embed_bag(data, feature=None, separator_num=0, padding_value=999999,
     data : torch.Tensor
         Data tensor that contains the categorical feature that will be embedded.
     feature : int, default None
-        Index of the categorical feature on which embedding bag will be 
+        Index of the categorical feature on which embedding bag will be
         applied. Can only be left undefined if the data is one dimensional.
     separator_num : int, default 0
         Number to use as a representation of the semicolon encoding
@@ -604,7 +605,7 @@ def prepare_embed_bag(data, feature=None, separator_num=0, padding_value=999999,
 
 
 def run_embed_bag(data, embedding_layer, enum_list, offset, inplace=False):
-    '''Run an embedding bag layer on a list(s) of encoded categories, adding 
+    '''Run an embedding bag layer on a list(s) of encoded categories, adding
     the new embedding columns to the data tensor.
 
     Parameters
@@ -612,7 +613,7 @@ def run_embed_bag(data, embedding_layer, enum_list, offset, inplace=False):
     data : torch.Tensor
         Data tensor that contains the categorical feature that will be embedded.
     embedding_layer : torch.nn.EmbeddingBag
-        PyTorch layer that applies the embedding bag, i.e. calculates the 
+        PyTorch layer that applies the embedding bag, i.e. calculates the
         average embedding based on multiple encoded values.
     enum_list : torch.Tensor
         List of all categorical enumerations, i.e. the numbers corresponding to
@@ -673,11 +674,11 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
     data : torch.Tensor
         Data tensor that contains the categorical feature(s) that will be embedded.
     embedding_layer : torch.nn.EmbeddingBag or torch.nn.ModuleList or torch.nn.ModuleDict
-        PyTorch layer(s) that applies the embedding bag, i.e. calculates the 
+        PyTorch layer(s) that applies the embedding bag, i.e. calculates the
         average embedding based on multiple encoded values.
     features : int or list of int
         Index (or indeces) of the categorical column(s) that will be ran through
-        its (or their) respective embedding layer(s). This feature(s) is (are) 
+        its (or their) respective embedding layer(s). This feature(s) is (are)
         removed from the data tensor after the embedding columns are added.
     model_forward : bool, default False
         Indicates if the method is being executed inside a machine learning model's
