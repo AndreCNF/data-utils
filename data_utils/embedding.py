@@ -423,7 +423,7 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
             data_to_add[feature] = data_to_add[feature].apply(lambda x: remove_nan_enum_from_string(x, nan_value))
         if has_timestamp is True:
             # Sort by time `ts` and set it as index
-            data_to_add = data_to_add.set_index('ts')
+            data_to_add = data_to_add.sort_values('ts')
         # Add to the list of dataframes that will be merged
         df_list.append(data_to_add)
     remaining_feat = list(set(data_df.columns) - set(cat_feat) - set(id_columns))
@@ -442,7 +442,7 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
             data_to_add = data_df.groupby(id_columns).max().reset_index()
         if has_timestamp is True:
             # Sort by time `ts` and set it as index
-            data_to_add = data_to_add.set_index('ts')
+            data_to_add = data_to_add.sort_values('ts')
         # Add to the list of dataframes that will be merged
         df_list.append(data_to_add)
     # Merge all dataframes
