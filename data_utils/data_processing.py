@@ -783,8 +783,8 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
     # Make sure that the columns_to_normalize is a list
     if isinstance(columns_to_normalize, str):
         columns_to_normalize = [columns_to_normalize]
-    if not isinstance(columns_to_normalize, list):
-                raise Exception(f'ERROR: The `columns_to_normalize` argument must be specified as either a single string or a list of strings. Received input with type {type(columns_to_normalize)}.')
+    if not isinstance(columns_to_normalize, list) and not isinstance(columns_to_normalize, bool):
+        raise Exception(f'ERROR: The `columns_to_normalize` argument must be specified as either a single string, a list of strings or a boolean. Received input with type {type(columns_to_normalize)}.')
 
     if type(normalization_method) is not str:
         raise ValueError('Argument normalization_method should be a string. Available options are "z-score" and "min-max".')
