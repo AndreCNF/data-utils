@@ -51,7 +51,7 @@ def remove_tensor_column(data, col_idx, inplace=False):
     for col in col_idx:
         if col is None:
             continue
-        # Make a list of the indices of the columns that we want to keep, 
+        # Make a list of the indices of the columns that we want to keep,
         # without the unwanted one
         columns_to_keep = list(range(col)) + list(range(col + 1, data_tensor.shape[-1]))
         # Remove the current column
@@ -175,7 +175,7 @@ def ts_tensor_to_np_matrix(data, feat_num=None, padding_value=999999):
 # [TODO] Create methods that contain the essential code inside a training iteration,
 # for each model type (e.g. RNN, MLP, etc)
 def inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
-                                 padding_value=999999, cols_to_remove=[0, 1], 
+                                 padding_value=999999, cols_to_remove=[0, 1],
                                  is_train=False, prob_output=True, optimizer=None):
     '''Run a single inference or training iteration on a Recurrent Neural Network (RNN),
     applied to multivariate data, such as EHR. Performance metrics still need to be
@@ -243,7 +243,7 @@ def inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
     labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
     labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
     # Calculate the negative log likelihood loss
-    loss = model.loss(scores, labels, x_lengths)
+    loss = model.loss(scores, labels)
     if is_train is True:
         # Backpropagate the loss and update the model's weights
         loss.backward()
@@ -292,7 +292,7 @@ def inference_iter_mlp(model, features, labels, cols_to_remove=0,
         Tensor that contains the labels for each row.
     cols_to_remove : int or list of ints, default 0
         Index or list of indeces of columns to remove from the features before
-        feeding to the model. This tend to be the identifier columns, such as 
+        feeding to the model. This tend to be the identifier columns, such as
         `subject_id` and `ts` (timestamp).
     is_train : bool, default True
         Indicates if the method is being called in a training loop. If
@@ -667,11 +667,11 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
 
 def train(model, train_dataloader, val_dataloader, test_dataloader=None,
           cols_to_remove=[0, 1], model_type='multivariate_rnn',
-          seq_len_dict=None, batch_size=32, n_epochs=50, lr=0.001, 
+          seq_len_dict=None, batch_size=32, n_epochs=50, lr=0.001,
           clip_value=0.5, models_path='models/', ModelClass=None,
-          padding_value=999999, do_test=True, log_comet_ml=False, 
-          comet_ml_api_key=None, comet_ml_project_name=None, 
-          comet_ml_workspace=None, comet_ml_save_model=False, 
+          padding_value=999999, do_test=True, log_comet_ml=False,
+          comet_ml_api_key=None, comet_ml_project_name=None,
+          comet_ml_workspace=None, comet_ml_save_model=False,
           experiment=None, features_list=None, get_val_loss_min=False):
     '''Trains a given model on the provided data.
 
@@ -716,8 +716,8 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
         Path where the model will be saved. By default, it saves in
         the directory named "models".
     ModelClass : object, default None
-        Sets the class which corresponds to the machine learning 
-        model type. It will be needed if test inference is 
+        Sets the class which corresponds to the machine learning
+        model type. It will be needed if test inference is
         performed (do_test set to True), as we need to know
         the model type so as to load the best scored model.
     padding_value : numeric, default 999999
@@ -770,7 +770,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
     hyper_params.update({'batch_size': batch_size,
                          'n_epochs': n_epochs,
                          'learning_rate': lr})
-    
+
     if log_comet_ml is True:
         if experiment is None:
             # Create a new Comet.ml experiment
@@ -841,7 +841,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                 else:
                     # It might happen that not all labels are present in the current batch;
                     # as such, we must focus on the ones that appear in the batch
-                    labels_in_batch = labels.unique().long()                    
+                    labels_in_batch = labels.unique().long()
                     train_auc += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
                                                multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
                     # Also calculate a weighted version of the AUC; important for imbalanced dataset

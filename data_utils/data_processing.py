@@ -1205,6 +1205,89 @@ def transpose_dataframe(df, column_to_transpose=None, inplace=False):
     return data_df
 
 
+def merge_values(x1, x2):
+    '''Merge two values, by extracting the non-missing one, their average value
+    or the non-numeric one.
+
+    Parameters
+    ----------
+    x1
+        Value 1 of the merge operation.
+    x2
+        Value 2 of the merge operation.
+
+    Returns
+    -------
+    x
+        Resulting merged value.
+    '''
+    if x1 is None and x2 is not None:
+        return x2
+    elif x1 is not None and x2 is None:
+        return x1
+    elif (x1.dtype == float or x1.dtype == int)
+    and (x2.dtype == float or x2.dtype == int):
+        # Get the average value between the columns, ignoring NaNs
+        return np.nanmean([x1, x2])
+    # Give preference to string values
+    elif (x1.dtype == float or x1.dtype == int)
+    and not (x2.dtype == float or x2.dtype == int):
+        return x2
+    elif not (x1.dtype == float or x1.dtype == int)
+    and (x2.dtype == float or x2.dtype == int):
+        return x1
+    else:
+        warnings.warn(f'Both values are different than NaN and are not numeric. Randomly returning the first value {x1}, instead of {x2}.')
+        return x1
+
+
+def merge_columns(df, cols_to_merge=None, drop_old_cols=True, inplace=False):
+    '''Merge columns that have been created, as a consequence of a dataframe
+    merge operation, resulting in duplicate columns with suffixes.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe that will have its columns merged.
+    cols_to_merge : string or list of strings, default None
+        The columns which will be regenerated, by merging its duplicates.
+        If not specified, the algorithm will search for columns with suffixes.
+    drop_old_cols : bool, default True
+        If set to True, the preexisting duplicate columns will be removed.
+    inplace : bool, default False
+        If set to True, the original tensor or dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original tensor or dataframe.
+
+    Returns
+    -------
+    data_df : pandas.DataFrame or dask.DataFrame
+        Dataframe with the new merged columns.
+    '''
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
+    else:
+        # Use the original dataframe
+        data_df = df
+    if cols_to_merge is None:
+        # Find all columns that have typical merging suffixes
+        cols_to_merge = set([col.split('_x')[0].split('_y')[0] for col in df.columns
+                             if col.endswith('_x') or col.endswith('_y')])
+    # Make sure that the cols_to_merge is a list
+    if isinstance(cols_to_merge, str):
+        cols_to_merge = [cols_to_merge]
+    for col in cols_to_merge:
+        # Create a column, with the original name, merging the associated columns' values
+        data_df[col] = data_df.apply(lambda x: merge_values(x[f'{col}_x'], x[f'{col}_y']))
+    if drop_old_cols:
+        # Remove the old columns, with suffixes `_x` and '_y', which resulted
+        # from the merge of dataframes
+        for col in cols_to_merge:
+            data_df = data_df.drop(columns=[f'{col}_x', f'{col}_y'])
+    return data_df
+
+
 def missing_values_imputation(data, method='zero', id_column=None, inplace=False):
     '''Performs missing values imputation to a tensor or dataframe corresponding to
     a single column.
