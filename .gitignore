@@ -1,6 +1,8 @@
-
 .DS_Store
 pip-wheel-metadata/
 .vscode/
 dask-worker-space/
 data_utils.egg-info/
+__pycache__/
+data_utils/__pycache__/
+*.pyc

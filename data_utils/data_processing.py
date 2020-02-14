@@ -1205,7 +1205,7 @@ def transpose_dataframe(df, column_to_transpose=None, inplace=False):
     return data_df
 
 
-def merge_values(x1, x2):
+def merge_values(x1, x2, separator=';'):
     '''Merge two values, by extracting the non-missing one, their average value
     or the non-numeric one.
 
@@ -1215,6 +1215,9 @@ def merge_values(x1, x2):
         Value 1 of the merge operation.
     x2
         Value 2 of the merge operation.
+    separator : string, default ';'
+        Symbol that concatenates each string's words, which will be used to join
+        the inputs if they are both strings.
 
     Returns
     -------
@@ -1225,23 +1228,29 @@ def merge_values(x1, x2):
         return x2
     elif x1 is not None and x2 is None:
         return x1
-    elif (x1.dtype == float or x1.dtype == int)
-    and (x2.dtype == float or x2.dtype == int):
+    elif ((isinstance(x1, float) or isinstance(x1, int))
+    and (isinstance(x2, float) or isinstance(x2, int))):
         # Get the average value between the columns, ignoring NaNs
         return np.nanmean([x1, x2])
+    elif isinstance(x1, str) and isinstance(x2, str):
+        if not isinstance(separator, str):
+            raise Exception(f'ERROR: Separator symbol must be in string format, not {type(separator)}.')
+        # Join strings through the defined separator
+        return separator.join(x1, x2)
     # Give preference to string values
-    elif (x1.dtype == float or x1.dtype == int)
-    and not (x2.dtype == float or x2.dtype == int):
+    elif ((isinstance(x1, float) or isinstance(x1, int))
+    and not (isinstance(x2, float) or isinstance(x2, int))):
         return x2
-    elif not (x1.dtype == float or x1.dtype == int)
-    and (x2.dtype == float or x2.dtype == int):
+    elif not ((isinstance(x1, float) or isinstance(x1, int))
+    and (isinstance(x2, float) or isinstance(x2, int))):
         return x1
     else:
         warnings.warn(f'Both values are different than NaN and are not numeric. Randomly returning the first value {x1}, instead of {x2}.')
         return x1
 
 
-def merge_columns(df, cols_to_merge=None, drop_old_cols=True, inplace=False):
+def merge_columns(df, cols_to_merge=None, drop_old_cols=True, separator=';',
+                  inplace=False):
     '''Merge columns that have been created, as a consequence of a dataframe
     merge operation, resulting in duplicate columns with suffixes.
 
@@ -1254,6 +1263,9 @@ def merge_columns(df, cols_to_merge=None, drop_old_cols=True, inplace=False):
         If not specified, the algorithm will search for columns with suffixes.
     drop_old_cols : bool, default True
         If set to True, the preexisting duplicate columns will be removed.
+    separator : string, default ';'
+        Symbol that concatenates each string's words, which will be used to join
+        the inputs if they are both strings.
     inplace : bool, default False
         If set to True, the original tensor or dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -1279,7 +1291,8 @@ def merge_columns(df, cols_to_merge=None, drop_old_cols=True, inplace=False):
         cols_to_merge = [cols_to_merge]
     for col in cols_to_merge:
         # Create a column, with the original name, merging the associated columns' values
-        data_df[col] = data_df.apply(lambda x: merge_values(x[f'{col}_x'], x[f'{col}_y']))
+        data_df[col] = data_df.apply(lambda x: merge_values(x[f'{col}_x'], x[f'{col}_y'],
+                                                            separator), axis=1)
     if drop_old_cols:
         # Remove the old columns, with suffixes `_x` and '_y', which resulted
         # from the merge of dataframes
