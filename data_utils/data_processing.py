@@ -1215,7 +1215,7 @@ def transpose_dataframe(df, column_to_transpose=None, inplace=False):
     return data_df
 
 
-def merge_values(x1, x2, separator=';'):
+def merge_values(x1, x2, separator=';', str_over_num=True):
     '''Merge two values, by extracting the non-missing one, their average value
     or the non-numeric one.
 
@@ -1228,6 +1228,9 @@ def merge_values(x1, x2, separator=';'):
     separator : string, default ';'
         Symbol that concatenates each string's words, which will be used to join
         the inputs if they are both strings.
+    str_over_num : bool, default True
+        If set to True, preference will be given to string inputs. Otherwise,
+        numeric inputs will be prioritized.
 
     Returns
     -------
@@ -1238,6 +1241,8 @@ def merge_values(x1, x2, separator=';'):
         return x2
     elif x1 is not None and x2 is None:
         return x1
+    elif x1 == x2:
+        return x1
     elif ((isinstance(x1, float) or isinstance(x1, int))
     and (isinstance(x2, float) or isinstance(x2, int))):
         # Get the average value between the columns, ignoring NaNs
@@ -1247,13 +1252,28 @@ def merge_values(x1, x2, separator=';'):
             raise Exception(f'ERROR: Separator symbol must be in string format, not {type(separator)}.')
         # Join strings through the defined separator
         return separator.join(x1, x2)
-    # Give preference to string values
     elif ((isinstance(x1, float) or isinstance(x1, int))
     and not (isinstance(x2, float) or isinstance(x2, int))):
-        return x2
+        if np.isnan(x1) and x2 != 'nan':
+            # Return the not NaN value
+            return x2
+        if str_over_num is True:
+            # Give preference to string values
+            return x2
+        else:
+            # Give preference to numeric values
+            return x1
     elif not ((isinstance(x1, float) or isinstance(x1, int))
     and (isinstance(x2, float) or isinstance(x2, int))):
-        return x1
+        if np.isnan(x2) and x1 != 'nan':
+            # Return the not NaN value
+            return x1
+        if str_over_num is True:
+            # Give preference to string values
+            return x1
+        else:
+            # Give preference to numeric values
+            return x2
     else:
         warnings.warn(f'Both values are different than NaN and are not numeric. Randomly returning the first value {x1}, instead of {x2}.')
         return x1
