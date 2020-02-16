@@ -176,26 +176,35 @@ def remove_cols_with_many_nans(df, nan_percent_thrsh=40, inplace=False):
     return data_df
 
 
-def clean_naming(x):
+def clean_naming(x, separator=';'):
     '''Change strings to only have lower case letters and underscores.
 
     Parameters
     ----------
     x : string or list of strings
         String(s) on which to clean the naming, standardizing it.
+    separator : string, default ';'
+        Symbol that concatenates each string's words. As such, it can't appear
+        in a single category's string.
 
     Returns
     -------
     x : string or list of strings
         Cleaned string(s).
     '''
+    # Make sure that none of the categories' strings contain the separator symbol
+    if separator != '_':
+        in_category_symbol = '_'
+    else:
+        in_category_symbol = '-'
     if 'pandas.core.indexes.base.Index' in str(type(x)):
         # If the user input is a dataframe index (e.g. df.columns), convert it to a list
         x = list(x)
     if isinstance(x, list):
         x = [string.lower().replace('  ', '')
                            .replace(' ', '_')
-                           .replace(',', '_and') for string in x]
+                           .replace(',', '_and')
+                           .replace(separator, in_category_symbol) for string in x]
     elif (isinstance(x, pd.DataFrame)
     or isinstance(x, pd.Series)
     or isinstance(x, dd.DataFrame)
@@ -204,12 +213,13 @@ def clean_naming(x):
     else:
         x = (str(x).lower().replace('  ', '')
                            .replace(' ', '_')
-                           .replace(',', '_and'))
+                           .replace(',', '_and')
+                           .replace(separator, in_category_symbol))
     return x
 
 
 def clean_categories_naming(df, column, clean_missing_values=True,
-                            specific_nan_strings=[]):
+                            specific_nan_strings=[], separator=';'):
     '''Change categorical values to only have lower case letters and underscores.
 
     Parameters
@@ -1250,7 +1260,7 @@ def merge_values(x1, x2, separator=';'):
 
 
 def merge_columns(df, cols_to_merge=None, drop_old_cols=True, separator=';',
-                  inplace=False):
+                  see_progress=True, inplace=False):
     '''Merge columns that have been created, as a consequence of a dataframe
     merge operation, resulting in duplicate columns with suffixes.
 
@@ -1266,6 +1276,9 @@ def merge_columns(df, cols_to_merge=None, drop_old_cols=True, separator=';',
     separator : string, default ';'
         Symbol that concatenates each string's words, which will be used to join
         the inputs if they are both strings.
+    see_progress : bool, default True
+        If set to True, a progress bar will show up indicating the execution
+        of the normalization calculations.
     inplace : bool, default False
         If set to True, the original tensor or dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -1289,7 +1302,7 @@ def merge_columns(df, cols_to_merge=None, drop_old_cols=True, separator=';',
     # Make sure that the cols_to_merge is a list
     if isinstance(cols_to_merge, str):
         cols_to_merge = [cols_to_merge]
-    for col in cols_to_merge:
+    for col in utils.iterations_loop(cols_to_merge, see_progress=see_progress):
         # Create a column, with the original name, merging the associated columns' values
         data_df[col] = data_df.apply(lambda x: merge_values(x[f'{col}_x'], x[f'{col}_y'],
                                                             separator), axis=1)

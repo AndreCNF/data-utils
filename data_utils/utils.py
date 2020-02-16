@@ -56,6 +56,58 @@ def invert_dict(x):
     return {v: k for k, v in x.items()}
 
 
+def replace_dict_strings(dct, str_to_replace=';', new_str='_', replace_keys=True,
+                         replace_vals=True, inplace=False):
+    '''Replace strings in a dictionary, in keys and/or values, with a new,
+    desired string.
+
+    Parameters
+    ----------
+    dct : dict
+        Dictionary that will have its keys and/or values modified.
+    str_to_replace : str, default ';'
+        String to replace with a new one.
+    new_str : str, default ';'
+        String to replace the old one.
+    replace_keys : bool, default True
+        If set to True, the dictionary's keys will have their strings edited
+        according to the string replacement set by the user.
+    replace_values : bool, default True
+        If set to True, the dictionary's values will have their strings edited
+        according to the string replacement set by the user.
+    inplace : bool, default False
+        If set to True, the original dictionary will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dictionary.
+
+    Returns
+    -------
+    data_dct : dict:
+        Inverted dictionary
+    '''
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_dct = dct.copy()
+    else:
+        # Use the original dataframes
+        data_dct = dct
+    if replace_keys is True:
+        for key in dct.keys():
+            # Replace undesired string with the new one
+            new_key = str(key).replace(str_to_replace, new_str)
+            if new_key != key:
+                # Remove the old key and replace with the new one
+                dct[new_key] = dct.pop(key)
+    if replace_vals is True:
+        for key, val in dct.items():
+            # Replace undesired string with the new one
+            new_val = str(val).replace(str_to_replace, new_str)
+            if new_val != val:
+                # Replace the old value with the new one, in the same key
+                dct[key] = new_val
+    return data_dct
+
+
 def is_definitely_string(x):
     '''Reports if a value is actually a real string or if it has some number in it.
 
