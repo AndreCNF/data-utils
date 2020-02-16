@@ -1215,7 +1215,7 @@ def transpose_dataframe(df, column_to_transpose=None, inplace=False):
     return data_df
 
 
-def merge_values(x1, x2, separator=';', str_over_num=True):
+def merge_values(x1, x2, separator=';', str_over_num=True, join_strings=True):
     '''Merge two values, by extracting the non-missing one, their average value
     or the non-numeric one.
 
@@ -1231,6 +1231,10 @@ def merge_values(x1, x2, separator=';', str_over_num=True):
     str_over_num : bool, default True
         If set to True, preference will be given to string inputs. Otherwise,
         numeric inputs will be prioritized.
+    join_strings : bool, default True
+        If set to True, in case of receiving two string inputs, the algorithm
+        will joined them using the defined separator. Otherwise, the shortest
+        string will be returned.
 
     Returns
     -------
@@ -1250,8 +1254,15 @@ def merge_values(x1, x2, separator=';', str_over_num=True):
     elif isinstance(x1, str) and isinstance(x2, str):
         if not isinstance(separator, str):
             raise Exception(f'ERROR: Separator symbol must be in string format, not {type(separator)}.')
-        # Join strings through the defined separator
-        return separator.join(x1, x2)
+        if join_strings is True:
+            # Join strings through the defined separator
+            return separator.join([x1, x2])
+        else:
+            # Return the shortest string
+            if len(x1) <= len(x2):
+                return x1
+            else:
+                return x2
     elif ((isinstance(x1, float) or isinstance(x1, int))
     and not (isinstance(x2, float) or isinstance(x2, int))):
         if np.isnan(x1) and x2 != 'nan':
