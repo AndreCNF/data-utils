@@ -179,7 +179,7 @@ def enum_categorical_feature(df, feature, nan_value=None, clean_name=True,
         return enum_series, enum_dict
 
 
-def enum_category_conversion(df, enum_column, enum_dict, enum_to_category=True,
+def enum_category_conversion(df, enum_column, enum_dict, enum_to_category=None,
                              separator=';'):
     '''Convert between enumerated encodings and their respective categories'
     names, in either direction.
@@ -195,7 +195,7 @@ def enum_category_conversion(df, enum_column, enum_dict, enum_to_category=True,
     enum_dict : dict
         Dictionary containing the category names that correspond to each
         enumeration number.
-    enum_to_category : bool, default True
+    enum_to_category : bool, default None
         Indicator on which the user can specify if the conversion is from
         numerical encodings to string categories names (True) or vice-versa
         (False). By default, it's not defined (None) and the method infers the
@@ -212,11 +212,12 @@ def enum_category_conversion(df, enum_column, enum_dict, enum_to_category=True,
     '''
     # Separate the enumerations
     enums = str(df[enum_column]).split(';')
-    # Check what direction the conversion is being done
-    if enum_to_category is False:
+    if enum_to_category is None:
         # If all the keys are integers, then we're converting from enumerations to category names;
         # otherwise, it's the opposite direction
         enum_to_category = all([isinstance(item, int) for item in list(enum_dict.keys())])
+    # Check what direction the conversion is being done
+    if enum_to_category is False:
         # Get the individual categories names
         categories = [str(enum_dict[str(n)]) for n in enums]
     else:
@@ -229,7 +230,8 @@ def enum_category_conversion(df, enum_column, enum_dict, enum_to_category=True,
 
 
 def converge_enum(df1, cat_feat_name, df2=None, dict1=None, dict2=None,
-                  nan_value=None, sort=True, separator=';', inplace=False):
+                  nan_value=None, forbidden_digit=None, sort=True, separator=';',
+                  inplace=False):
     '''Converge the categorical encoding (enumerations) on the same feature of
     two dataframes.
 
@@ -257,6 +259,9 @@ def converge_enum(df1, cat_feat_name, df2=None, dict1=None, dict2=None,
         encoding number. If not specified, the method will create the dictionary.
     nan_value : int, default 0
         Integer number that gets assigned to NaN and NaN-like values.
+    forbidden_digit : int, default None
+        Digit that we want to prevent from appearing in any enumeration
+        encoding.
     sort : bool, default True
         If set to True, the final dictionary of mapping between categories names
         and enumeration numbers will be sorted alphabetically. In case sorting
@@ -285,16 +290,16 @@ def converge_enum(df1, cat_feat_name, df2=None, dict1=None, dict2=None,
         The second input dataframe after having its categorical feature
         converted to the new, converged enumeration encoding.
     '''
-    if df2 is not None and isinstance(cat_feat_name, str):
+    if isinstance(cat_feat_name, str):
         # Use just one feature name
         cat_feat_name1 = cat_feat_name
         cat_feat_name2 = cat_feat_name
-    elif df2 is None and isinstance(cat_feat_name, list):
+    elif isinstance(cat_feat_name, list):
         # Use two feature names
         cat_feat_name1 = cat_feat_name[0]
         cat_feat_name2 = cat_feat_name[1]
     else:
-        raise Exception(f'ERROR: Either the second dataframe (`df2`) and only one feature name (`cat_feat_name`) must be defined or we use just one dataframe and two feature names. Received `df2` of type {type(df2)} and a {type(cat_feat_name)} of feature name(s).')
+        raise Exception(f'ERROR: The categorical feature name(s) must be given as either a string or a list of strings. Received input of type {type(cat_feat_name)} for the feature name(s).')
     if not inplace:
         # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
         data1_df = df1.copy()
@@ -353,20 +358,20 @@ def converge_enum(df1, cat_feat_name, df2=None, dict1=None, dict2=None,
     all_data_dict = create_enum_dict(all_categories, nan_value, forbidden_digit)
     all_data_dict['nan'] = nan_value
     # Revert the feature of each dataframe to its original categories strings
-    print(f'Reverting column {cat_feat_name1} to the original string format...')
+    print(f'Reverting column {cat_feat_name1} in dataframe 1 to the original string format...')
     data1_df[cat_feat_name1] = data1_df.apply(lambda df: enum_category_conversion(df, enum_column=cat_feat_name1,
                                                                                   enum_dict=data1_dict_inv,
                                                                                   enum_to_category=True), axis=1)
-    print(f'Reverting column {cat_feat_name2} to the original string format...')
+    print(f'Reverting column {cat_feat_name2} in dataframe 2 to the original string format...')
     data2_df[cat_feat_name2] = data2_df.apply(lambda df: enum_category_conversion(df, enum_column=cat_feat_name2,
                                                                                   enum_dict=data2_dict_inv,
                                                                                   enum_to_category=True), axis=1)
     # Convert the features' values into the new enumeration
-    print(f'Converting column {cat_feat_name1} to the new encoding format...')
+    print(f'Converting column {cat_feat_name1} in dataframe 1 to the new encoding format...')
     data1_df[cat_feat_name1] = data1_df.apply(lambda df: enum_category_conversion(df, enum_column=cat_feat_name1,
                                                                                   enum_dict=all_data_dict,
                                                                                   enum_to_category=False), axis=1)
-    print(f'Converting column {cat_feat_name2} to the new encoding format...')
+    print(f'Converting column {cat_feat_name2} in dataframe 2 to the new encoding format...')
     data2_df[cat_feat_name2] = data2_df.apply(lambda df: enum_category_conversion(df, enum_column=cat_feat_name2,
                                                                                   enum_dict=all_data_dict,
                                                                                   enum_to_category=False), axis=1)
