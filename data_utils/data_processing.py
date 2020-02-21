@@ -721,7 +721,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
         supposed to be normalized.
     normalization_method : string, default 'z-score'
         Specifies the normalization method used. It can be a z-score
-        normalization, where the data is subtracted of it's mean and divided
+        normalization, where the data is subtracted of its mean and divided
         by the standard deviation, which makes it have zero average and unit
         variance, much like a standard normal distribution; it can be a
         min-max normalization, where the data is subtracted by its minimum
@@ -729,7 +729,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
         maximum value, getting to a fixed range from 0 to 1.
     columns_to_normalize : string or list of strings, default None
         If specified, the columns provided in the list are the only ones that
-        will be normalized. If set to False, no column will normalized directly,
+        will be normalized. If set to False, no column will be normalized directly,
         although columns can still be normalized in groups of categories, if
         specified in the `columns_to_normalize_categ` parameter. Otherwise, all
         continuous columns will be normalized.
@@ -832,27 +832,29 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                     raise Exception(f'ERROR: The `columns_to_normalize_categ` argument must be specified as either a single string or a list of strings. Received input with type {type(columns_to_normalize_categ)}.')
                 print(f'z-score normalizing columns {columns_to_normalize_categ} by their associated categories...')
                 for col_tuple in utils.iterations_loop(columns_to_normalize_categ, see_progress=see_progress):
+                    categ_columns = col_tuple[0]
+                    column_to_normalize = col_tuple[1]
                     # Calculate the means and standard deviations
-                    means = df.groupby(col_tuple[0])[col_tuple[1]].mean()
-                    stds = df.groupby(col_tuple[0])[col_tuple[1]].std()
-
+                    means_grpb = df.groupby(categ_columns)[column_to_normalize].mean()
+                    stds_grpb = df.groupby(categ_columns)[column_to_normalize].std()
                     if isinstance(df, dd.DataFrame):
                         # Make sure that the values are computed, in case we're using Dask
                         means = means.compute()
                         stds = stds.compute()
-
-                    categories_means = dict(means)
-                    categories_stds = dict(stds)
-
+                    # Get the categories columns as a numpy array, so as to
+                    # index the groupby-resulting dataframes of mean and standard
+                    # deviation values
+                    cat_arr = df[categ_columns].values
+                    if isinstance(categ_columns, list) and len(categ_columns) > 1:
+                        # Convert the sets of values into tuples so as to be
+                        # properly readable as dataframe indeces
+                        cat_arr = list(map(tuple, cat_arr))
+                    # Get the mean and standard deviation values in the same
+                    # order as the original dataframe's row order
+                    means = means_grpb[cat_arr].values
+                    stds = stds_grpb[cat_arr].values
                     # Normalize the right categories
-                    if isinstance(df, dd.DataFrame):
-                        data[col_tuple[1]] = data.apply(lambda df: apply_zscore_norm(value=df[col_tuple[1]], df=df, categories_means=categories_means,
-                                                                                     categories_stds=categories_stds, groupby_columns=col_tuple[0]),
-                                                        axis=1, meta=('df', float))
-                    else:
-                        data[col_tuple[1]] = data.apply(lambda df: apply_zscore_norm(value=df[col_tuple[1]], df=df, categories_means=categories_means,
-                                                                                     categories_stds=categories_stds, groupby_columns=col_tuple[0]),
-                                                        axis=1)
+                    data[column_to_normalize] = (data[column_to_normalize] - means) / stds
 
         # Otherwise, the tensor is normalized
         else:
@@ -899,26 +901,29 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             if columns_to_normalize_categ is not None:
                 print(f'min-max normalizing columns {columns_to_normalize_categ} by their associated categories...')
                 for col_tuple in columns_to_normalize_categ:
-                    # Calculate the means and standard deviations
+                    categ_columns = col_tuple[0]
+                    column_to_normalize = col_tuple[1]
+                    # Calculate the minimum and maximum values
                     mins = df.groupby(col_tuple[0])[col_tuple[1]].min()
                     maxs = df.groupby(col_tuple[0])[col_tuple[1]].max()
-
                     if isinstance(df, dd.DataFrame):
                         # Make sure that the values are computed, in case we're using Dask
                         mins = mins.compute()
                         maxs = maxs.compute()
-
-                    categories_mins = dict(mins)
-                    categories_maxs = dict(maxs)
+                    # Get the categories columns as a numpy array, so as to
+                    # index the groupby-resulting dataframes of minimum and
+                    # maximum values
+                    cat_arr = df[categ_columns].values
+                    if isinstance(categ_columns, list) and len(categ_columns) > 1:
+                        # Convert the sets of values into tuples so as to be
+                        # properly readable as dataframe indeces
+                        cat_arr = list(map(tuple, cat_arr))
+                    # Get the minimum and maximum values in the same
+                    # order as the original dataframe's row order
+                    mins = mins_grpb[cat_arr].values
+                    maxs = maxs_grpb[cat_arr].values
                     # Normalize the right categories
-                    if isinstance(df, dd.DataFrame):
-                        data[col_tuple[1]] = data.apply(lambda df: apply_minmax_norm(value=df[col_tuple[1]], df=df, categories_mins=categories_mins,
-                                                                                     categories_maxs=categories_maxs, groupby_columns=col_tuple[0]),
-                                                        axis=1, meta=('df', float))
-                    else:
-                        data[col_tuple[1]] = data.apply(lambda df: apply_minmax_norm(value=df[col_tuple[1]], df=df, categories_mins=categories_mins,
-                                                                                     categories_maxs=categories_maxs, groupby_columns=col_tuple[0]),
-                                                        axis=1)
+                    data[column_to_normalize] = (data[column_to_normalize] - mins) / (maxs - mins)
         # Otherwise, the tensor is normalized
         else:
             if columns_to_normalize is not False:
