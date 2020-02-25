@@ -109,7 +109,8 @@ def replace_dict_strings(dct, str_to_replace=';', new_str='_', replace_keys=True
 
 
 def merge_dicts(dict1, dict2=None):
-    '''Merge two or more dictionaries into one.
+    '''Merge two or more dictionaries into one. The second dictionary can
+    overwrite the first one if there are overlapping keys.
 
     Parameters
     ----------
@@ -128,16 +129,20 @@ def merge_dicts(dict1, dict2=None):
     if isinstance(dict1, dict):
         if dict2 is not None:
             if isinstance(dict2, dict):
+                # Merge the two input dictionaries
                 return {**dict1, **dict2}
             else:
                 raise Exception(f'ERROR: When `dict1` is specified as a single dictionary, the second argument `dict2` must also be a dictionary. Instead, received `dict2` of type {type(dict2)}.')
         else:
             raise Exception(f'ERROR: When `dict1` is specified as a single dictionary, the second argument `dict2` must also be set.')
     elif isinstance(dict1, list):
+        # Initialize the new dictionary with the first one on the list
+        new_dict = dict1[0]
         for i in range(len(dict1)):
             try:
-                new_dict = {**dict1[i], **dict1[i+1]}
-            else:
+                # Try to merge with the next dictionary, if there is any
+                new_dict = {**new_dict, **dict1[i+1]}
+            except:
                 break
         return new_dict
     else:
