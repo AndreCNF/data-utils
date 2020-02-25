@@ -108,6 +108,42 @@ def replace_dict_strings(dct, str_to_replace=';', new_str='_', replace_keys=True
     return data_dct
 
 
+def merge_dicts(dict1, dict2=None):
+    '''Merge two or more dictionaries into one.
+
+    Parameters
+    ----------
+    dict1 : dict or list of dicts
+        Dictionary 1 that will be merged with dictionary 2 or list of
+        dictionaries that will be merged.
+    dict2 : dict, default None
+        Dictionary 2 that will be merged with dictionary 1. If not specified,
+        the user must define a list of dictionaries in parameter `dict1` to merge.
+
+    Returns
+    -------
+    dict3 : dict
+        New dictionary resulting from the merge.
+    '''
+    if isinstance(dict1, dict):
+        if dict2 is not None:
+            if isinstance(dict2, dict):
+                return {**dict1, **dict2}
+            else:
+                raise Exception(f'ERROR: When `dict1` is specified as a single dictionary, the second argument `dict2` must also be a dictionary. Instead, received `dict2` of type {type(dict2)}.')
+        else:
+            raise Exception(f'ERROR: When `dict1` is specified as a single dictionary, the second argument `dict2` must also be set.')
+    elif isinstance(dict1, list):
+        for i in range(len(dict1)):
+            try:
+                new_dict = {**dict1[i], **dict1[i+1]}
+            else:
+                break
+        return new_dict
+    else:
+        return Exception(f'ERROR: The first parameter `dict1` must be set as either a dictionary or a list of dictionaries. Instead, received `dict1` of type {type(dict1)}.')
+
+
 def is_definitely_string(x):
     '''Reports if a value is actually a real string or if it has some number in it.
 
