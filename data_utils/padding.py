@@ -1,5 +1,6 @@
 from comet_ml import Experiment                         # Comet.ml can log training metrics, parameters, do version control and parameter optimization
 import torch                                            # PyTorch to create and apply deep learning models
+import dask.dataframe as dd                             # Dask to handle big data in dataframes
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import warnings                                         # Print warnings for bad practices
 from . import utils                                     # Generic and useful methods
@@ -38,9 +39,9 @@ def get_sequence_length_dict(df, id_column='subject_id', ts_column='ts'):
     return seq_len_dict
 
 
-def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id', 
-                               ts_column='ts', data_type='PyTorch', 
-                               padding_value=999999, cat_feat=None, 
+def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
+                               ts_column='ts', data_type='PyTorch',
+                               padding_value=999999, cat_feat=None,
                                inplace=False):
     '''Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
 

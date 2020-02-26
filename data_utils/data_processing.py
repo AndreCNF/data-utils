@@ -785,7 +785,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             [columns_to_normalize.remove(col) for col in binary_cols]
         # Remove all non numeric columns that could be left
         columns_to_normalize = [col for col in columns_to_normalize
-                                if df[col].dtype == np.number]
+                                if df[col].dtype == int or df[col].dtype == float]
         if columns_to_normalize is None:
             print('No columns to normalize, returning the original dataframe.')
             return df

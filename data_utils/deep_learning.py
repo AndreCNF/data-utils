@@ -1,7 +1,6 @@
 from comet_ml import Experiment                         # Comet.ml can log training metrics, parameters, do version control and parameter optimization
 import torch                                            # PyTorch to create and apply deep learning models
-import torch.nn.functional as F                         # Pytorch activation functions, to introduce non-linearoity and get output probabilities
-from torch.nn.functional import softmax                 # Softmax activation function to normalize scores
+import torch.nn as nn                                   # Pytorch activation functions, to introduce non-linearoity and get output probabilities
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import warnings                                         # Print warnings for bad practices
 from datetime import datetime                           # datetime to use proper date and time formats
@@ -15,6 +14,10 @@ import data_utils as du
 
 # Ignore Dask's 'meta' warning
 warnings.filterwarnings('ignore', message='`meta` is not specified, inferred from partial data. Please provide `meta` if the result is unexpected.')
+
+# Get the activation functions that might be used
+sigmoid = nn.Sigmoid()
+softmax = nn.Softmax()
 
 # Methods
 
@@ -230,6 +233,7 @@ def inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
         done inside this method, the loss value could be useful as
         a metric.
     '''
+    global sigmoid, softmax
     # Make the data have type float instead of double, as it would cause problems
     features, labels = features.float(), labels.float()
     # Sort the data by sequence length
@@ -256,19 +260,19 @@ def inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
     if prob_output is True:
         # Get the outputs in the form of probabilities
         if model.n_outputs == 1:
-            unpadded_scores = F.sigmoid(unpadded_scores)
+            unpadded_scores = sigmoid(unpadded_scores)
         else:
             # Normalize outputs on their last dimension
-            unpadded_scores = F.softmax(unpadded_scores, dim=len(unpadded_scores.shape)-1)
+            unpadded_scores = softmax(unpadded_scores, dim=len(unpadded_scores.shape)-1)
     # Get the top class (highest output probability) and find the samples where they are correct
     if model.n_outputs == 1:
         if prob_output is True:
             pred = torch.round(unpadded_scores)
         else:
             if model.n_outputs == 1:
-                pred = torch.round(F.sigmoid(unpadded_scores))
+                pred = torch.round(sigmoid(unpadded_scores))
             else:
-                pred = torch.round(F.softmax(unpadded_scores))
+                pred = torch.round(softmax(unpadded_scores))
     else:
         top_prob, pred = unpadded_scores.topk(1)
     correct_pred = pred == unpadded_labels
@@ -321,6 +325,7 @@ def inference_iter_mlp(model, features, labels, cols_to_remove=0,
         done inside this method, the loss value could be useful as
         a metric.
     '''
+    global sigmoid, softmax
     # Make the data have type float instead of double, as it would cause problems
     features, labels = features.float(), labels.float()
     # Remove unwanted columns from the data
@@ -336,19 +341,19 @@ def inference_iter_mlp(model, features, labels, cols_to_remove=0,
     if prob_output is True:
         # Get the outputs in the form of probabilities
         if model.n_outputs == 1:
-            scores = F.sigmoid(scores)
+            scores = sigmoid(scores)
         else:
             # Normalize outputs on their last dimension
-            scores = F.softmax(scores, dim=len(scores.shape)-1)
+            scores = softmax(scores, dim=len(scores.shape)-1)
     # Get the top class (highest output probability) and find the samples where they are correct
     if model.n_outputs == 1:
         if prob_output is True:
             pred = torch.round(scores)
         else:
             if model.n_outputs == 1:
-                pred = torch.round(F.sigmoid(scores))
+                pred = torch.round(sigmoid(scores))
             else:
-                pred = torch.round(F.softmax(scores))
+                pred = torch.round(softmax(scores))
     else:
         top_prob, pred = scores.topk(1)
     # Certify that labels are of type long, like the predictions `pred`
@@ -416,6 +421,7 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
         Dictionary containing the calculated performance on each of the
         specified metrics.
     '''
+    global sigmoid, softmax
     # Guarantee that the model is in evaluation mode, so as to deactivate dropout
     model.eval()
     # Check if GPU is available
@@ -459,7 +465,8 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
         if model_type.lower() == 'multivariate_rnn':
             (pred, correct_pred,
              scores, labels, loss) = (inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
-                                                                   cols_to_remove, is_train=False,
+                                                                   padding_value=padding_value,
+                                                                   cols_to_remove=cols_to_remove, is_train=False,
                                                                    prob_output=True))
         elif model_type.lower() == 'mlp':
             pred, correct_pred, scores, loss = (inference_iter_mlp(model, features, labels,
@@ -549,7 +556,8 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
             if model_type.lower() == 'multivariate_rnn':
                 (pred, correct_pred,
                  scores, labels, cur_loss) = (inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
-                                                                           cols_to_remove, is_train=False,
+                                                                           padding_value=padding_value,
+                                                                           cols_to_remove=cols_to_remove, is_train=False,
                                                                            prob_output=True))
             elif model_type.lower() == 'mlp':
                 pred, correct_pred, scores, cur_loss = (inference_iter_mlp(model, features, labels,
@@ -763,6 +771,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
         If get_val_loss_min is set to True, the method also returns the minimum
         validation loss found during training.
     '''
+    global sigmoid, softmax
     # Register all the hyperparameters
     model_args = inspect.getfullargspec(model.__init__).args[1:]
     hyper_params = dict([(param, getattr(model, param))
@@ -822,7 +831,8 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                 if model_type.lower() == 'multivariate_rnn':
                     (pred, correct_pred,
                      scores, labels, loss) = (inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
-                                                                           cols_to_remove, is_train=True,
+                                                                           padding_value=padding_value,
+                                                                           cols_to_remove=cols_to_remove, is_train=True,
                                                                            prob_output=True, optimizer=optimizer))
                 elif model_type.lower() == 'mlp':
                     pred, correct_pred, scores, loss = (inference_iter_mlp(model, features, labels,
@@ -868,12 +878,13 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                         if model_type.lower() == 'multivariate_rnn':
                             (pred, correct_pred,
                              scores, labels, loss) = (inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
-                                                                                   cols_to_remove, is_train=False,
-                                                                                   prob_output=True, optimizer=optimizer))
+                                                                                   padding_value=padding_value,
+                                                                                   cols_to_remove=cols_to_remove, is_train=False,
+                                                                                   prob_output=True))
                         elif model_type.lower() == 'mlp':
                             pred, correct_pred, scores, loss = (inference_iter_mlp(model, features, labels,
                                                                                    cols_to_remove, is_train=False,
-                                                                                   prob_output=True, optimizer=optimizer))
+                                                                                   prob_output=True))
                         else:
                             raise Exception(f'ERROR: Invalid model type. It must be "multivariate_rnn" or "mlp", not {model_type}.')
                         val_loss += loss                                                # Add the validation loss of the current batch

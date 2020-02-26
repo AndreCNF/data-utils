@@ -116,7 +116,7 @@ def list_one_hot_encoded_columns(df):
 
 
 def find_col_idx(df, feature):
-    '''Find the index that corresponds to a given feature's column number on 
+    '''Find the index that corresponds to a given feature's column number on
     a dataframe.
 
     Parameters
@@ -162,9 +162,15 @@ def find_val_idx(data, value, column=None):
     else:
         raise Exception('ERROR: If multidimensional data is being used, the column to search for must be specified in the `column` parameter.')
     if len(val.shape) > 1 or len(val) > 1:
+        # Convert to a NumPy array
         return val.numpy()
     else:
-        return val.item()
+        if val.shape[0] == 0:
+            # No results found
+            return None
+        else:
+            # Convert to a Python scalar
+            return val.item()
 
 
 def find_subject_idx(data, subject_id, subject_id_col=0):
