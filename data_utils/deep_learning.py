@@ -51,6 +51,9 @@ def remove_tensor_column(data, col_idx, inplace=False):
         col_idx = [col_idx]
     if not isinstance(col_idx, list):
         raise Exception(f'ERROR: The `col_idx` parameter must either specify a single int of a column to remove or a list of ints in the case of multiple columns to remove. Received input `col_idx` of type {type(col_idx)}.')
+    # Sort the list of columns in descending order, so as to avoid removing the
+    # wrong columns
+    col_idx.sort(reverse=True)
     for col in col_idx:
         if col is None:
             continue

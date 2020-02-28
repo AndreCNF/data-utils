@@ -804,6 +804,14 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             # Calculate the means and standard deviations
             means = df[columns_to_normalize].mean()
             stds = df[columns_to_normalize].std()
+            # Check if there are constant features
+            const_feat = list(stds[stds == 0].index)
+            if len(const_feat) > 0:
+                # Prevent constant features from being normalized
+                [columns_to_normalize.remove(col) for col in const_feat]
+                means = means.drop(const_feat)
+                stds = stds.drop(const_feat)
+                warnings.warn(f'Found columns {const_feat} to be constant throughout all the data. They should be removed as no insight will be extracted from them.')
 
             if isinstance(df, dd.DataFrame):
                 # Make sure that the values are computed, in case we're using Dask
@@ -878,6 +886,14 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
         if columns_to_normalize is not False:
             mins = df[columns_to_normalize].min()
             maxs = df[columns_to_normalize].max()
+            # Check if there are constant features
+            const_feat = list(mins[mins == maxs].index)
+            if len(const_feat) > 0:
+                # Prevent constant features from being normalized
+                [columns_to_normalize.remove(col) for col in const_feat]
+                mins = mins.drop(const_feat)
+                maxs = maxs.drop(const_feat)
+                warnings.warn(f'Found columns {const_feat} to be constant throughout all the data. They should be removed as no insight will be extracted from them.')
 
             if isinstance(df, dd.DataFrame):
                 # Make sure that the values are computed, in case we're using Dask
