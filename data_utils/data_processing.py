@@ -176,14 +176,14 @@ def remove_cols_with_many_nans(df, nan_percent_thrsh=40, inplace=False):
     return data_df
 
 
-def clean_naming(x, separator=';'):
+def clean_naming(x, separator='0'):
     '''Change strings to only have lower case letters and underscores.
 
     Parameters
     ----------
     x : string or list of strings
         String(s) on which to clean the naming, standardizing it.
-    separator : string, default ';'
+    separator : string, default '0'
         Symbol that concatenates each string's words. As such, it can't appear
         in a single category's string.
 
@@ -219,7 +219,7 @@ def clean_naming(x, separator=';'):
 
 
 def clean_categories_naming(df, column, clean_missing_values=True,
-                            specific_nan_strings=[], separator=';'):
+                            specific_nan_strings=[], separator='0'):
     '''Change categorical values to only have lower case letters and underscores.
 
     Parameters
@@ -1236,7 +1236,7 @@ def transpose_dataframe(df, column_to_transpose=None, inplace=False):
     return data_df
 
 
-def merge_values(x1, x2, separator=';', str_over_num=True, join_strings=True):
+def merge_values(x1, x2, separator='0', str_over_num=True, join_strings=True):
     '''Merge two values, by extracting the non-missing one, their average value
     or the non-numeric one.
 
@@ -1246,7 +1246,7 @@ def merge_values(x1, x2, separator=';', str_over_num=True, join_strings=True):
         Value 1 of the merge operation.
     x2
         Value 2 of the merge operation.
-    separator : string, default ';'
+    separator : string, default '0'
         Symbol that concatenates each string's words, which will be used to join
         the inputs if they are both strings.
     str_over_num : bool, default True
@@ -1311,7 +1311,7 @@ def merge_values(x1, x2, separator=';', str_over_num=True, join_strings=True):
         return x1
 
 
-def merge_columns(df, cols_to_merge=None, drop_old_cols=True, separator=';',
+def merge_columns(df, cols_to_merge=None, drop_old_cols=True, separator='0',
                   see_progress=True, inplace=False):
     '''Merge columns that have been created, as a consequence of a dataframe
     merge operation, resulting in duplicate columns with suffixes.
@@ -1325,7 +1325,7 @@ def merge_columns(df, cols_to_merge=None, drop_old_cols=True, separator=';',
         If not specified, the algorithm will search for columns with suffixes.
     drop_old_cols : bool, default True
         If set to True, the preexisting duplicate columns will be removed.
-    separator : string, default ';'
+    separator : string, default '0'
         Symbol that concatenates each string's words, which will be used to join
         the inputs if they are both strings.
     see_progress : bool, default True

@@ -123,7 +123,7 @@ def create_enum_dict(unique_values, nan_value=None, forbidden_digit=None):
 
 
 def enum_categorical_feature(df, feature, nan_value=None, clean_name=True,
-                             forbidden_digit=None, separator=';', apply_on_df=True):
+                             forbidden_digit=None, separator='0', apply_on_df=True):
     '''Enumerate all categories in a specified categorical feature, while also
     attributing a specific number to NaN and other unknown values.
 
@@ -142,7 +142,7 @@ def enum_categorical_feature(df, feature, nan_value=None, clean_name=True,
     forbidden_digit : int, default None
         Digit that we want to prevent from appearing in any enumeration
         encoding.
-    separator : string, default ';'
+    separator : string, default '0'
         Symbol that concatenates each string's words. As such, it can't appear
         in a single category's string.
     apply_on_df : bool, default True
@@ -180,7 +180,7 @@ def enum_categorical_feature(df, feature, nan_value=None, clean_name=True,
 
 
 def enum_category_conversion(df, enum_column, enum_dict, enum_to_category=None,
-                             separator=';'):
+                             separator='0'):
     '''Convert between enumerated encodings and their respective categories'
     names, in either direction.
 
@@ -190,7 +190,7 @@ def enum_category_conversion(df, enum_column, enum_dict, enum_to_category=None,
         Dataframe which the categorical feature belongs to.
     enum_column : string
         Name of the categorical feature which is encoded/enumerated. The
-        feature's values must be single integer numbers, with a ';' separator if
+        feature's values must be single integer numbers, with a '0' separator if
         more than one category applies to a given row.
     enum_dict : dict
         Dictionary containing the category names that correspond to each
@@ -200,18 +200,18 @@ def enum_category_conversion(df, enum_column, enum_dict, enum_to_category=None,
         numerical encodings to string categories names (True) or vice-versa
         (False). By default, it's not defined (None) and the method infers the
         direction of the conversion based on the input dictionary's key type.
-    separator : string, default ';'
+    separator : string, default '0'
         Symbol that concatenates each string's words.
 
     Returns
     -------
     categories : string
         String containing all the categories names of the current row. If more
-        than one category is present, their names are separated by the ';'
+        than one category is present, their names are separated by the '0'
         separator.
     '''
     # Separate the enumerations
-    enums = str(df[enum_column]).split(';')
+    enums = str(df[enum_column]).split(separator)
     if enum_to_category is None:
         # If all the keys are integers, then we're converting from enumerations to category names;
         # otherwise, it's the opposite direction
@@ -230,7 +230,7 @@ def enum_category_conversion(df, enum_column, enum_dict, enum_to_category=None,
 
 
 def converge_enum(df1, cat_feat_name, df2=None, dict1=None, dict2=None,
-                  nan_value=None, forbidden_digit=None, sort=True, separator=';',
+                  nan_value=None, forbidden_digit=None, sort=True, separator='0',
                   inplace=False):
     '''Converge the categorical encoding (enumerations) on the same feature of
     two dataframes.
@@ -266,7 +266,7 @@ def converge_enum(df1, cat_feat_name, df2=None, dict1=None, dict2=None,
         If set to True, the final dictionary of mapping between categories names
         and enumeration numbers will be sorted alphabetically. In case sorting
         is used, the resulting dictionary and dataframes will always be the same.
-    separator : string, default ';'
+    separator : string, default '0'
         Symbol that concatenates each string's words.
     inplace : bool, default False
         If set to True, the original dataframe will be used and modified
@@ -415,7 +415,8 @@ def remove_nan_enum_from_string(x, nan_value='0'):
 
 def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'],
                           cont_join_method='mean', has_timestamp=None,
-                          nan_value=0, remove_listed_nan=True, inplace=False):
+                          nan_value=0, remove_listed_nan=True,
+                          separator='0', inplace=False):
     '''Join rows that have the same identifier columns based on concatenating
     categorical encodings and on averaging continuous features.
 
@@ -441,6 +442,8 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
     remove_listed_nan : bool, default True
         If set to True, joined rows where non-NaN values exist have the NaN
         values removed.
+    separator : string, default '0'
+        Symbol that concatenates each string's words.
     inplace : bool, default False
         If set to True, the original dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -476,7 +479,7 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
         # Convert to string format
         data_df[feature] = data_df[feature].astype(str)
         # Join with other categorical enumerations on the same ID's
-        data_to_add = data_df.groupby(id_columns)[feature].apply(lambda x: ';'.join(x)).to_frame().reset_index()
+        data_to_add = data_df.groupby(id_columns)[feature].apply(lambda x: separator.join(x)).to_frame().reset_index()
         if remove_listed_nan is True:
             # Remove NaN values from rows with non-NaN values
             data_to_add[feature] = data_to_add[feature].apply(lambda x: remove_nan_enum_from_string(x, nan_value))
@@ -566,8 +569,11 @@ def string_encod_to_numeric(df, cat_feat=None, separator_num=0, inplace=False):
             data_df[feature] = data_df[feature].astype(str)
             # Replace semicolon characters by its binary ASCII code
             data_df[feature] = data_df[feature].str.replace(';', str(separator_num))
-            # Convert column to an integer format
-            data_df[feature] = data_df[feature].astype(float)
+            try:
+                # Convert column to an integer format
+                data_df[feature] = data_df[feature].astype('UInt64')
+            except Exception as e:
+                warnings.warn(f'There was a problem converting column {feature} to dtype UInt64. Original exception message: "{str(e)}"')
     else:
         raise Exception(f'ERROR: When specified, the categorical features `cat_feat` must be in string or list of strings format, not {type(cat_feat)}.')
     return data_df

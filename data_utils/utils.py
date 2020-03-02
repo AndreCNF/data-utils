@@ -56,7 +56,23 @@ def invert_dict(x):
     return {v: k for k, v in x.items()}
 
 
-def replace_dict_strings(dct, str_to_replace=';', new_str='_', replace_keys=True,
+def reverse(data):
+    '''Reverse the order of a tensor or list.
+
+    Parameters
+    ----------
+    data : torch.Tensor or list
+        PyTorch tensor or list to revert.
+
+    Returns
+    -------
+    data : torch.Tensor or list
+        Reversed tensor or list.
+    '''
+    return data[::-1]
+
+
+def replace_dict_strings(dct, str_to_replace='0', new_str='_', replace_keys=True,
                          replace_vals=True, inplace=False):
     '''Replace strings in a dictionary, in keys and/or values, with a new,
     desired string.
@@ -65,9 +81,9 @@ def replace_dict_strings(dct, str_to_replace=';', new_str='_', replace_keys=True
     ----------
     dct : dict
         Dictionary that will have its keys and/or values modified.
-    str_to_replace : str, default ';'
+    str_to_replace : str, default '0'
         String to replace with a new one.
-    new_str : str, default ';'
+    new_str : str, default '_'
         String to replace the old one.
     replace_keys : bool, default True
         If set to True, the dictionary's keys will have their strings edited
