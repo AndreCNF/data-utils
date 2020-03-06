@@ -190,8 +190,8 @@ def enum_category_conversion(df, enum_column, enum_dict, enum_to_category=None,
         Dataframe which the categorical feature belongs to.
     enum_column : string
         Name of the categorical feature which is encoded/enumerated. The
-        feature's values must be single integer numbers, with a '0' separator if
-        more than one category applies to a given row.
+        feature's values must be single integer numbers, with a separator symbol
+        if more than one category applies to a given row.
     enum_dict : dict
         Dictionary containing the category names that correspond to each
         enumeration number.
@@ -210,17 +210,19 @@ def enum_category_conversion(df, enum_column, enum_dict, enum_to_category=None,
         than one category is present, their names are separated by the '0'
         separator.
     '''
-    # Separate the enumerations
-    enums = str(df[enum_column]).split(separator)
     if enum_to_category is None:
         # If all the keys are integers, then we're converting from enumerations to category names;
         # otherwise, it's the opposite direction
         enum_to_category = all([isinstance(item, int) for item in list(enum_dict.keys())])
     # Check what direction the conversion is being done
     if enum_to_category is False:
+        # Separate the enumerations
+        enums = str(df[enum_column]).split(separator)
         # Get the individual categories names
         categories = [str(enum_dict[str(n)]) for n in enums]
     else:
+        # Separate the enumerations
+        enums = str(int(df[enum_column])).split(separator)
         # Get the individual categories names
         categories = [enum_dict[int(float(n))] if str(n) != 'nan'
                       else enum_dict[n] for n in enums]
