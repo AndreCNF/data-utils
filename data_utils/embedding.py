@@ -517,7 +517,7 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
     return data_df
 
 
-def string_encod_to_numeric(df, cat_feat=None, separator_num=0, inplace=False):
+def string_encod_to_numeric(df, cat_feat=None, separator='0', separator_num=0, inplace=False):
     '''Convert the string encoded columns that represent lists of categories,
     separated by semicolons, into numeric columns through the replacement of
     the semicolon character by a given number. This allows the dataframe to
@@ -568,12 +568,12 @@ def string_encod_to_numeric(df, cat_feat=None, separator_num=0, inplace=False):
             # Make sure that all values are in string format
             data_df[feature] = data_df[feature].astype(str)
             # Replace semicolon characters by its binary ASCII code
-            data_df[feature] = data_df[feature].str.replace(';', str(separator_num))
+            data_df[feature] = data_df[feature].str.replace(separator, str(separator_num))
             try:
-                # Convert column to an integer format
-                data_df[feature] = data_df[feature].astype('UInt64')
+                # Convert column to a numeric format
+                data_df[feature] = data_df[feature].astype(float)
             except Exception as e:
-                warnings.warn(f'There was a problem converting column {feature} to dtype UInt64. Original exception message: "{str(e)}"')
+                warnings.warn(f'There was a problem converting column {feature} to dtype float. Original exception message: "{str(e)}"')
     else:
         raise Exception(f'ERROR: When specified, the categorical features `cat_feat` must be in string or list of strings format, not {type(cat_feat)}.')
     return data_df
@@ -809,7 +809,7 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
     else:
         raise Exception(f'ERROR: The user must either a single embedding bag and feature index or lists of embedding bag layers and feature indeces. The input `embedding_layer` has type {type(embedding_layer)} while `feature` has type {type(features)}.')
     # Remove the old categorical feature(s)
-    data_tensor = deep_learning.remove_tensor_column(data_tensor, features, inplace)
+    data_tensor = deep_learning.remove_tensor_column(data_tensor, features, inplace=inplace)
     return data_tensor
 
 
