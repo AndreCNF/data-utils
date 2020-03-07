@@ -221,11 +221,17 @@ def enum_category_conversion(df, enum_column, enum_dict, enum_to_category=None,
         # Get the individual categories names
         categories = [str(enum_dict[str(n)]) for n in enums]
     else:
-        # Separate the enumerations
-        enums = str(int(df[enum_column])).split(separator)
-        # Get the individual categories names
-        categories = [enum_dict[int(float(n))] if str(n) != 'nan'
-                      else enum_dict[n] for n in enums]
+        if str(df[enum_column]).lower() == 'nan':
+            return enum_dict['nan']
+        else:
+            enums_val = int(df[enum_column])
+            if str(enums_val) == separator:
+                # Return the current category, avoiding its removal with the following split operation
+                return enum_dict[enums_val]
+            # Separate the enumerations
+            enums = str(int(df[enum_column])).split(separator)
+            # Get the individual categories names
+            categories = [enum_dict[int(float(n))] for n in enums]
     # Join the categories by the designated separator symbol
     categories = separator.join(categories)
     return categories
@@ -415,10 +421,82 @@ def remove_nan_enum_from_string(x, nan_value='0'):
     return x
 
 
-def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'],
-                          cont_join_method='mean', has_timestamp=None,
-                          nan_value=0, remove_listed_nan=True,
-                          separator='0', inplace=False):
+def join_categ_list(df, separator='0', unique=True, nan_value=0, remove_listed_nan=True):
+    '''Join categories encodings from a series (or groupby series) into a single
+    value representation.
+    e.g. [1, 2, 3, 4, 5, 6] -> 10203040506
+
+    Parameters
+    ----------
+    df : pandas.Series or pandas.Series.GroupBy
+        Pandas series which contains the categorical values to be joined.
+    separator : string, default '0'
+        Symbol that concatenates each string's words.
+    unique : bool, default True
+        If set to True, the method will only select unique categories, not
+        accounting for repeated occurences.
+    nan_value : int, default 0
+        Integer number that represents NaN and NaN-like values.
+    remove_listed_nan : bool, default True
+        If set to True, joined rows where non-NaN values exist have the NaN
+        values removed.
+
+    Returns
+    -------
+    data_df : pandas.Series
+        Resulting series from joining the categories encodings.
+    '''
+    if unique is True:
+        # Get the set of unique categories in this group
+        categ = set(df)
+    else:
+        categ = list(df)
+    if len(categ) == 1:
+        categ_val = categ[0]
+        if str(categ_val).lower() == 'nan':
+            return np.nan
+        else:
+            return int(categ_val)
+    # Make sure that the categories values are numeric
+    categ = [int(float(val)) if str(val).lower() != 'nan' else np.nan
+             for val in categ]
+    if remove_listed_nan is True and len(categ) > 1:
+        # Remove the missing values encodings, if they exist
+        try:
+            categ.remove(nan_value)
+        except (KeyError, ValueError):
+            # There was no NaN represented value in the current group of values
+            pass
+        # Remove non encoded missing values, if they exist
+        try:
+            categ.remove(np.nan)
+        except (KeyError, ValueError):
+            # There was no NaN value in the current group of values
+            pass
+    # Get a single value representation of the categories list
+    categ_val = separator.join([str(cat) for cat in categ])
+    # if int(categ_val) < 2**64:
+    #     # Return the value in a numeric format
+    #     return int(categ_val)
+    # else:
+    #     # As the value can't be represented in a 64 bit numeric type, it must be in string format
+    #     warnings.warn(f'Found a categories list value too big to be represented in a 64 bit numeric type: {categ_val}')
+    #     return str(categ_val)
+    if int(categ_val) >= 10**300:
+        warnings.warn(f'Found a categories list value that goes beyond the maximum float representation!')
+        return str(categ_val)
+    elif int(categ_val) >= 2**64:
+        warnings.warn(f'Found a categories list value that will be too big to be represented in a 64 bit numeric type: {categ_val}')
+    elif int(categ_val) >= 10**14:
+        warnings.warn(f'Found a categories list value that might be too big to be represented in a 64 bit numeric type: {categ_val}')
+    # Return the value in a numeric format
+    return int(categ_val)
+
+
+def join_repeated_rows(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'],
+                       cont_join_method='mean', has_timestamp=None,
+                       unique=True, nan_value=0, remove_listed_nan=True,
+                       separator='0', inplace=False):
     '''Join rows that have the same identifier columns based on concatenating
     categorical encodings and on averaging continuous features.
 
@@ -439,6 +517,9 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
         If set to True, the resulting dataframe will be sorted and set as index
         by the timestamp column (`ts`). If not specified, the method will
         automatically look for a `ts` named column in the input dataframe.
+    unique : bool, default True
+        If set to True, the method will only select unique categories, not
+        accounting for repeated occurences.
     nan_value : int, default 0
         Integer number that gets assigned to NaN and NaN-like values.
     remove_listed_nan : bool, default True
@@ -481,10 +562,10 @@ def join_categorical_enum(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'
         # Convert to string format
         data_df[feature] = data_df[feature].astype(str)
         # Join with other categorical enumerations on the same ID's
-        data_to_add = data_df.groupby(id_columns)[feature].apply(lambda x: separator.join(x)).to_frame().reset_index()
-        if remove_listed_nan is True:
-            # Remove NaN values from rows with non-NaN values
-            data_to_add[feature] = data_to_add[feature].apply(lambda x: remove_nan_enum_from_string(x, nan_value))
+        data_to_add = data_df.groupby(id_columns)[feature].apply(lambda x: join_categ_list(x, separator=separator,
+                                                                                           unique=unique,
+                                                                                           nan_value=nan_value,
+                                                                                           remove_listed_nan=remove_listed_nan)).reset_index()
         if has_timestamp is True:
             # Sort by time `ts` and set it as index
             data_to_add = data_to_add.sort_values('ts')

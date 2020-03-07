@@ -42,7 +42,7 @@ def get_sequence_length_dict(df, id_column='subject_id', ts_column='ts'):
 def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
                                ts_column='ts', data_type='PyTorch',
                                padding_value=999999, cat_feat=None,
-                               inplace=False):
+                               encod_to_numeric=False, inplace=False):
     '''Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
 
     Parameters
@@ -71,6 +71,10 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
         semicolon separators converted into its binary ASCII code. If not
         specified, the method will look through all columns, processing
         the ones that might have semicolons.
+    encod_to_numeric : bool, default False
+        If set to True, the categorical features will be converted to a numeric
+        dtype. Only useful if these columns have their categories separated by
+        a string type separator (like a semicolon).
     inplace : bool, default False
         If set to True, the original dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -83,8 +87,15 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
         padded with the specified padding value to have a fixed sequence
         length.
     '''
-    # Make sure that all possible categorical encoded columns are in numeric format
-    data_df = embedding.string_encod_to_numeric(df, cat_feat=cat_feat, inplace=inplace)
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
+    else:
+        # Use the original dataframe
+        data_df = df
+    if encod_to_numeric is True:
+        # Make sure that all possible categorical encoded columns are in numeric format
+        data_df = embedding.string_encod_to_numeric(data_df, cat_feat=cat_feat, inplace=inplace)
     if seq_len_dict is None:
         # Find the sequence lengths and store them in a dictionary
         seq_len_dict = get_sequence_length_dict(data_df, id_column, ts_column)
