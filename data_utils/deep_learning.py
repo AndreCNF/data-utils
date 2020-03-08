@@ -183,7 +183,7 @@ def ts_tensor_to_np_matrix(data, feat_num=None, padding_value=999999):
 def inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
                                  padding_value=999999, cols_to_remove=[0, 1],
                                  is_train=False, prob_output=True, optimizer=None,
-                                 is_custom=False):
+                                 is_custom=False, already_embedded=True):
     '''Run a single inference or training iteration on a Recurrent Neural Network (RNN),
     applied to multivariate data, such as EHR. Performance metrics still need to be
     calculated after executing this method.
@@ -222,6 +222,10 @@ def inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
         If set to True, the method will assume that the model being used is a
         custom built one, which won't require sequence length information during
         the feedforward process.
+    already_embedded : bool, default True
+        If set to True, it means that the categorical features are already
+        embedded when fetching a batch, i.e. there's no need to run the embedding
+        layer(s) during the model's feedforward.
 
     Returns
     -------
@@ -250,13 +254,13 @@ def inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
     features = remove_tensor_column(features, cols_to_remove, inplace=True)
     # Feedforward the data through the model
     if is_custom is False:
-        scores = model.forward(features, x_lengths, prob_output=False)
+        scores = model.forward(features, x_lengths, prob_output=False, already_embedded=already_embedded)
         # Adjust the labels so that it gets the exact same shape as the predictions
         # (i.e. sequence length = max sequence length of the current batch, not the max of all the data)
         labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
         labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
     else:
-        scores = model.forward(features, prob_output=False)
+        scores = model.forward(features, prob_output=False, already_embedded=already_embedded)
     # Calculate the negative log likelihood loss
     loss = model.loss(scores, labels)
     if is_train is True:
@@ -376,7 +380,8 @@ def inference_iter_mlp(model, features, labels, cols_to_remove=0,
 def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accuracy', 'AUC'],
                     model_type='multivariate_rnn', is_custom=False, seq_len_dict=None,
                     padding_value=999999, output_rounded=False, experiment=None,
-                    set_name='test', seq_final_outputs=False, cols_to_remove=[0, 1]):
+                    set_name='test', seq_final_outputs=False, cols_to_remove=[0, 1],
+                    already_embedded=True):
     '''Do inference on specified data using a given model.
 
     Parameters
@@ -426,6 +431,10 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
         List of indeces of columns to remove from the features before feeding to
         the model. This tend to be the identifier columns, such as subject_id
         and ts (timestamp).
+    already_embedded : bool, default True
+        If set to True, it means that the categorical features are already
+        embedded when fetching a batch, i.e. there's no need to run the embedding
+        layer(s) during the model's feedforward.
 
     Returns
     -------
@@ -482,7 +491,8 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
              scores, labels, loss) = (inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
                                                                    padding_value=padding_value,
                                                                    cols_to_remove=cols_to_remove, is_train=False,
-                                                                   prob_output=True, is_custom=is_custom))
+                                                                   prob_output=True, is_custom=is_custom,
+                                                                   already_embedded=already_embedded))
         elif model_type.lower() == 'mlp':
             pred, correct_pred, scores, loss = (inference_iter_mlp(model, features, labels,
                                                                    cols_to_remove, is_train=False,
@@ -573,7 +583,8 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
                  scores, labels, cur_loss) = (inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
                                                                            padding_value=padding_value,
                                                                            cols_to_remove=cols_to_remove, is_train=False,
-                                                                           prob_output=True, is_custom=is_custom))
+                                                                           prob_output=True, is_custom=is_custom,
+                                                                           already_embedded=already_embedded))
             elif model_type.lower() == 'mlp':
                 pred, correct_pred, scores, cur_loss = (inference_iter_mlp(model, features, labels,
                                                                            cols_to_remove, is_train=False,
@@ -695,7 +706,8 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
           padding_value=999999, do_test=True, log_comet_ml=False,
           comet_ml_api_key=None, comet_ml_project_name=None,
           comet_ml_workspace=None, comet_ml_save_model=False,
-          experiment=None, features_list=None, get_val_loss_min=False):
+          experiment=None, features_list=None, get_val_loss_min=False,
+          already_embedded=True):
     '''Trains a given model on the provided data.
 
     Parameters
@@ -781,6 +793,10 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
     get_val_loss_min : bool, default False
         If set to True, besides returning the trained model, the method also
         returns the minimum validation loss found during training.
+    already_embedded : bool, default True
+        If set to True, it means that the categorical features are already
+        embedded when fetching a batch, i.e. there's no need to run the embedding
+        layer(s) during the model's feedforward.
 
     Returns
     -------
@@ -853,7 +869,8 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                                                                        padding_value=padding_value,
                                                                        cols_to_remove=cols_to_remove, is_train=True,
                                                                        prob_output=True, optimizer=optimizer,
-                                                                       is_custom=is_custom))
+                                                                       is_custom=is_custom,
+                                                                       already_embedded=already_embedded))
             elif model_type.lower() == 'mlp':
                 pred, correct_pred, scores, loss = (inference_iter_mlp(model, features, labels,
                                                                        cols_to_remove, is_train=True,
@@ -900,7 +917,8 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                          scores, labels, loss) = (inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
                                                                                padding_value=padding_value,
                                                                                cols_to_remove=cols_to_remove, is_train=False,
-                                                                               prob_output=True, is_custom=is_custom))
+                                                                               prob_output=True, is_custom=is_custom,
+                                                                               already_embedded=already_embedded))
                     elif model_type.lower() == 'mlp':
                         pred, correct_pred, scores, loss = (inference_iter_mlp(model, features, labels,
                                                                                cols_to_remove, is_train=False,

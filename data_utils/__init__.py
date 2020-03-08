@@ -58,6 +58,7 @@ def set_pandas_library(lib='modin'):
         raise Exception(f'ERROR: {lib} is an invalid pandas library. Must either use `pandas` or `modin`.')
     # Reload the modules, to update their pandas package
     reload(utils)
+    reload(datasets)
     reload(search_explore)
     reload(data_processing)
     reload(padding)

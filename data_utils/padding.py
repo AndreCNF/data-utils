@@ -108,17 +108,25 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
     n_inputs = len(data_df.columns)
     # Max sequence length (e.g. patient with the most temporal events)
     max_seq_len = seq_len_dict[max(seq_len_dict, key=seq_len_dict.get)]
-    # Making a padded numpy array version of the dataframe (all index has the same sequence length as the one with the max)
-    arr = np.ones((n_ids, max_seq_len, n_inputs)) * padding_value
-    # Iterator that outputs each unique identifier (e.g. each patient in the dataset)
-    id_iter = iter(data_df[id_column].unique())
-    # Count the iterations of ids
-    count = 0
-    # Assign each value from the dataframe to the numpy array
-    for idt in id_iter:
-        arr[count, :seq_len_dict[idt], :] = data_df[data_df[id_column] == idt].to_numpy()
-        arr[count, seq_len_dict[idt]:, :] = padding_value
-        count += 1
+    if n_ids > 1:
+        # Making a padded numpy array version of the dataframe (all index has the same sequence length as the one with the max)
+        arr = np.ones((n_ids, max_seq_len, n_inputs)) * padding_value
+        # Iterator that outputs each unique identifier (e.g. each patient in the dataset)
+        id_iter = iter(data_df[id_column].unique())
+        # Count the iterations of ids
+        count = 0
+        # Assign each value from the dataframe to the numpy array
+        for idt in id_iter:
+            arr[count, :seq_len_dict[idt], :] = data_df[data_df[id_column] == idt].to_numpy()
+            arr[count, seq_len_dict[idt]:, :] = padding_value
+            count += 1
+    else:
+        # Making a padded numpy array version of the dataframe (all index has the same sequence length as the one with the max)
+        arr = np.ones((max_seq_len, n_inputs)) * padding_value
+        # Assign each value from the dataframe to the numpy array
+        idt = data_df[id_column].iloc[0]
+        arr[:seq_len_dict[idt], :] = data_df.to_numpy()
+        arr[seq_len_dict[idt]:, :] = padding_value
     # Make sure that the data type asked for is a string
     if not isinstance(data_type, str):
         raise Exception('ERROR: Please provide the desirable data type in a string format.')
