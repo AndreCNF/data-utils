@@ -487,7 +487,7 @@ def join_categ_list(df, separator='0', unique=True, nan_value=0, remove_listed_n
     return int(categ_val)
 
 
-def join_repeated_rows(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'],
+def join_repeated_rows(df, bool_feat=None, cat_feat=[], id_columns=['patientunitstayid', 'ts'],
                        cont_join_method='mean', has_timestamp=None,
                        unique=True, nan_value=0, remove_listed_nan=True,
                        separator='0', inplace=False):
@@ -498,6 +498,11 @@ def join_repeated_rows(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'],
     ----------
     df : pandas.DataFrame or dask.DataFrame
         Dataframe which will be processed.
+    bool_feat : string or list of strings, default None
+        Name(s) of the boolean feature(s) which will have their rows joined
+        through the maximum values along the ID's. If not specified, the method
+        will automatically look for boolean columns in the dataframe. If you
+        don't want any feature to be treated as a boolean dtype, set `bool_feat=[]`
     cat_feat : string or list of strings, default []
         Name(s) of the categorical feature(s) which will have their values
         concatenated along the ID's.
@@ -538,6 +543,11 @@ def join_repeated_rows(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'],
     else:
         # Use the original dataframe
         data_df = df
+    if isinstance(id_columns, str):
+        # Make sure that the boolean feature names are in a list format
+        id_columns = [id_columns]
+    if not isinstance(id_columns, list):
+        raise Exception(f'ERROR: The `id_columns` argument must be specified as either a single string or a list of strings. Received input with type {type(id_columns)}.')
     # Define a list of dataframes
     df_list = []
     # See if there is a timestamp column on the dataframe (only considering as a
@@ -547,25 +557,48 @@ def join_repeated_rows(df, cat_feat=[], id_columns=['patientunitstayid', 'ts'],
             has_timestamp = True
         else:
             has_timestamp = False
-    print('Concatenating categorical encodings...')
+    if bool_feat is None:
+        # Find the boolean columns in the dataframe
+        bool_feat = search_explore.list_one_hot_encoded_columns(data_df)
+        # Make sure that none of the ID columns are considered boolean
+        bool_feat = list(set(bool_feat) - set(id_columns))
+    if isinstance(bool_feat, str):
+        # Make sure that the boolean feature names are in a list format
+        bool_feat = [bool_feat]
+    if not isinstance(bool_feat, list):
+        raise Exception(f'ERROR: The `bool_feat` argument must be specified as either a single string or a list of strings. Received input with type {type(bool_feat)}.')
     if isinstance(cat_feat, str):
-        # Make sure that the categorical feature names are in a list format,
-        # even if it's just one feature name
+        # Make sure that the categorical feature names are in a list format
         cat_feat = [cat_feat]
-    for feature in utils.iterations_loop(cat_feat):
-        # Convert to string format
-        data_df[feature] = data_df[feature].astype(str)
-        # Join with other categorical enumerations on the same ID's
-        data_to_add = data_df.groupby(id_columns)[feature].apply(lambda x: join_categ_list(x, separator=separator,
-                                                                                           unique=unique,
-                                                                                           nan_value=nan_value,
-                                                                                           remove_listed_nan=remove_listed_nan)).reset_index()
+    if not isinstance(cat_feat, list):
+        raise Exception(f'ERROR: The `cat_feat` argument must be specified as either a single string or a list of strings. Received input with type {type(cat_feat)}.')
+    if len(bool_feat) > 0:
+        print('Joining boolean features...')
+        # Join boolean rows by their maximum value, so as to avoid excedding the value of 1
+        data_to_add = data_df.groupby(id_columns)[bool_feat].max().reset_index()
         if has_timestamp is True:
             # Sort by time `ts` and set it as index
             data_to_add = data_to_add.sort_values('ts')
+        # Make sure that the boolean features have an efficient dtype (UInt8)
+        data_to_add[bool_feat] = data_to_add[bool_feat].astype('UInt8')
         # Add to the list of dataframes that will be merged
         df_list.append(data_to_add)
-    remaining_feat = list(set(data_df.columns) - set(cat_feat) - set(id_columns))
+    if len(cat_feat) > 0:
+        print('Concatenating categorical encodings...')
+        for feature in utils.iterations_loop(cat_feat):
+            # Convert to string format
+            data_df[feature] = data_df[feature].astype(str)
+            # Join with other categorical enumerations on the same ID's
+            data_to_add = data_df.groupby(id_columns)[feature].apply(lambda x: join_categ_list(x, separator=separator,
+                                                                                               unique=unique,
+                                                                                               nan_value=nan_value,
+                                                                                               remove_listed_nan=remove_listed_nan)).reset_index()
+            if has_timestamp is True:
+                # Sort by time `ts` and set it as index
+                data_to_add = data_to_add.sort_values('ts')
+            # Add to the list of dataframes that will be merged
+            df_list.append(data_to_add)
+    remaining_feat = list(set(data_df.columns) - set(bool_feat) - set(cat_feat) - set(id_columns))
     if len(remaining_feat) > 0:
         print('Joining continuous features...')
         for feature in utils.iterations_loop(remaining_feat):

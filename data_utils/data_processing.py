@@ -265,8 +265,7 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_value
     df : pandas.DataFrame or dask.DataFrame
         Dataframe that will be used, which contains the specified column.
     columns : list of strings
-        Name of the column(s) that will be conveted to one hot encoding. Even if
-        it's just one column, please provide inside a list.
+        Name of the column(s) that will be conveted to one hot encoding.
     clean_name : bool, default True
         If set to true, changes the name of the categorical values into lower
         case, with words separated by an underscore instead of space.
@@ -313,6 +312,11 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_value
     else:
         # Use the original dataframe
         data_df = df
+    # Make sure that the columns is a list
+    if isinstance(columns, str):
+        columns = [columns]
+    if not isinstance(columns, list):
+        raise Exception(f'ERROR: The `columns` argument must be specified as either a single string or a list of strings. Received input with type {type(columns)}.')
     for col in columns:
         # Check if the column exists
         if col not in data_df.columns:
@@ -324,7 +328,7 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_value
             # Clean the column's string values to have the same, standard format
             data_df = clean_categories_naming(data_df, col, clean_missing_values, specific_nan_strings)
         # Cast the variable into the built in pandas Categorical data type
-        if 'pandas' in str(type(data_df)):
+        if isinstance(data_df, pd.DataFrame):
             data_df[col] = pd.Categorical(data_df[col])
     if isinstance(data_df, dd.DataFrame):
         data_df = data_df.categorize(columns)
