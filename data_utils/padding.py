@@ -4,6 +4,7 @@ import dask.dataframe as dd                             # Dask to handle big dat
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import warnings                                         # Print warnings for bad practices
 from . import utils                                     # Generic and useful methods
+from . import search_explore                            # Methods to search and explore data
 from . import embedding                                 # Embeddings and other categorical features handling methods
 
 # Ignore Dask's 'meta' warning
@@ -40,9 +41,8 @@ def get_sequence_length_dict(df, id_column='subject_id', ts_column='ts'):
 
 
 def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
-                               ts_column='ts', data_type='PyTorch',
-                               padding_value=999999, cat_feat=None,
-                               encod_to_numeric=False, inplace=False):
+                               ts_column='ts', bool_feat=None, data_type='PyTorch',
+                               padding_value=999999, cat_feat=None, inplace=False):
     '''Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
 
     Parameters
@@ -60,6 +60,12 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
     ts_column : string, default 'ts'
         Name of the column which corresponds to the timestamp in the
         dataframe.
+    bool_feat : string or list of strings, default None
+        Name(s) of the boolean feature(s) of the dataframe. In order to prevent
+        confounding padding values with encodings, these features must have
+        their padding values replaced with 0. If not specified, the method
+        will automatically look for boolean columns in the dataframe. If you
+        don't want any feature to be treated as a boolean dtype, set `bool_feat=[]`
     data_type : string, default 'PyTorch'
         Indication of what kind of output data type is desired. In case it's
         set as 'NumPy', the function outputs a NumPy array. If it's 'PyTorch',
@@ -71,10 +77,6 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
         semicolon separators converted into its binary ASCII code. If not
         specified, the method will look through all columns, processing
         the ones that might have semicolons.
-    encod_to_numeric : bool, default False
-        If set to True, the categorical features will be converted to a numeric
-        dtype. Only useful if these columns have their categories separated by
-        a string type separator (like a semicolon).
     inplace : bool, default False
         If set to True, the original dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -93,9 +95,6 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
     else:
         # Use the original dataframe
         data_df = df
-    if encod_to_numeric is True:
-        # Make sure that all possible categorical encoded columns are in numeric format
-        data_df = embedding.string_encod_to_numeric(data_df, cat_feat=cat_feat, inplace=inplace)
     if seq_len_dict is None:
         # Find the sequence lengths and store them in a dictionary
         seq_len_dict = get_sequence_length_dict(data_df, id_column, ts_column)
@@ -111,8 +110,10 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
     if n_ids > 1:
         # Making a padded numpy array version of the dataframe (all index has the same sequence length as the one with the max)
         arr = np.ones((n_ids, max_seq_len, n_inputs)) * padding_value
-        # Iterator that outputs each unique identifier (e.g. each patient in the dataset)
-        id_iter = iter(data_df[id_column].unique())
+        # Fetch a list with all the unique identifiers (e.g. each patient in the dataset)
+        unique_ids = data_df[id_column].unique()
+        # Iterator that outputs each unique identifier
+        id_iter = iter(unique_ids)
         # Count the iterations of ids
         count = 0
         # Assign each value from the dataframe to the numpy array
@@ -127,6 +128,34 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
         idt = data_df[id_column].iloc[0]
         arr[:seq_len_dict[idt], :] = data_df.to_numpy()
         arr[seq_len_dict[idt]:, :] = padding_value
+    if bool_feat is None:
+        # Find the boolean columns in the dataframe
+        bool_feat = search_explore.list_one_hot_encoded_columns(data_df)
+        # Make sure that none of the ID columns are considered boolean
+        bool_feat = list(set(bool_feat) - set([id_column, ts_column]))
+        # Get the indeces of the boolean features
+        bool_feat = [search_explore.find_col_idx(data_df, feature) for feature in bool_feat]
+    if isinstance(bool_feat, str):
+        # Get the index of the boolean feature
+        bool_feat = search_explore.find_col_idx(data_df, bool_feat)
+        # Make sure that the boolean feature names are in a list format
+        bool_feat = [bool_feat]
+    if not isinstance(bool_feat, list):
+        raise Exception(f'ERROR: The `bool_feat` argument must be specified as either a single string or a list of strings. Received input with type {type(bool_feat)}.')
+    if len(bool_feat) > 0:
+        if n_ids > 1:
+            # Iterator that outputs each unique identifier
+            id_iter = iter(unique_ids)
+            # Count the iterations of ids
+            count = 0
+            # Replace each padding value in the boolean features with zero
+            for idt in id_iter:
+                arr[count, seq_len_dict[idt]:, bool_feat] = 0
+                count += 1
+        else:
+            # Replace each padding value in the boolean features with zero
+            idt = data_df[id_column].iloc[0]
+            arr[seq_len_dict[idt]:, bool_feat] = 0
     # Make sure that the data type asked for is a string
     if not isinstance(data_type, str):
         raise Exception('ERROR: Please provide the desirable data type in a string format.')

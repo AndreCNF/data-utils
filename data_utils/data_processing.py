@@ -1403,6 +1403,7 @@ def missing_values_imputation(data, method='zero', id_column=None, inplace=False
     tensor : torch.Tensor
         Imputed PyTorch tensor.
     '''
+    # [TODO] Prevent boolean columns from being imputated in a method other than zero-filling
     if ((not isinstance(data, pd.DataFrame))
          and (not isinstance(data, dd.DataFrame))
          and (not isinstance(data, torch.Tensor))):

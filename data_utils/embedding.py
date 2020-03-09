@@ -562,6 +562,9 @@ def join_repeated_rows(df, bool_feat=None, cat_feat=[], id_columns=['patientunit
         bool_feat = search_explore.list_one_hot_encoded_columns(data_df)
         # Make sure that none of the ID columns are considered boolean
         bool_feat = list(set(bool_feat) - set(id_columns))
+        # Keep it alphabetically sorted
+        bool_feat = list(bool_feat)
+        bool_feat.sort()
     if isinstance(bool_feat, str):
         # Make sure that the boolean feature names are in a list format
         bool_feat = [bool_feat]
@@ -599,6 +602,9 @@ def join_repeated_rows(df, bool_feat=None, cat_feat=[], id_columns=['patientunit
             # Add to the list of dataframes that will be merged
             df_list.append(data_to_add)
     remaining_feat = list(set(data_df.columns) - set(bool_feat) - set(cat_feat) - set(id_columns))
+    # Keep it alphabetically sorted
+    remaining_feat = list(remaining_feat)
+    remaining_feat.sort()
     if len(remaining_feat) > 0:
         print('Joining continuous features...')
         for feature in utils.iterations_loop(remaining_feat):
@@ -689,124 +695,70 @@ def string_encod_to_numeric(df, cat_feat=None, separator='0', separator_num=0, i
     return data_df
 
 
-def prepare_embed_bag(data, feature=None, separator_num=0, padding_value=999999,
-                      nan_value=0):
-    '''Prepare a categorical feature for embedding bag, i.e. split category
-    enumerations into separate numbers, combine them into a single list and set
-    the appropriate offsets as to when each row's group of categories end.
+def prepare_embed_bag(data, features=None):
+    '''Prepare one hot encoded columns, which resulted from the same categorical
+    feature, for embedding bag, i.e. enumerate columns, combine them into a
+    single list and set the appropriate offsets as to when each row's group of
+    categories end.
 
     Parameters
     ----------
-    data : torch.Tensor or pandas.DataFrame
-        Data tensor or dataframe that contains the categorical feature that will
-        be embedded.
-    feature : int or str, default None
-        Index of the categorical feature on which embedding bag will be
-        applied. Can only be left undefined if the data is one dimensional.
-        It can be set as a string, representing the feature's name, in case the
-        input data is in a dataframe format.
-    separator_num : int, default 0
-        Number to use as a representation of the semicolon encoding
-        separator.
-    padding_value : numeric, default 999999
-        Value to use in the padding, to fill the sequences.
-    nan_value : int, default 0
-        Integer number that gets assigned to NaN and NaN-like values.
+    data : torch.Tensor
+        Data tensor that contains the categorical feature that will be embedded.
+    features : list of int, default None
+        Indeces of the one hot encoded columns on which embedding bag will be
+        applied.
 
     Returns
     -------
-    enum_list : torch.Tensor
-        List of all categorical enumerations, i.e. the numbers corresponding to
+    encod_list : torch.Tensor
+        List of all categorical encodings, i.e. the numbers corresponding to
         each of the feature's categories, contained in the input series.
     offset_list : torch.Tensor
         List of when each row's categorical enumerations start, considering the
-        enum_list list.
+        encod_list list.
     '''
-    enum_list = []
-    count = 0
-    offset_list = [count]
-    if isinstance(data, torch.Tensor) or isinstance(data, np.ndarray):
-        if feature is None and len(data.shape) > 1:
-            raise Exception('ERROR: If multidimensional data is passed in the input, the feature from which to get the full list of categorical encodings must be defined.')
-        if len(data.shape) < 3:
-            for i in range(data.shape[0]):
-                # Get the full list of digits of the current value
-                if len(data.shape) == 1:
-                    feature_val_i = utils.get_full_number_string(data[i].item())
-                else:
-                    feature_val_i = utils.get_full_number_string(data[i, feature].item())
-                if len(feature_val_i) > 1:
-                    # Separate digits in the same string
-                    digits_list = feature_val_i.split(str(separator_num))
-                else:
-                    # Just use append the single encoding value
-                    digits_list = [feature_val_i]
-                if int(digits_list[0]) == padding_value:
-                    # Add a missing value embedding
-                    enum_list.append([str(nan_value)])
-                else:
-                    # Add the digits to the enumeration encodings list
-                    enum_list.append(digits_list)
-                # Set the end of the current list
-                count += len(digits_list)
-                offset_list.append(count)
-            # Flatten list
-            enum_list = [int(value) for sublist in enum_list for value in sublist]
-        elif len(data.shape) == 3:
-            # Process each sequence separately, creating 2D categorical encodings and offset lists
-            for i in range(data.shape[0]):
-                for j in range(data.shape[1]):
-                    # Get the full list of digits of the current value
-                    feature_val_i = utils.get_full_number_string(data[i, j, feature].item())
-                    if len(feature_val_i) > 1:
-                        # Separate digits in the same string
-                        digits_list = feature_val_i.split(str(separator_num))
-                    else:
-                        # Just use append the single encoding value
-                        digits_list = [feature_val_i]
-                    if int(digits_list[0]) == padding_value:
-                        # Add a missing value embedding
-                        enum_list.append([str(nan_value)])
-                    else:
-                        # Add the digits to the enumeration encodings list
-                        enum_list.append(digits_list)
-                    # Set the end of the current list
-                    count += len(digits_list)
-                    offset_list.append(count)
-            # Flatten full list
-            enum_list = [int(value) for sublist in enum_list for value in sublist]
-        else:
-            raise Exception(f'ERROR: Data with more than 3 dimensions is not supported. Input data has {len(data.shape)} dimensions.')
-    elif isinstance(data, pd.DataFrame):
-        for i in range(len(data)):
-            # Get the full list of digits of the current value
-            feature_val_i = utils.get_full_number_string(data.iloc[i][feature])
-            if len(feature_val_i) > 1:
-                # Separate digits in the same string
-                digits_list = feature_val_i.split(str(separator_num))
-            else:
-                # Just use append the single encoding value
-                digits_list = [feature_val_i]
-            if int(digits_list[0]) == padding_value:
-                # Add a missing value embedding
-                enum_list.append([str(nan_value)])
-            else:
-                # Add the digits to the enumeration encodings list
-                enum_list.append(digits_list)
-            # Set the end of the current list
-            count += len(digits_list)
-            offset_list.append(count)
-        # Flatten list
-        enum_list = [int(value) for sublist in enum_list for value in sublist]
+    if not isinstance(data, torch.Tensor):
+        raise Exception(f'ERROR: The `prepare_embed_bag` method only supports input data of type PyTorch tensor. Received input data of type {type(data)}.')
+    if not isinstance(features, list):
+        raise Exception(f'ERROR: The one hot encoded columns must be specified as a list of column indeces. Received input `features` of type {type(features)}.')
+    if len(data.shape) == 3:
+        # Isolate the one hot encoded columns
+        ohe_data = data[:, :, features].int()
+        # Transform to each category's encoding by multiplying by each column's number
+        encod_tnsr = ohe_data * torch.tensor(list(range(1, ohe_data.shape[-1]+1)))
+        # Find which rows are all zeros
+        all_zero_row = (encod_tnsr.sum(axis=len(encod_tnsr.shape)-1) == 0)
+        # Set the all zeros indicator for every value
+        all_zero_row = torch.cat([all_zero_row.view(encod_tnsr.shape[0], encod_tnsr.shape[1], -1),
+                                  torch.zeros(encod_tnsr.shape[0], encod_tnsr.shape[1], encod_tnsr.shape[2]-1).bool()],
+                                  axis=2)
+    elif len(data.shape) == 2:
+        # Isolate the one hot encoded columns
+        ohe_data = data[:, features].int()
+        # Transform to each category's encoding by multiplying by each column's number
+        encod_tnsr = ohe_data * torch.tensor(list(range(1, ohe_data.shape[-1]+1)))
+        # Find which rows are all zeros
+        all_zero_row = (encod_tnsr.sum(axis=len(encod_tnsr.shape)-1) == 0)
+        # Set the all zeros indicator for every value
+        all_zero_row = torch.cat([all_zero_row.view(encod_tnsr.shape[0], -1),
+                                  torch.zeros(encod_tnsr.shape[0], encod_tnsr.shape[1]-1).bool()],
+                                  axis=1)
     else:
-        raise Exception(f'ERROR: The `prepare_embed_bag` method only supports input data of type PyTorch tensor, NumPy array or Pandas dataframe. Received input data of type {type(data)}.')
-    # Convert to PyTorch tensor
-    enum_list = torch.tensor(enum_list)
-    offset_list = torch.tensor(offset_list)
-    return enum_list, offset_list
+        raise Exception(f'ERROR: Only 2D or 3D data is supported. Input data has {len(data.shape)} dimensions.')
+    # Find which values are not zero
+    non_zero_val = (encod_tnsr != 0)
+    # Get the encoding list by filtering for all non-zero encodings,
+    # setting a zero in rows where there's non
+    encod_list = encod_tnsr[all_zero_row | non_zero_val]
+    # Set the offsets to distinguish each row's encodings
+    offset_list = (all_zero_row | non_zero_val).sum(axis=len(encod_tnsr.shape)-1).view(-1).cumsum(0)
+    offset_list + 1
+    offset_list = torch.cat([torch.zeros(1).long(), offset_list])[:-1]
+    return encod_list, offset_list
 
 
-def run_embed_bag(data, embedding_layer, enum_list, offset, feature_name=None, inplace=False):
+def run_embed_bag(data, embedding_layer, encod_list, offset, feature_name=None, inplace=False):
     '''Run an embedding bag layer on a list(s) of encoded categories, adding
     the new embedding columns to the data tensor.
 
@@ -818,12 +770,12 @@ def run_embed_bag(data, embedding_layer, enum_list, offset, feature_name=None, i
     embedding_layer : torch.nn.EmbeddingBag
         PyTorch layer that applies the embedding bag, i.e. calculates the
         average embedding based on multiple encoded values.
-    enum_list : torch.Tensor
+    encod_list : torch.Tensor
         List of all categorical enumerations, i.e. the numbers corresponding to
         each of the feature's categories, contained in the input series.
     offset : torch.Tensor
         List of when each row's categorical enumerations start, considering the
-        enum_list list.
+        encod_list list.
     feature_name : str, default None
         Name of the feature being embedded. Only needed if the input data is in
         a dataframe format.
@@ -851,11 +803,11 @@ def run_embed_bag(data, embedding_layer, enum_list, offset, feature_name=None, i
         train_on_gpu = torch.cuda.is_available()
         if train_on_gpu is True:
             # Move data and embedding model to GPU
-            (data_emb, enum_list,
-             offset, embedding_layer) = (data_emb.cuda(), enum_list.cuda(),
+            (data_emb, encod_list,
+             offset, embedding_layer) = (data_emb.cuda(), encod_list.cuda(),
                                          offset.cuda(), embedding_layer.cuda())
         # Get a tensor with the embedding values retrieved from the embedding bag layer
-        embed_data = embedding_layer(enum_list, offset)[:-1]
+        embed_data = embedding_layer(encod_list, offset)[:-1]
         if len(data_emb.shape) == 1:
             # Add the new embedding columns to the data tensor
             data_emb = torch.cat((data_emb.double(), embed_data.double()))
@@ -871,7 +823,7 @@ def run_embed_bag(data, embedding_layer, enum_list, offset, feature_name=None, i
             raise Exception(f'ERROR: Data with more than 3 dimensions is not supported. Input data has {len(data_emb.shape)} dimensions.')
     elif isinstance(data_emb, pd.DataFrame):
         # Get a tensor with the embedding values retrieved from the embedding bag layer
-        embed_data = embedding_layer(enum_list, offset)[:-1].detach().numpy()
+        embed_data = embedding_layer(encod_list, offset)[:-1].detach().numpy()
         # Names of the new embedding features
         embed_names = [f'{feature_name}_embed_{i}' for i in range(embedding_layer.embedding_dim)]
         # Add the embedding features to the dataframe
@@ -927,6 +879,7 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
         Data tensor or dataframe with the new embedding features added and the
         old categorical features removed.
     '''
+    # [TODO] Adapt to the new, one hot encoding embedding approach
     if not inplace:
         # Make a copy of the data to avoid potentially unwanted changes to the original object
         if isinstance(data, torch.Tensor):
@@ -946,39 +899,39 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
     if isinstance(embedding_layer, torch.nn.EmbeddingBag) and (isinstance(features, int) or isinstance(features, str)):
         # Get the list of all the encodings and their offsets
         if model_forward and isinstance(features, int):
-            enum_list, offset_list = prepare_embed_bag(data_emb, features-n_id_cols,
+            encod_list, offset_list = prepare_embed_bag(data_emb, features-n_id_cols,
                                                        padding_value=padding_value, nan_value=nan_value)
         else:
-            enum_list, offset_list = prepare_embed_bag(data_emb, features,
+            encod_list, offset_list = prepare_embed_bag(data_emb, features,
                                                        padding_value=padding_value, nan_value=nan_value)
         # Run the embedding bag and add the embedding columns to the tensor
-        data_emb = run_embed_bag(data_emb, embedding_layer, enum_list, offset_list, features, inplace)
+        data_emb = run_embed_bag(data_emb, embedding_layer, encod_list, offset_list, features, inplace)
     elif isinstance(embedding_layer, torch.nn.ModuleList) and isinstance(features, list):
         for i in range(len(features)):
             # Get the list of all the encodings and their offsets
             if model_forward and isinstance(features[i], int):
-                enum_list, offset_list = prepare_embed_bag(data_emb, features[i]-n_id_cols,
+                encod_list, offset_list = prepare_embed_bag(data_emb, features[i]-n_id_cols,
                                                            padding_value=padding_value, nan_value=nan_value)
             else:
-                enum_list, offset_list = prepare_embed_bag(data_emb, features[i],
+                encod_list, offset_list = prepare_embed_bag(data_emb, features[i],
                                                            padding_value=padding_value, nan_value=nan_value)
             # Run the embedding bag and add the embedding columns to the tensor
-            data_emb = run_embed_bag(data_emb, embedding_layer[f'embed_{i}'], enum_list, offset_list, features[i], inplace)
+            data_emb = run_embed_bag(data_emb, embedding_layer[f'embed_{i}'], encod_list, offset_list, features[i], inplace)
     elif isinstance(embedding_layer, torch.nn.ModuleDict) and isinstance(features, list):
         for feature in features:
             # Get the list of all the encodings and their offsets
             if model_forward and isinstance(feature, int):
-                enum_list, offset_list = prepare_embed_bag(data_emb, feature-n_id_cols,
+                encod_list, offset_list = prepare_embed_bag(data_emb, feature-n_id_cols,
                                                            padding_value=padding_value, nan_value=nan_value)
             else:
-                enum_list, offset_list = prepare_embed_bag(data_emb, feature,
+                encod_list, offset_list = prepare_embed_bag(data_emb, feature,
                                                            padding_value=padding_value, nan_value=nan_value)
             # Run the embedding bag and add the embedding columns to the tensor
             if isinstance(feature, int):
                 embed_layer = embedding_layer[f'embed_{feature}']
             else:
                 embed_layer = embedding_layer[f'embed_{search_explore.find_col_idx(data_emb, feature)}']
-            data_emb = run_embed_bag(data_emb, embed_layer, enum_list, offset_list, feature, inplace)
+            data_emb = run_embed_bag(data_emb, embed_layer, encod_list, offset_list, feature, inplace)
     else:
         raise Exception(f'ERROR: The user must either a single embedding bag and feature index or lists of embedding bag layers and feature indeces. The input `embedding_layer` has type {type(embedding_layer)} while `feature` has type {type(features)}.')
     # Remove the old categorical feature(s)
