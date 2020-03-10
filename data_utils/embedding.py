@@ -563,7 +563,6 @@ def join_repeated_rows(df, bool_feat=None, cat_feat=[], id_columns=['patientunit
         # Make sure that none of the ID columns are considered boolean
         bool_feat = list(set(bool_feat) - set(id_columns))
         # Keep it alphabetically sorted
-        bool_feat = list(bool_feat)
         bool_feat.sort()
     if isinstance(bool_feat, str):
         # Make sure that the boolean feature names are in a list format
@@ -603,7 +602,6 @@ def join_repeated_rows(df, bool_feat=None, cat_feat=[], id_columns=['patientunit
             df_list.append(data_to_add)
     remaining_feat = list(set(data_df.columns) - set(bool_feat) - set(cat_feat) - set(id_columns))
     # Keep it alphabetically sorted
-    remaining_feat = list(remaining_feat)
     remaining_feat.sort()
     if len(remaining_feat) > 0:
         print('Joining continuous features...')
@@ -613,11 +611,11 @@ def join_repeated_rows(df, bool_feat=None, cat_feat=[], id_columns=['patientunit
         # Join remaining features through their average, min or max value
         # (just to be sure that there aren't missing or different values)
         if cont_join_method.lower() == 'mean':
-            data_to_add = data_df.groupby(id_columns).mean().reset_index()
+            data_to_add = data_df.groupby(id_columns)[remaining_feat].mean().reset_index()
         elif cont_join_method.lower() == 'min':
-            data_to_add = data_df.groupby(id_columns).min().reset_index()
+            data_to_add = data_df.groupby(id_columns)[remaining_feat].min().reset_index()
         elif cont_join_method.lower() == 'max':
-            data_to_add = data_df.groupby(id_columns).max().reset_index()
+            data_to_add = data_df.groupby(id_columns)[remaining_feat].max().reset_index()
         if has_timestamp is True:
             # Sort by time `ts` and set it as index
             data_to_add = data_to_add.sort_values('ts')
