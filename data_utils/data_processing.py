@@ -711,7 +711,7 @@ def apply_minmax_denorm(value, df=None, min=None, max=None, categories_mins=None
 def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                    normalization_method='z-score', columns_to_normalize=None,
                    columns_to_normalize_categ=None, categ_columns=None,
-                   see_progress=True, inplace=False):
+                   see_progress=True, get_stats=False, inplace=False):
     '''Performs data normalization to a continuous valued tensor or dataframe,
        changing the scale of the data.
 
@@ -757,6 +757,9 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
     see_progress : bool, default True
         If set to True, a progress bar will show up indicating the execution
         of the normalization calculations.
+    get_stats : bool, default False
+        If set to True, the stats used to normalize the data (e.g. mean and
+        standard deviation) are also outputed.
     inplace : bool, default False
         If set to True, the original dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -766,6 +769,20 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
     -------
     data : pandas.DataFrame or dask.DataFrame or torch.Tensor
         Normalized Pandas or Dask dataframe or PyTorch tensor.
+
+    If get_stats == True and normalization_method == 'z-score':
+
+    mean : float or dict or list of floats or list of dicts
+        Mean value(s) used in the data normalization.
+    std : float or dict or list of floats or list of dicts
+        Standard deviation value(s) used in the data normalization.
+
+    If get_stats == True and normalization_method == 'min-max':
+
+    min : dict
+        Minimum value(s) used in the data normalization.
+    max : dict
+        Maximum value(s) used in the data normalization.
     '''
     # Check if specific columns have been specified for normalization
     if columns_to_normalize is None:
@@ -844,6 +861,9 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                 data[columns_to_normalize] = (data[columns_to_normalize] - means) / stds
 
             if columns_to_normalize_categ is not None:
+                if get_stats is True:
+                    mean_list = []
+                    std_list = []
                 # Make sure that the columns_to_normalize_categ is a list
                 if isinstance(columns_to_normalize_categ, tuple):
                     columns_to_normalize_categ = [columns_to_normalize_categ]
@@ -858,8 +878,12 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                     stds_grpb = df.groupby(categ_columns)[column_to_normalize].std()
                     if isinstance(df, dd.DataFrame):
                         # Make sure that the values are computed, in case we're using Dask
-                        means = means.compute()
-                        stds = stds.compute()
+                        means_grpb = means.compute()
+                        stds_grpb = stds.compute()
+                    if get_stats is True:
+                        # Add the current stats values to the output lists
+                        mean_list.append(means_grpb.to_dict())
+                        std_list.append(stds_grpb.to_dict())
                     # Get the categories columns as a numpy array, so as to
                     # index the groupby-resulting dataframes of mean and standard
                     # deviation values
@@ -870,10 +894,14 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                         cat_arr = list(map(tuple, cat_arr))
                     # Get the mean and standard deviation values in the same
                     # order as the original dataframe's row order
-                    means = means_grpb[cat_arr].values
-                    stds = stds_grpb[cat_arr].values
+                    means_cat = means_grpb.loc[cat_arr].values
+                    stds_cat = stds_grpb.loc[cat_arr].values
                     # Normalize the right categories
-                    data[column_to_normalize] = (data[column_to_normalize] - means) / stds
+                    data[column_to_normalize] = (data[column_to_normalize] - means_cat) / stds_cat
+                if get_stats is True:
+                    # Merge all the stats dictionaries
+                    mean_categ_dict = utils.merge_dicts(mean_list)
+                    std_categ_dict = utils.merge_dicts(std_list)
 
         # Otherwise, the tensor is normalized
         else:
@@ -892,6 +920,15 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                 for col in utils.iterations_loop(tensor_columns_to_normalize, see_progress=see_progress):
                     data[:, :, col] = ((data[:, :, col] - column_means[idx_to_name[col]])
                                        / column_stds[idx_to_name[col]])
+
+        if get_stats is False:
+            return data
+        elif columns_to_normalize is not False and columns_to_normalize_categ is not None:
+            return data, means.to_dict(), stds.to_dict(), mean_categ_dict, std_categ_dict
+        elif columns_to_normalize is not False and columns_to_normalize_categ is None:
+            return data, means.to_dict(), stds.to_dict()
+        elif columns_to_normalize is False and columns_to_normalize_categ is not None:
+            return data, mean_categ_dict, std_categ_dict
 
     elif normalization_method.lower() == 'min-max':
         if columns_to_normalize is not False:
@@ -926,6 +963,9 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                 data[columns_to_normalize] = (data[columns_to_normalize] - mins) / (maxs - mins)
 
             if columns_to_normalize_categ is not None:
+                if get_stats is True:
+                    min_list = []
+                    max_list = []
                 # Make sure that the columns_to_normalize_categ is a list
                 if isinstance(columns_to_normalize_categ, tuple):
                     columns_to_normalize_categ = [columns_to_normalize_categ]
@@ -936,12 +976,16 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                     categ_columns = col_tuple[0]
                     column_to_normalize = col_tuple[1]
                     # Calculate the minimum and maximum values
-                    mins = df.groupby(col_tuple[0])[col_tuple[1]].min()
-                    maxs = df.groupby(col_tuple[0])[col_tuple[1]].max()
+                    mins_grpb = df.groupby(col_tuple[0])[col_tuple[1]].min()
+                    maxs_grpb = df.groupby(col_tuple[0])[col_tuple[1]].max()
                     if isinstance(df, dd.DataFrame):
                         # Make sure that the values are computed, in case we're using Dask
-                        mins = mins.compute()
-                        maxs = maxs.compute()
+                        mins_grpb = mins_grpb.compute()
+                        maxs_grpb = maxs_grpb.compute()
+                    if get_stats is True:
+                        # Add the current stats values to the output lists
+                        min_list.append(mins_grpb.to_dict())
+                        max_list.append(maxs_grpb.to_dict())
                     # Get the categories columns as a numpy array, so as to
                     # index the groupby-resulting dataframes of minimum and
                     # maximum values
@@ -952,10 +996,14 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                         cat_arr = list(map(tuple, cat_arr))
                     # Get the minimum and maximum values in the same
                     # order as the original dataframe's row order
-                    mins = mins_grpb[cat_arr].values
-                    maxs = maxs_grpb[cat_arr].values
+                    mins_cat = mins_grpb.loc[cat_arr].values
+                    maxs_cat = maxs_grpb.loc[cat_arr].values
                     # Normalize the right categories
-                    data[column_to_normalize] = (data[column_to_normalize] - mins) / (maxs - mins)
+                    data[column_to_normalize] = (data[column_to_normalize] - mins_cat) / (maxs_cat - mins_cat)
+                if get_stats is True:
+                    # Merge all the stats dictionaries
+                    min_categ_dict = utils.merge_dicts(min_list)
+                    max_categ_dict = utils.merge_dicts(max_list)
         # Otherwise, the tensor is normalized
         else:
             if columns_to_normalize is not False:
@@ -973,10 +1021,18 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                 for col in utils.iterations_loop(tensor_columns_to_normalize, see_progress=see_progress):
                     data[:, :, col] = ((data[:, :, col] - column_mins[idx_to_name[col]])
                                        / (column_maxs[idx_to_name[col]] - column_mins[idx_to_name[col]]))
+
+        if get_stats is False:
+            return data
+        elif columns_to_normalize is not False and columns_to_normalize_categ is not None:
+            return data, mins.to_dict(), maxs.to_dict(), min_categ_dict, max_categ_dict
+        elif columns_to_normalize is not False and columns_to_normalize_categ is None:
+            return data, mins.to_dict(), maxs.to_dict()
+        elif columns_to_normalize is False and columns_to_normalize_categ is not None:
+            return data, min_categ_dict, max_categ_dict
     else:
         raise ValueError(f'{normalization_method} isn\'t a valid normalization method. Available options \
                          are "z-score" and "min-max".')
-    return data
 
 
 def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
