@@ -881,9 +881,19 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                         means_grpb = means.compute()
                         stds_grpb = stds.compute()
                     if get_stats is True:
-                        # Add the current stats values to the output lists
-                        mean_list.append(means_grpb.to_dict())
-                        std_list.append(stds_grpb.to_dict())
+                        if isinstance(column_to_normalize, str):
+                            # Make sure that the feature being normalized has its name specified in the stats
+                            tmp_mean_grpb = dict()
+                            tmp_std_grpb = dict()
+                            tmp_mean_grpb[column_to_normalize] = means_grpb.to_dict()
+                            tmp_std_grpb[column_to_normalize] = stds_grpb.to_dict()
+                            # Add the current stats values to the output lists
+                            mean_list.append(tmp_mean_grpb)
+                            std_list.append(tmp_std_grpb)
+                        else:
+                            # Add the current stats values to the output lists
+                            mean_list.append(means_grpb.to_dict())
+                            std_list.append(stds_grpb.to_dict())
                     # Get the categories columns as a numpy array, so as to
                     # index the groupby-resulting dataframes of mean and standard
                     # deviation values
@@ -983,9 +993,19 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                         mins_grpb = mins_grpb.compute()
                         maxs_grpb = maxs_grpb.compute()
                     if get_stats is True:
-                        # Add the current stats values to the output lists
-                        min_list.append(mins_grpb.to_dict())
-                        max_list.append(maxs_grpb.to_dict())
+                        if isinstance(column_to_normalize, str):
+                            # Make sure that the feature being normalized has its name specified in the stats
+                            tmp_min_grpb = dict()
+                            tmp_max_grpb = dict()
+                            tmp_min_grpb[column_to_normalize] = mins_grpb.to_dict()
+                            tmp_max_grpb[column_to_normalize] = maxs_grpb.to_dict()
+                            # Add the current stats values to the output lists
+                            min_list.append(tmp_min_grpb)
+                            max_list.append(tmp_max_grpb)
+                        else:
+                            # Add the current stats values to the output lists
+                            min_list.append(mins_grpb.to_dict())
+                            max_list.append(maxs_grpb.to_dict())
                     # Get the categories columns as a numpy array, so as to
                     # index the groupby-resulting dataframes of minimum and
                     # maximum values
