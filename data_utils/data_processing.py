@@ -4,6 +4,7 @@ import dask.dataframe as dd                             # Dask to handle big dat
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import numbers                                          # numbers allows to check if data is numeric
 import warnings                                         # Print warnings for bad practices
+from functools import partial                           # Enables using functions with some fixed parameters
 from . import utils                                     # Generic and useful methods
 from . import search_explore                            # Methods to search and explore data
 import data_utils as du
@@ -176,50 +177,52 @@ def remove_cols_with_many_nans(df, nan_percent_thrsh=40, inplace=False):
     return data_df
 
 
-def clean_naming(x, separator='0'):
+def clean_naming(x, lower_case=True):
     '''Change strings to only have lower case letters and underscores.
 
     Parameters
     ----------
     x : string or list of strings
         String(s) on which to clean the naming, standardizing it.
-    separator : string, default '0'
-        Symbol that concatenates each string's words. As such, it can't appear
-        in a single category's string.
+    lower_case : bool, default True
+        If set to True, all strings will be converted to lower case.
 
     Returns
     -------
     x : string or list of strings
         Cleaned string(s).
     '''
-    # Make sure that none of the categories' strings contain the separator symbol
-    if separator != '_':
-        in_category_symbol = '_'
-    else:
-        in_category_symbol = '-'
     if 'pandas.core.indexes.base.Index' in str(type(x)):
         # If the user input is a dataframe index (e.g. df.columns), convert it to a list
         x = list(x)
     if isinstance(x, list):
-        x = [string.lower().replace('  ', '')
-                           .replace(' ', '_')
-                           .replace(',', '_and')
-                           .replace(separator, in_category_symbol) for string in x]
+        if lower_case is True:
+            x = [string.lower().replace('  ', '')
+                               .replace(' ', '_')
+                               .replace(',', '_and') for string in x]
+        else:
+            x = [string.replace('  ', '')
+                       .replace(' ', '_')
+                       .replace(',', '_and') for string in x]
     elif (isinstance(x, pd.DataFrame)
     or isinstance(x, pd.Series)
     or isinstance(x, dd.DataFrame)
     or isinstance(x, dd.Series)):
         raise Exception('ERROR: Wrong method. When using dataframes or series, use clean_categories_naming() method instead.')
     else:
-        x = (str(x).lower().replace('  ', '')
-                           .replace(' ', '_')
-                           .replace(',', '_and')
-                           .replace(separator, in_category_symbol))
+        if lower_case is True:
+            x = (str(x).lower().replace('  ', '')
+                               .replace(' ', '_')
+                               .replace(',', '_and'))
+        else:
+            x = (str(x).replace('  ', '')
+                       .replace(' ', '_')
+                       .replace(',', '_and'))
     return x
 
 
 def clean_categories_naming(df, column, clean_missing_values=True,
-                            specific_nan_strings=[], separator='0'):
+                            specific_nan_strings=[], lower_case=False):
     '''Change categorical values to only have lower case letters and underscores.
 
     Parameters
@@ -235,26 +238,30 @@ def clean_categories_naming(df, column, clean_missing_values=True,
     specific_nan_strings : list of strings, default []
         Parameter where the user can specify additional strings that
         should correspond to missing values.
+    lower_case : bool, default True
+        If set to True, all strings will be converted to lower case.
 
     Returns
     -------
     df : pandas.DataFrame or dask.DataFrame
         Dataframe with its string column already cleaned.
     '''
+    # Fix the seeting of all lower case characters according to the `lower_case` parameter
+    clean_naming_prtl = partial(clean_naming, lower_case=lower_case)
     if isinstance(df, dd.DataFrame):
-        df[column] = (df[column].map(clean_naming, meta=('x', str)))
+        df[column] = (df[column].map(clean_naming_prtl, meta=('x', str)))
         if clean_missing_values is True:
             df[column] = df[column].apply(lambda x: standardize_missing_values(x, specific_nan_strings),
                                           meta=df[column]._meta.dtypes)
     else:
-        df[column] = (df[column].map(clean_naming))
+        df[column] = (df[column].map(clean_naming_prtl))
         if clean_missing_values is True:
             df[column] = df[column].apply(lambda x: standardize_missing_values(x, specific_nan_strings))
     return df
 
 
 def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_values=True,
-                               specific_nan_strings=[], has_nan=False, join_rows=True,
+                               specific_nan_strings=[], has_nan=False, join_rows=False,
                                join_by=['patientunitstayid', 'ts'],
                                get_new_column_names=False, inplace=False):
     '''Transforms specified column(s) from a dataframe into a one hot encoding
@@ -278,7 +285,7 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_value
     has_nan : bool, default False
         If set to true, will first fill the missing values (NaN) with the string
         f'{column}_missing_value'.
-    join_rows : bool, default True
+    join_rows : bool, default False
         If set to true, will group the rows created by the one hot encoding by
         summing the boolean values in the rows that have the same identifiers.
     join_by : string or list, default ['subject_id', 'ts'])
@@ -737,7 +744,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
         although columns can still be normalized in groups of categories, if
         specified in the `columns_to_normalize_categ` parameter. Otherwise, all
         continuous columns will be normalized.
-    columns_to_normalize_categ : string or list of tuples of strings, default None
+    columns_to_normalize_categ : tuple or list of tuples of tuples, default None
         If specified, the columns provided in the list are going to be
         normalized on their categories. That is, the values (column 2 in the
         tuple) are normalized with stats of their respective categories (column
@@ -838,10 +845,10 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
 
             if columns_to_normalize_categ is not None:
                 # Make sure that the columns_to_normalize_categ is a list
-                if isinstance(columns_to_normalize_categ, str):
+                if isinstance(columns_to_normalize_categ, tuple):
                     columns_to_normalize_categ = [columns_to_normalize_categ]
                 if not isinstance(columns_to_normalize_categ, list):
-                    raise Exception(f'ERROR: The `columns_to_normalize_categ` argument must be specified as either a single string or a list of strings. Received input with type {type(columns_to_normalize_categ)}.')
+                    raise Exception(f'ERROR: The `columns_to_normalize_categ` argument must be specified as either a single tuple or a list of tuples. Received input with type {type(columns_to_normalize_categ)}.')
                 print(f'z-score normalizing columns {columns_to_normalize_categ} by their associated categories...')
                 for col_tuple in utils.iterations_loop(columns_to_normalize_categ, see_progress=see_progress):
                     categ_columns = col_tuple[0]
@@ -919,6 +926,11 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                 data[columns_to_normalize] = (data[columns_to_normalize] - mins) / (maxs - mins)
 
             if columns_to_normalize_categ is not None:
+                # Make sure that the columns_to_normalize_categ is a list
+                if isinstance(columns_to_normalize_categ, tuple):
+                    columns_to_normalize_categ = [columns_to_normalize_categ]
+                if not isinstance(columns_to_normalize_categ, list):
+                    raise Exception(f'ERROR: The `columns_to_normalize_categ` argument must be specified as either a single tuple or a list of tuples. Received input with type {type(columns_to_normalize_categ)}.')
                 print(f'min-max normalizing columns {columns_to_normalize_categ} by their associated categories...')
                 for col_tuple in columns_to_normalize_categ:
                     categ_columns = col_tuple[0]
@@ -1266,6 +1278,7 @@ def merge_values(x1, x2, separator='0', str_over_num=True, join_strings=True):
     x
         Resulting merged value.
     '''
+    # [TODO] Add case of two boolean numbers, perhaps with an input flag
     if x1 is None and x2 is not None:
         return x2
     elif x1 is not None and x2 is None:

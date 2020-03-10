@@ -823,7 +823,7 @@ def run_embed_bag(data, embedding_layer, encod_list, offset, feature_name=None, 
             raise Exception(f'ERROR: Data with more than 3 dimensions is not supported. Input data has {len(data_emb.shape)} dimensions.')
     elif isinstance(data_emb, pd.DataFrame):
         # Get a tensor with the embedding values retrieved from the embedding bag layer
-        embed_data = embedding_layer(encod_list, offset)[:-1].detach().numpy()
+        embed_data = embedding_layer(encod_list, offset).detach().numpy()
         # Names of the new embedding features
         embed_names = [f'{feature_name}_embed_{i}' for i in range(embedding_layer.embedding_dim)]
         # Add the embedding features to the dataframe
