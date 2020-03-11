@@ -1611,8 +1611,13 @@ def set_dosage_and_units(df, orig_column='dosage', new_column_names=['drug_dosag
     # Separate the dosage and unit data
     dosage_unit_data = df[orig_column].apply(__sep_dosage_units)
     # Add the new dosage and units columns
-    df[new_column_names] = pd.DataFrame(dosage_unit_data.values.tolist(),
-                                        index=dosage_unit_data.index)
+    if new_column_names != ['drug_dosage', 'drug_unit']:
+        # For some reason, setting new columns like this sometimes fails
+        df[new_column_names] = pd.DataFrame(dosage_unit_data.values.tolist(),
+                                            index=dosage_unit_data.index)
+    else:
+        df[['drug_dosage', 'drug_unit']] = pd.DataFrame(dosage_unit_data.values.tolist(),
+                                                        index=dosage_unit_data.index)
     return df
 
 
