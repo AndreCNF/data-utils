@@ -1582,12 +1582,12 @@ def set_dosage_and_units(df, orig_column='dosage'):
         x = df[orig_column].split(' ')
         if len(x) == 2:
             try:
-                x[0] = float(x[0])
+                # Add correctly formated dosage
+                dosage = float(x[0])
             except Exception:
                 return dosage, unit
             if utils.is_definitely_string(x[1]):
-                # Add correctly formated dosage and unit values
-                dosage = x[0]
+                # Add correctly formated unit values
                 unit = x[1]
                 return dosage, unit
             else:
