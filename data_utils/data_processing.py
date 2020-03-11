@@ -1559,7 +1559,40 @@ def missing_values_imputation(data, method='zero', id_column=None, inplace=False
     return data_copy
 
 
-def set_dosage_and_units(df, orig_column='dosage'):
+def __sep_dosage_units(x):
+    # Start by assuming that dosage and unit are unknown
+    dosage = np.nan
+    unit = np.nan
+    try:
+        x = x.split(' ')
+        if len(x) == 2:
+            try:
+                # Add correctly formated dosage
+                dosage = float(x[0])
+            except Exception:
+                pass
+            try:
+                if utils.is_definitely_string(x[1]):
+                    # Add correctly formated unit values
+                    unit = x[1]
+            except Exception:
+                pass
+        elif len(x) == 1:
+            try:
+                # Try to add correctly formated dosage, even without units
+                dosage = float(x[0])
+            except Exception:
+                pass
+    except Exception:
+        try:
+            # Try to add correctly formated dosage, even without units
+            dosage = float(x)
+        except:
+            pass
+    return dosage, unit
+
+
+def set_dosage_and_units(df, orig_column='dosage', new_column_names=['drug_dosage', 'drug_unit']):
     '''Separate medication dosage string column into numeric dosage and units
     features.
 
@@ -1575,27 +1608,12 @@ def set_dosage_and_units(df, orig_column='dosage'):
     df : pandas.DataFrame or dask.DataFrame
         Dataframe after adding the numeric dosage and units columns.
     '''
-    # Start by assuming that dosage and unit are unknown
-    dosage = np.nan
-    unit = np.nan
-    try:
-        x = df[orig_column].split(' ')
-        if len(x) == 2:
-            try:
-                # Add correctly formated dosage
-                dosage = float(x[0])
-            except Exception:
-                return dosage, unit
-            if utils.is_definitely_string(x[1]):
-                # Add correctly formated unit values
-                unit = x[1]
-                return dosage, unit
-            else:
-                return dosage, unit
-        else:
-            return dosage, unit
-    except Exception:
-        return dosage, unit
+    # Separate the dosage and unit data
+    dosage_unit_data = df[orig_column].apply(__sep_dosage_units)
+    # Add the new dosage and units columns
+    df[new_column_names] = pd.DataFrame(dosage_unit_data.values.tolist(),
+                                        index=dosage_unit_data.index)
+    return df
 
 
 def signal_idx_derivative(s, time_scale='seconds', periods=1):
