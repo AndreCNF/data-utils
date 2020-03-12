@@ -183,7 +183,7 @@ def ts_tensor_to_np_matrix(data, feat_num=None, padding_value=999999):
 def inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
                                  padding_value=999999, cols_to_remove=[0, 1],
                                  is_train=False, prob_output=True, optimizer=None,
-                                 is_custom=False, already_embedded=True):
+                                 is_custom=False, already_embedded=False):
     '''Run a single inference or training iteration on a Recurrent Neural Network (RNN),
     applied to multivariate data, such as EHR. Performance metrics still need to be
     calculated after executing this method.
@@ -222,7 +222,7 @@ def inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
         If set to True, the method will assume that the model being used is a
         custom built one, which won't require sequence length information during
         the feedforward process.
-    already_embedded : bool, default True
+    already_embedded : bool, default False
         If set to True, it means that the categorical features are already
         embedded when fetching a batch, i.e. there's no need to run the embedding
         layer(s) during the model's feedforward.
@@ -381,7 +381,7 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
                     model_type='multivariate_rnn', is_custom=False, seq_len_dict=None,
                     padding_value=999999, output_rounded=False, experiment=None,
                     set_name='test', seq_final_outputs=False, cols_to_remove=[0, 1],
-                    already_embedded=True):
+                    already_embedded=False):
     '''Do inference on specified data using a given model.
 
     Parameters
@@ -431,7 +431,7 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
         List of indeces of columns to remove from the features before feeding to
         the model. This tend to be the identifier columns, such as subject_id
         and ts (timestamp).
-    already_embedded : bool, default True
+    already_embedded : bool, default False
         If set to True, it means that the categorical features are already
         embedded when fetching a batch, i.e. there's no need to run the embedding
         layer(s) during the model's feedforward.
@@ -707,7 +707,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
           comet_ml_api_key=None, comet_ml_project_name=None,
           comet_ml_workspace=None, comet_ml_save_model=False,
           experiment=None, features_list=None, get_val_loss_min=False,
-          already_embedded=True):
+          already_embedded=False):
     '''Trains a given model on the provided data.
 
     Parameters

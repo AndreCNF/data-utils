@@ -805,7 +805,7 @@ def run_embed_bag(data, embedding_layer, encod_list, offset, feature_name=None, 
              offset, embedding_layer) = (data_emb.cuda(), encod_list.cuda(),
                                          offset.cuda(), embedding_layer.cuda())
         # Get a tensor with the embedding values retrieved from the embedding bag layer
-        embed_data = embedding_layer(encod_list, offset)[:-1]
+        embed_data = embedding_layer(encod_list, offset)
         if len(data_emb.shape) == 1:
             # Add the new embedding columns to the data tensor
             data_emb = torch.cat((data_emb.double(), embed_data.double()))
@@ -838,18 +838,18 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
                            n_id_cols=2, padding_value=999999, nan_value=0,
                            inplace=False):
     '''Run the complete pipeline that gets us from a data tensor with categorical
-    features, i.e. columns with lists of encodings as values, into a data tensor
-    with embedding columns.
+    features, i.e. columns with lists of encodings as values, or one hot
+    encoded features into a data tensor with embedding columns.
 
     Parameters
     ----------
     data : torch.Tensor or pandas.DataFrame
-        Data tensor or dataframe that contains the categorical feature(s) that
-        will be embedded.
+        Data tensor or dataframe that contains the categorical or one hot
+        encoded feature(s) that will be embedded.
     embedding_layer : torch.nn.EmbeddingBag or torch.nn.ModuleList or torch.nn.ModuleDict
         PyTorch layer(s) that applies the embedding bag, i.e. calculates the
         average embedding based on multiple encoded values.
-    features : int or list of int or str or list of str
+    features : int or list of int or str or list of str or list of list of int
         Index (or indeces) or name(s) of the categorical column(s) that will be
         ran through its (or their) respective embedding layer(s). This feature(s)
         is (are) removed from the data tensor after the embedding columns are
@@ -866,6 +866,15 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
         Value to use in the padding, to fill the sequences.
     nan_value : int, default 0
         Integer number that gets assigned to NaN and NaN-like values.
+    # [TODO] Implement the case of using dataframe inputs instead of tensors
+    # embedding_type : str, default 'ohe'
+    #     Defines which type of embedding is being used. It can either be sets of
+    #     one hot encoded features (`ohe`) or individual encoded features (`cat_encd`).
+    #     In case of `ohe`, the user must specify a list of feature numbers for
+    #     each embedding layer, corresponding to each one hot encoded column that
+    #     belongs to the same original feature. In case of `cat_encd`, a single
+    #     feature number per embedding layer must be specified, as that feature
+    #     should have all the categories encoded in it.
     inplace : bool, default False
         If set to True, the original tensor will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -894,44 +903,31 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
     if isinstance(data_emb, pd.DataFrame) and not all([isinstance(feature, str) for feature in features]):
         raise Exception('ERROR: If the input data is in dataframe format, the features to be embedded must be specified by their names (in string type).')
     # Check if it's only a single categorical feature or more
-    if isinstance(embedding_layer, torch.nn.EmbeddingBag) and (isinstance(features, int) or isinstance(features, str)):
+    if (isinstance(embedding_layer, torch.nn.EmbeddingBag)
+    and isinstance(features, list)
+    and [isinstance(feature, int) for feature in features]):
         # Get the list of all the encodings and their offsets
-        if model_forward and isinstance(features, int):
-            encod_list, offset_list = prepare_embed_bag(data_emb, features-n_id_cols,
-                                                       padding_value=padding_value, nan_value=nan_value)
+        if model_forward is True:
+            encod_list, offset_list = prepare_embed_bag(data_emb, [feature-n_id_cols for feature in features])
         else:
-            encod_list, offset_list = prepare_embed_bag(data_emb, features,
-                                                       padding_value=padding_value, nan_value=nan_value)
+            encod_list, offset_list = prepare_embed_bag(data_emb, features)
         # Run the embedding bag and add the embedding columns to the tensor
         data_emb = run_embed_bag(data_emb, embedding_layer, encod_list, offset_list, features, inplace)
-    elif isinstance(embedding_layer, torch.nn.ModuleList) and isinstance(features, list):
+    elif (isinstance(embedding_layer, torch.nn.ModuleList)
+    and isinstance(features, list)
+    and [isinstance(feat_list, list) for feat_list in features]):
         for i in range(len(features)):
             # Get the list of all the encodings and their offsets
-            if model_forward and isinstance(features[i], int):
-                encod_list, offset_list = prepare_embed_bag(data_emb, features[i]-n_id_cols,
-                                                           padding_value=padding_value, nan_value=nan_value)
+            if model_forward is True:
+                encod_list, offset_list = prepare_embed_bag(data_emb, [feature-n_id_cols for feature in features[i]])
             else:
-                encod_list, offset_list = prepare_embed_bag(data_emb, features[i],
-                                                           padding_value=padding_value, nan_value=nan_value)
+                encod_list, offset_list = prepare_embed_bag(data_emb, features[i])
             # Run the embedding bag and add the embedding columns to the tensor
             data_emb = run_embed_bag(data_emb, embedding_layer[f'embed_{i}'], encod_list, offset_list, features[i], inplace)
-    elif isinstance(embedding_layer, torch.nn.ModuleDict) and isinstance(features, list):
-        for feature in features:
-            # Get the list of all the encodings and their offsets
-            if model_forward and isinstance(feature, int):
-                encod_list, offset_list = prepare_embed_bag(data_emb, feature-n_id_cols,
-                                                           padding_value=padding_value, nan_value=nan_value)
-            else:
-                encod_list, offset_list = prepare_embed_bag(data_emb, feature,
-                                                           padding_value=padding_value, nan_value=nan_value)
-            # Run the embedding bag and add the embedding columns to the tensor
-            if isinstance(feature, int):
-                embed_layer = embedding_layer[f'embed_{feature}']
-            else:
-                embed_layer = embedding_layer[f'embed_{search_explore.find_col_idx(data_emb, feature)}']
-            data_emb = run_embed_bag(data_emb, embed_layer, encod_list, offset_list, feature, inplace)
     else:
         raise Exception(f'ERROR: The user must either a single embedding bag and feature index or lists of embedding bag layers and feature indeces. The input `embedding_layer` has type {type(embedding_layer)} while `feature` has type {type(features)}.')
+    # [TODO] Implement the case of using dataframe inputs instead of tensors
+    # [TODO] Implement the option of using individual encoded features instead of ohe
     # Remove the old categorical feature(s)
     if isinstance(data_emb, torch.Tensor):
         data_emb = deep_learning.remove_tensor_column(data_emb, features, inplace=inplace)
