@@ -324,7 +324,8 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_value
         columns = [columns]
     if not isinstance(columns, list):
         raise Exception(f'ERROR: The `columns` argument must be specified as either a single string or a list of strings. Received input with type {type(columns)}.')
-    for col in columns:
+    print('Cleaning the categorical columns...')
+    for col in utils.iterations_loop(columns):
         # Check if the column exists
         if col not in data_df.columns:
             raise Exception('ERROR: Column name not found in the dataframe.')
@@ -342,6 +343,7 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_value
     if get_new_column_names is True:
         # Find the previously existing column names
         old_column_names = data_df.columns
+    print('Getting dummies...')
     # Apply the one hot encoding to the specified columns
     if isinstance(data_df, dd.DataFrame):
         ohe_df = dd.get_dummies(data_df, columns=columns)
@@ -355,6 +357,7 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_value
         # Clip the one hot encoded columns to a maximum value of 1
         # (there might be duplicates which cause values bigger than 1)
         ohe_df.loc[:, ohe_columns] = ohe_df[ohe_columns].clip(upper=1)
+    print('Done!')
     if get_new_column_names is True:
         # Find the new column names and output them
         new_column_names = list(set(ohe_df.columns) - set(old_column_names))

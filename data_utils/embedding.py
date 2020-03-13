@@ -930,7 +930,10 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
     # [TODO] Implement the option of using individual encoded features instead of ohe
     # Remove the old categorical feature(s)
     if isinstance(data_emb, torch.Tensor):
-        data_emb = deep_learning.remove_tensor_column(data_emb, features, inplace=inplace)
+        if model_forward is True:
+            data_emb = deep_learning.remove_tensor_column(data_emb, [feature-n_id_cols for feature in features], inplace=inplace)
+        else:
+            data_emb = deep_learning.remove_tensor_column(data_emb, features, inplace=inplace)
     elif isinstance(data_emb, pd.DataFrame):
         data_emb = data_emb.drop(columns=features)
     return data_emb
