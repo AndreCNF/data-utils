@@ -1520,7 +1520,6 @@ def missing_values_imputation(data, method='zero', id_column=None, inplace=False
     tensor : torch.Tensor
         Imputed PyTorch tensor.
     '''
-    # [TODO] Prevent boolean columns from being imputated in a method other than zero-filling
     if ((not isinstance(data, pd.DataFrame))
          and (not isinstance(data, dd.DataFrame))
          and (not isinstance(data, torch.Tensor))):
@@ -1534,6 +1533,11 @@ def missing_values_imputation(data, method='zero', id_column=None, inplace=False
     else:
         # Use the original data object
         data_copy = data
+    # Check if there are boolean features
+    bool_feat = search_explore.list_one_hot_encoded_columns(data_copy)
+    if len(bool_feat) > 0:
+        # Fill all boolean features' missing values with zeros
+        data_copy[bool_feat] = data_copy[bool_feat].fillna(value=0)
     if method.lower() == 'zero':
         # Replace NaN's with zeros
         if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):

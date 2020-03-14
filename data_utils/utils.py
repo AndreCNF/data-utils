@@ -4,6 +4,7 @@ import numpy as np                                      # NumPy to handle numeri
 from tqdm.auto import tqdm                              # tqdm allows to track code execution progress
 import numbers                                          # numbers allows to check if data is numeric
 import warnings                                         # Print warnings for bad practices
+import itertools                                        # Flatten lists
 import data_utils as du
 
 # Pandas to handle the data in dataframes
@@ -163,6 +164,22 @@ def merge_dicts(dict1, dict2=None):
         return new_dict
     else:
         return Exception(f'ERROR: The first parameter `dict1` must be set as either a dictionary or a list of dictionaries. Instead, received `dict1` of type {type(dict1)}.')
+
+
+def merge_lists(lists):
+    '''Merge two or more lists into one.
+
+    Parameters
+    ----------
+    lists : list of lists
+        List containing all the lists that we want to merge.
+
+    Returns
+    -------
+    lists : lists
+        New list with all the input lists flatten in a single list.
+    '''
+    return list(itertools.chain.from_iterable(lists))
 
 
 def is_definitely_string(x):
