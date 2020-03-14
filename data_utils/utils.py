@@ -279,7 +279,7 @@ def iterations_loop(x, see_progress=True):
         return x
 
 
-def convert_dataframe(df, to='pandas', return_library=True):
+def convert_dataframe(df, to='pandas', return_library=True, dtypes=None):
     '''Converts a dataframe to the desired dataframe library format.
 
     Parameters
@@ -290,6 +290,9 @@ def convert_dataframe(df, to='pandas', return_library=True):
         The data library to which format the dataframe will be converted to.
     return_library : bool, default True
         If set to True, the new dataframe library is also returned as an output.
+    dtypes : dict, default None
+        Dictionary that indicates the desired dtype for each column.
+        e.g. {'Var1': 'float64', 'Var2': 'UInt8', 'Var3': str}
 
     Returns
     -------
@@ -308,8 +311,15 @@ def convert_dataframe(df, to='pandas', return_library=True):
         import modin.pandas as new_pd
     else:
         raise Exception(f'ERROR: Currently, convertion to a dataframe of type {to} is not supported. Availabale options are "pandas" and "modin".')
-    converted_df = new_pd.DataFrame(data=df.to_numpy(), columns=df.columns)
+    if dtypes is not None:
+        converted_df = new_pd.DataFrame(data=df.to_numpy(), columns=df.columns,
+                                        dtypes=dtypes)
+    else:
+        converted_df = new_pd.DataFrame(data=df.to_numpy(), columns=df.columns)
     du.set_pandas_library(lib)
+    if dtypes is None:
+        # Infer adequate dtypes for the dataframe's columns
+        converted_df = converted_df.infer_objects()
     if return_library is True:
         return converted_df, new_pd
     else:
