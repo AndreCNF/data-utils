@@ -311,15 +311,14 @@ def convert_dataframe(df, to='pandas', return_library=True, dtypes=None):
         import modin.pandas as new_pd
     else:
         raise Exception(f'ERROR: Currently, convertion to a dataframe of type {to} is not supported. Availabale options are "pandas" and "modin".')
-    if dtypes is not None:
-        converted_df = new_pd.DataFrame(data=df.to_numpy(), columns=df.columns,
-                                        dtype=dtypes)
-    else:
-        converted_df = new_pd.DataFrame(data=df.to_numpy(), columns=df.columns)
+    converted_df = new_pd.DataFrame(data=df.to_numpy(), columns=df.columns)
     du.set_pandas_library(lib)
     if dtypes is None:
         # Infer adequate dtypes for the dataframe's columns
         converted_df = converted_df.infer_objects()
+    else:
+        # Set the desired dtypes
+        converted_df = converted_df.astype(dtypes)
     if return_library is True:
         return converted_df, new_pd
     else:
