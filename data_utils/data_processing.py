@@ -1331,7 +1331,8 @@ def transpose_dataframe(df, column_to_transpose=None, inplace=False):
     return data_df
 
 
-def merge_values(x1, x2, separator='0', str_over_num=True, join_strings=True):
+def merge_values(x1, x2, separator=';', str_over_num=True, join_strings=True,
+                 is_bool=False):
     '''Merge two values, by extracting the non-missing one, their average value
     or the non-numeric one.
 
@@ -1341,7 +1342,7 @@ def merge_values(x1, x2, separator='0', str_over_num=True, join_strings=True):
         Value 1 of the merge operation.
     x2
         Value 2 of the merge operation.
-    separator : string, default '0'
+    separator : string, default ';'
         Symbol that concatenates each string's words, which will be used to join
         the inputs if they are both strings.
     str_over_num : bool, default True
@@ -1351,13 +1352,24 @@ def merge_values(x1, x2, separator='0', str_over_num=True, join_strings=True):
         If set to True, in case of receiving two string inputs, the algorithm
         will joined them using the defined separator. Otherwise, the shortest
         string will be returned.
+    is_bool : bool, default False
+        If set to True, the method will treat the values to merge as boolean
+        (i.e. it will return either 1, if it's one of the values, or 0).
 
     Returns
     -------
     x
         Resulting merged value.
     '''
-    # [TODO] Add case of two boolean numbers, perhaps with an input flag
+    if is_bool is True:
+        if (x1 is None or np.isnan(x1)) and (x2 is None or np.isnan(x2)):
+            return 0
+        elif (x1 is None or np.isnan(x1)) and not (x2 is None or np.isnan(x2)):
+            return x2
+        elif not (x1 is None or np.isnan(x1)) and (x2 is None or np.isnan(x2)):
+            return x1
+        else:
+            return max(x1, x2)
     if x1 is None and x2 is not None:
         return x2
     elif x1 is not None and x2 is None:
@@ -1407,8 +1419,8 @@ def merge_values(x1, x2, separator='0', str_over_num=True, join_strings=True):
         return x1
 
 
-def merge_columns(df, cols_to_merge=None, drop_old_cols=True, separator='0',
-                  see_progress=True, inplace=False):
+def merge_columns(df, cols_to_merge=None, drop_old_cols=True, separator=';',
+                  join_strings=False, see_progress=True, inplace=False):
     '''Merge columns that have been created, as a consequence of a dataframe
     merge operation, resulting in duplicate columns with suffixes.
 
@@ -1421,9 +1433,13 @@ def merge_columns(df, cols_to_merge=None, drop_old_cols=True, separator='0',
         If not specified, the algorithm will search for columns with suffixes.
     drop_old_cols : bool, default True
         If set to True, the preexisting duplicate columns will be removed.
-    separator : string, default '0'
+    separator : string, default ';'
         Symbol that concatenates each string's words, which will be used to join
         the inputs if they are both strings.
+    join_strings : bool, default False
+        If set to True, in case of receiving two string inputs, the algorithm
+        will joined them using the defined separator. Otherwise, the shortest
+        string will be returned.
     see_progress : bool, default True
         If set to True, a progress bar will show up indicating the execution
         of the normalization calculations.
@@ -1444,21 +1460,30 @@ def merge_columns(df, cols_to_merge=None, drop_old_cols=True, separator='0',
         # Use the original dataframe
         data_df = df
     if cols_to_merge is None:
+        print('Finding columns to merge...')
         # Find all columns that have typical merging suffixes
         cols_to_merge = set([col.split('_x')[0].split('_y')[0] for col in df.columns
                              if col.endswith('_x') or col.endswith('_y')])
     # Make sure that the cols_to_merge is a list
     if isinstance(cols_to_merge, str):
         cols_to_merge = [cols_to_merge]
+    print('Merging the duplicate columns...')
     for col in utils.iterations_loop(cols_to_merge, see_progress=see_progress):
+        # Check if the columns being merged are boolean
+        is_bool = all([search_explore.is_one_hot_encoded_column(data_df, col, n_unique_values=None)]
+                       for col in [f'{col}_x', f'{col}_y'])
         # Create a column, with the original name, merging the associated columns' values
         data_df[col] = data_df.apply(lambda x: merge_values(x[f'{col}_x'], x[f'{col}_y'],
-                                                            separator), axis=1)
+                                                            separator=separator,
+                                                            join_strings=join_strings,
+                                                            is_bool=is_bool), axis=1)
     if drop_old_cols:
+        print('Removing old columns...')
         # Remove the old columns, with suffixes `_x` and '_y', which resulted
         # from the merge of dataframes
-        for col in cols_to_merge:
+        for col in utils.iterations_loop(cols_to_merge, see_progress=see_progress):
             data_df = data_df.drop(columns=[f'{col}_x', f'{col}_y'])
+    print('Done!')
     return data_df
 
 
