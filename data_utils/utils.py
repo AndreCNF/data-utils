@@ -313,7 +313,7 @@ def convert_dataframe(df, to='pandas', return_library=True, dtypes=None):
         raise Exception(f'ERROR: Currently, convertion to a dataframe of type {to} is not supported. Availabale options are "pandas" and "modin".')
     if dtypes is not None:
         converted_df = new_pd.DataFrame(data=df.to_numpy(), columns=df.columns,
-                                        dtypes=dtypes)
+                                        dtype=dtypes)
     else:
         converted_df = new_pd.DataFrame(data=df.to_numpy(), columns=df.columns)
     du.set_pandas_library(lib)
