@@ -1496,6 +1496,12 @@ def missing_values_imputation(data, method='zero', id_column=None, inplace=False
     data : torch.Tensor or pandas.DataFrame or dask.DataFrame
         PyTorch tensor corresponding to a single column or a dataframe which will
         be imputed.
+    # [TODO]
+    # columns : str or list of str, default None
+    #     Specific column(s) to run missing values imputation on. Might be useful
+    #     if some columns should be imputated in a specific method, different from
+    #     the rest. If left unspecified, all columns will be imputated with the
+    #     same method.
     method : string, default 'zero'
         Imputation method to be used. If user inputs 'zero', it will just fill all
         missing values with zero. If the user chooses 'zigzag', it will do a
@@ -1533,6 +1539,9 @@ def missing_values_imputation(data, method='zero', id_column=None, inplace=False
     else:
         # Use the original data object
         data_copy = data
+    # [TODO] Implement an option to only imputate specified column(s)
+    # if columns is None:
+    #     columns = list(data_copy.columns)
     # Check if there are boolean features
     bool_feat = search_explore.list_one_hot_encoded_columns(data_copy)
     if len(bool_feat) > 0:

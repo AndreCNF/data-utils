@@ -56,15 +56,15 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
     Returns
     -------
     train_dataloader : torch.utils.data.DataLoader
-        Dataloader for getting batches of data which will be used 
+        Dataloader for getting batches of data which will be used
         during training.
     val_dataloader : torch.utils.data.DataLoader
-        Dataloader for getting batches of data which will be used to 
-        evaluate the model's performance on a validation set during 
+        Dataloader for getting batches of data which will be used to
+        evaluate the model's performance on a validation set during
         training.
     test_dataloader : torch.utils.data.DataLoader
-        Dataloader for getting batches of data which will be used to 
-        evaluate the model's performance on a test set, after 
+        Dataloader for getting batches of data which will be used to
+        evaluate the model's performance on a test set, after
         finishing the training process.
 
     If get_indeces is True:
@@ -72,11 +72,11 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
     train_indices : torch.utils.data.DataLoader
         Indices of the data which will be used during training.
     val_indices : torch.utils.data.DataLoader
-        Indices of the data which will be used to evaluate the 
+        Indices of the data which will be used to evaluate the
         model's performance on a validation set during training.
     test_indices : torch.utils.data.DataLoader
-        Indices of the data which will be used to evaluate the 
-        model's performance on a test set, after finishing the 
+        Indices of the data which will be used to evaluate the
+        model's performance on a test set, after finishing the
         training process.
     '''
     # Create data indices for training and test splits
@@ -136,13 +136,13 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
         return model
 
 
-def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
+def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
                              comet_ml_project_name, comet_ml_workspace, n_inputs,
                              id_column, label_column, inst_column=None,
-                             n_outputs=1, model_type='multivariate_rnn', 
-                             models_path='models/', ModelClass=None, array_param=None,
-                             config_path='', var_seq=True, clip_value=0.5, 
-                             padding_value=999999, batch_size=32, n_epochs=20,
+                             n_outputs=1, Dataset=None, model_type='multivariate_rnn',
+                             models_path='models/', array_param=None,
+                             config_path='', var_seq=True, clip_value=0.5,
+                             padding_value=999999, batch_size=32, n_epochs=10,
                              lr=0.001, test_train_ratio=0.2, validation_ratio=0.1,
                              comet_ml_save_model=True, **kwargs):
     '''Optimize a machine learning model's hyperparameters, by training it
@@ -153,10 +153,6 @@ def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
     ----------
     Model : torch.nn.Module or sklearn.* (any machine learning model)
         Class constructor for the desired machine learning model.
-    Dataset : torch.torch.utils.data.Dataset
-        Class constructor for the dataset, which will be used for iterating
-        through batches of data. It must be able to receive as inputs a PyTorch
-        tensor and a Pandas or Dask dataframe.
     df : pandas.DataFrame or dask.DataFrame
         Dataframe containing all the data that will be used in the
         optimization's training processes.
@@ -185,6 +181,10 @@ def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
         identifier.
     n_outputs : int, default 1
         Total number of outputs givenm by the machine learning model.
+    Dataset : torch.torch.utils.data.Dataset, default None
+        Class constructor for the dataset, which will be used for iterating
+        through batches of data. It must be able to receive as inputs a PyTorch
+        tensor and a Pandas or Dask dataframe.
     model_type : string, default 'multivariate_rnn'
         Sets the type of model to train. Important to know what type of
         inference to do. Currently available options are ['multivariate_rnn',
@@ -192,11 +192,6 @@ def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
     models_path : string, default 'models/'
         Path where the model will be saved. By default, it saves in
         the directory named "models".
-    ModelClass : object, default None
-        Sets the class which corresponds to the machine learning 
-        model type. It will be needed if test inference is 
-        performed (do_test set to True), as we need to know
-        the model type so as to load the best scored model.
     array_param : list of strings, default None
         List of feature names that might have multiple values associated to
         them. For example, in a neural network with multiple layers, there
@@ -215,7 +210,7 @@ def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
     batch_size : int, default 32
         Defines the batch size, i.e. the number of samples used in each
         training iteration to update the model's weights.
-    n_epochs : int, default 50
+    n_epochs : int, default 10
         Number of epochs, i.e. the number of times the training loop
         iterates through all of the training data.
     lr : float, default 0.001
@@ -253,11 +248,11 @@ def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
     # Get all the names of the hyperparameters that will be optimized
     params_names = list(config_dict['parameters'].keys())
     if array_param is not None:
-        # Create a dictionary of lists, attributing all subparameter 
+        # Create a dictionary of lists, attributing all subparameter
         # names that belong to each array parameter
         array_subparam = dict()
         for param in array_param:
-            # Add all the names of subparameters that star with the same parameter name
+            # Add all the names of subparameters that start with the same parameter name
             array_subparam[param] = [subparam for subparam in params_names
                                      if subparam.startswith(param)]
     # Create a Comet.ml parameter optimizer
@@ -269,11 +264,14 @@ def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
     if inst_column is not None and var_seq is True:
         print('Building a dictionary containing the sequence length of each patient\'s time series...')
         # Dictionary containing the sequence length (number of temporal events) of each sequence (patient)
-        seq_len_df = df.groupby(id_column)[inst_column].count().to_frame().sort_values(by=inst_column, ascending=False)
-        seq_len_dict = dict([(idx, val[0]) for idx, val in list(zip(seq_len_df.index, seq_len_df.values))])
+        seq_len_dict = padding.get_sequence_length_dict(df, id_column=id_column, ts_column=inst_column)
         print('Creating a padded tensor version of the dataframe...')
         # Pad data (to have fixed sequence length) and convert into a PyTorch tensor
-        data = padding.dataframe_to_padded_tensor(df, seq_len_dict, n_patients, n_inputs, padding_value=padding_value)
+        data = padding.dataframe_to_padded_tensor(df, seq_len_dict=seq_len_dict,
+                                                  id_column=id_column,
+                                                  ts_column=inst_column,
+                                                  padding_value=padding_value,
+                                                  inplace=True)
     else:
         # Just convert the data into a PyTorch tensor
         data = torch.from_numpy(df.to_numpy())
@@ -284,7 +282,7 @@ def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
         dataset = Dataset(data, df)
     else:
         if model_type.lower() == 'multivariate_rnn':
-            dataset = datasets.Time_Series_Dataset(data, df, id_column=id_column,
+            dataset = datasets.Time_Series_Dataset(df, data, id_column=id_column,
                                                    ts_column=inst_column, seq_len_dict=seq_len_dict)
         elif model_type.lower() == 'mlp':
             dataset = datasets.Tabular_Dataset(data, df)
@@ -300,7 +298,7 @@ def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
     for experiment in param_optimizer.get_experiments():
         print('Starting a new parameter optimization iteration...')
         # Get the current optimized values of the hyperparameters
-        params_values = dict(zip(params_names, [param_optimizer.get_parameter(param)
+        params_values = dict(zip(params_names, [experiment.get_parameter(param)
                                                 for param in params_names]))
         if array_param is not None:
             for param in array_param:
@@ -316,27 +314,33 @@ def optimize_hyperparameters(Model, Dataset, df, config_name, comet_ml_api_key,
         if on_gpu:
             # Move the model to the GPU
             model = model.cuda()
-        if clip_value is not None:
-            # Set gradient clipping to avoid exploding gradients
-            for p in model.parameters():
-                p.register_hook(lambda grad: torch.clamp(grad, -clip_value, clip_value))
         print('Training the model...')
         # Train the model and get the minimum validation loss
-        model, val_loss = train(model, train_dataloader, val_dataloader, test_dataloader=test_dataloader,
-                                cols_to_remove=[id_column, inst_column], model_type=model_type,
-                                seq_len_dict=seq_len_dict, batch_size=batch_size, n_epochs=n_epochs,
-                                lr=lr, models_path=models_path, ModelClass=ModelClass,
-                                padding_value=padding_value, do_test=True, log_comet_ml=True, 
-                                comet_ml_api_key=comet_ml_api_key,
-                                comet_ml_project_name=comet_ml_project_name, 
-                                comet_ml_workspace=comet_ml_workspace,
-                                comet_ml_save_model=comet_ml_save_model, experiment=experiment,
-                                features_list=None, get_val_loss_min=True, **kwargs)
+        model, val_loss = deep_learning.train(model, train_dataloader, val_dataloader,
+                                              test_dataloader=test_dataloader,
+                                              cols_to_remove=[id_column, inst_column],
+                                              model_type=model_type,
+                                              is_custom=is_custom,
+                                              seq_len_dict=seq_len_dict,
+                                              batch_size=batch_size, n_epochs=n_epochs,
+                                              lr=lr, clip_value=clip_value,
+                                              models_path=models_path,
+                                              ModelClass=Model,
+                                              padding_value=padding_value,
+                                              do_test=True, log_comet_ml=True,
+                                              comet_ml_api_key=comet_ml_api_key,
+                                              comet_ml_project_name=comet_ml_project_name,
+                                              comet_ml_workspace=comet_ml_workspace,
+                                              comet_ml_save_model=comet_ml_save_model,
+                                              experiment=experiment, features_list=None,
+                                              get_val_loss_min=True,
+                                              already_embedded=already_embedded)
         if val_loss < val_loss_min:
             # Update optimization minimum validation loss and the corresponding
-            # experiment name 
+            # experiment name
             val_loss_min = val_loss
             exp_name_min = experiment.get_key()
+            print('Achieved a new minimum validation loss of {val_loss_min} on experiment {exp_name_min}')
         # Log optimization parameters
         experiment.log_parameter('n_inputs', n_inputs)
         experiment.log_parameter('n_outputs', n_outputs)

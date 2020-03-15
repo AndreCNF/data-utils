@@ -42,7 +42,7 @@ def get_sequence_length_dict(df, id_column='subject_id', ts_column='ts'):
 
 def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
                                ts_column='ts', bool_feat=None, data_type='PyTorch',
-                               padding_value=999999, cat_feat=None, inplace=False):
+                               padding_value=999999, inplace=False):
     '''Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
 
     Parameters
@@ -72,11 +72,6 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
         the function outputs a PyTorch tensor.
     padding_value : numeric
         Value to use in the padding, to fill the sequences.
-    cat_feat : string or list of strings, default None
-        Name(s) of the categorical encoded feature(s) which will have their
-        semicolon separators converted into its binary ASCII code. If not
-        specified, the method will look through all columns, processing
-        the ones that might have semicolons.
     inplace : bool, default False
         If set to True, the original dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without

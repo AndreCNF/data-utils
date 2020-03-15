@@ -89,6 +89,8 @@ class Time_Series_Dataset(Dataset):
         if seq_len_dict is None:
             self.seq_len_dict = padding.get_sequence_length_dict(df, id_column=id_column,
                                                                  ts_column=ts_column)
+        else:
+            self.seq_len_dict = seq_len_dict
 
     def __getitem__(self, item):
         if self.data_type == 'tensor':
