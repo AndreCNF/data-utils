@@ -178,8 +178,6 @@ def ts_tensor_to_np_matrix(data, feat_num=None, padding_value=999999):
     return data_matrix
 
 
-# [TODO] Create methods that contain the essential code inside a training iteration,
-# for each model type (e.g. RNN, MLP, etc)
 def inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
                                  padding_value=999999, cols_to_remove=[0, 1],
                                  is_train=False, prob_output=True, optimizer=None,
@@ -793,7 +791,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
     get_val_loss_min : bool, default False
         If set to True, besides returning the trained model, the method also
         returns the minimum validation loss found during training.
-    already_embedded : bool, default True
+    already_embedded : bool, default False
         If set to True, it means that the categorical features are already
         embedded when fetching a batch, i.e. there's no need to run the embedding
         layer(s) during the model's feedforward.
@@ -995,6 +993,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                 experiment.log_metric('val_acc', val_acc, step=epoch)
                 experiment.log_metric('val_auc', val_auc, step=epoch)
                 experiment.log_metric('epoch', epoch)
+                experiment.log_epoch_end(epoch, step=step)
                 if model.n_outputs > 1:
                     experiment.log_metric('train_auc_wgt', train_auc_wgt, step=epoch)
                     experiment.log_metric('val_auc_wgt', val_auc_wgt, step=epoch)

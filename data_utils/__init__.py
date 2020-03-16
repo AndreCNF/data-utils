@@ -5,7 +5,6 @@ import torch                                            # PyTorch to create and 
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 from importlib import reload                            # Allows to reload (import again) modules, which make them rerun their initialization
 
-# [TODO] Check if the random seed is working properly
 # Random seed used in PyTorch and NumPy's random operations (such as weight initialization)
 # Automatic seed
 random_seed = np.random.get_state()

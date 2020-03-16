@@ -4,6 +4,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import warnings                                         # Print warnings for bad practices
 import yaml                                             # Save and load YAML files
+from . import search_explore                            # Methods to search and explore data
 from . import deep_learning                             # Common and generic deep learning related methods
 from . import padding                                   # Padding and variable sequence length related methods
 from . import datasets                                  # PyTorch dataset classes
@@ -140,11 +141,12 @@ def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
                              comet_ml_project_name, comet_ml_workspace, n_inputs,
                              id_column, label_column, inst_column=None,
                              n_outputs=1, Dataset=None, model_type='multivariate_rnn',
-                             models_path='models/', array_param=None,
+                             is_custom=False, models_path='models/', array_param=None,
                              config_path='', var_seq=True, clip_value=0.5,
                              padding_value=999999, batch_size=32, n_epochs=10,
                              lr=0.001, test_train_ratio=0.2, validation_ratio=0.1,
-                             comet_ml_save_model=True, **kwargs):
+                             comet_ml_save_model=True, already_embedded=False,
+                             **kwargs):
     '''Optimize a machine learning model's hyperparameters, by training it
     several times while exploring different hyperparameters values, returning
     the best performing ones.
@@ -189,6 +191,10 @@ def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
         Sets the type of model to train. Important to know what type of
         inference to do. Currently available options are ['multivariate_rnn',
         'mlp'].
+    is_custom : bool, default False
+        If set to True, the method will assume that the model being used is a
+        custom built one, which won't require sequence length information during
+        the feedforward process.
     models_path : string, default 'models/'
         Path where the model will be saved. By default, it saves in
         the directory named "models".
@@ -222,6 +228,10 @@ def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
     comet_ml_save_model : bool, default True
         If set to True, uploads the model with the lowest validation loss
         to comet.ml when logging data to the platform.
+    already_embedded : bool, default False
+        If set to True, it means that the categorical features are already
+        embedded when fetching a batch, i.e. there's no need to run the embedding
+        layer(s) during the model's feedforward.
     kwargs : dict
         Optional additional parameters, specific to the machine learning model
         being used.
@@ -290,7 +300,8 @@ def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
             raise Exception(f'ERROR: Invalid model type. It must be "multivariate_rnn" or "mlp", not {model_type}.')
     print('Distributing the data to train, validation and test sets and getting their data loaders...')
     # Get the train, validation and test sets data loaders, which will allow loading batches
-    train_dataloader, val_dataloader, test_dataloader = create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1,
+    train_dataloader, val_dataloader, test_dataloader = create_train_sets(dataset, test_train_ratio=test_train_ratio,
+                                                                          validation_ratio=validation_ratio,
                                                                           batch_size=batch_size, get_indeces=False)
     # Start off with a minimum validation score of infinity
     val_loss_min = np.inf
@@ -308,17 +319,19 @@ def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
                 # Remove the now redundant subparameters
                 [params_values.pop(subparam, default=None) for subparam in subparam_names]
         # Instantiate the model (removing the two identifier columns and the labels from the input size)
-        model = Model(n_inputs, n_outputs, **params_values, **kwargs)
+        model = Model(n_inputs=n_inputs, n_outputs=n_outputs, **params_values, **kwargs)
         # Check if GPU (CUDA) is available
         on_gpu = torch.cuda.is_available()
         if on_gpu:
             # Move the model to the GPU
             model = model.cuda()
+        # Find the column indeces for the ID columns
+        id_columns_idx = [search_explore.find_col_idx(df, col) for col in [id_column, inst_column]]
         print('Training the model...')
         # Train the model and get the minimum validation loss
         model, val_loss = deep_learning.train(model, train_dataloader, val_dataloader,
                                               test_dataloader=test_dataloader,
-                                              cols_to_remove=[id_column, inst_column],
+                                              cols_to_remove=id_columns_idx,
                                               model_type=model_type,
                                               is_custom=is_custom,
                                               seq_len_dict=seq_len_dict,
@@ -340,7 +353,7 @@ def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
             # experiment name
             val_loss_min = val_loss
             exp_name_min = experiment.get_key()
-            print('Achieved a new minimum validation loss of {val_loss_min} on experiment {exp_name_min}')
+            print(f'Achieved a new minimum validation loss of {val_loss_min} on experiment {exp_name_min}')
         # Log optimization parameters
         experiment.log_parameter('n_inputs', n_inputs)
         experiment.log_parameter('n_outputs', n_outputs)
@@ -352,7 +365,7 @@ def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
         experiment.log_parameter('test_train_ratio', test_train_ratio)
         experiment.log_parameter('validation_ratio', validation_ratio)
         experiment.log_asset(f'{config_path}config_name', config_name)
-        experiment.log_asset(param_optimizer.status(), 'param_optimizer_status')
+        experiment.log_other('param_optimizer_status', param_optimizer.status())
     return val_loss_min, exp_name_min
 
 
