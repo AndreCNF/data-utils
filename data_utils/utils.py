@@ -325,7 +325,7 @@ def convert_dtypes(df, dtypes=None, inplace=False):
         if key in df_columns:
             dtype_dict[key] = dtypes[key]
     # Set the desired dtypes
-    data_df = data_df.astype(dtype_dict, copy=False)
+    data_df = data_df.astype(dtype_dict)
     return data_df
 
 
@@ -412,7 +412,7 @@ def convert_pyarrow_dtypes(df, inplace=False):
         elif val == 'string':
             dtype_dict[key] = str
     # Apply the new data types
-    data_df = data_df.astype(dtype_dict, copy=False)
+    data_df = data_df.astype(dtype_dict)
     return data_df
 
 
