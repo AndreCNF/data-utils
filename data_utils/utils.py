@@ -325,7 +325,7 @@ def convert_dtypes(df, dtypes=None, inplace=False):
         if key in df_columns:
             dtype_dict[key] = dtypes[key]
     # Set the desired dtypes
-    data_df = converted_df.astype(dtype_dict, copy=False)
+    data_df = data_df.astype(dtype_dict, copy=False)
     return data_df
 
 
