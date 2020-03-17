@@ -347,6 +347,47 @@ def convert_dataframe(df, to='pandas', return_library=True, dtypes=None):
         return converted_df
 
 
+def convert_pyarrow_dtypes(df, inplace=False):
+    '''Converts a dataframe's data types to a pyarrow supported version.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.DataFrame
+        Original dataframe which will have its data types converted.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
+
+    Returns
+    -------
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.dataframe.DataFrame
+        Converted dataframe, in pyarrow compatible data types.
+    '''
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
+    else:
+        # Use the original dataframes
+        data_df = df
+    # Create a columns data type dictionary
+    dtype_dict = dict(data_df.dtypes)
+    # Replace the pyarrow incompatible data types with similar, compatible ones
+    for key, val in dtype_dict.items():
+        val = str(val)
+        if (val == 'UInt8' or val == 'UInt16' or val == 'UInt32'
+        or val == 'Int8' or val == 'Int16' or val == 'Int32'
+        or val == 'boolean'):
+            dtype_dict[key] = 'float32'
+        elif val == 'UInt64' or val == 'Int64':
+            dtype_dict[key] = 'float64'
+        elif val == 'string':
+            dtype_dict[key] = str
+    # Apply the new data types
+    data_df = data_df.astype(dtype_dict, copy=False)
+    return data_df
+
+
 def set_bar_color(values, ids, seq_len, threshold=0,
                   neg_color='rgba(30,136,229,1)', pos_color='rgba(255,13,87,1)'):
     '''Determine each bar's color in a bar chart, according to the values being
