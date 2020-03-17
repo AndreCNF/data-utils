@@ -324,8 +324,14 @@ def convert_dtypes(df, dtypes=None, inplace=False):
     for key, val in dtypes.items():
         if key in df_columns:
             dtype_dict[key] = dtypes[key]
-    # Set the desired dtypes
-    data_df = data_df.astype(dtype_dict)
+    try:
+        # Set the desired dtypes
+        data_df = data_df.astype(dtype_dict)
+    except:
+        # Replace the '<NA>' objects with NumPy's NaN
+        data_df = data_df.applymap(lambda x: x if str(x) != '<NA>' else np.nan)
+        # Set the desired dtypes
+        data_df = data_df.astype(dtype_dict)
     return data_df
 
 
