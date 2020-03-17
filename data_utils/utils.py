@@ -296,6 +296,39 @@ def iterations_loop(x, see_progress=True):
         return x
 
 
+def convert_dtypes(df, dtypes=None, inplace=False):
+    '''Converts a dataframe's data types to the desired ones.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.DataFrame
+        Original dataframe which will be converted.
+    dtypes : dict, default None
+        Dictionary that indicates the desired dtype for each column.
+        e.g. {'Var1': 'float64', 'Var2': 'UInt8', 'Var3': str}
+
+    Returns
+    -------
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.dataframe.DataFrame
+        Converted dataframe, in the desired data type.
+    '''
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
+    else:
+        # Use the original dataframes
+        data_df = df
+    # Only use the dictionary keys that correspond to column names in the current dataframe
+    dtype_dict = dict()
+    df_columns = list(data_df.columns)
+    for key, val in dtypes.items():
+        if key in df_columns:
+            dtype_dict[key] = dtypes[key]
+    # Set the desired dtypes
+    data_df = converted_df.astype(dtype_dict, copy=False)
+    return data_df
+
+
 def convert_dataframe(df, to='pandas', return_library=True, dtypes=None):
     '''Converts a dataframe to the desired dataframe library format.
 
@@ -334,14 +367,8 @@ def convert_dataframe(df, to='pandas', return_library=True, dtypes=None):
         # Infer adequate dtypes for the dataframe's columns
         converted_df = converted_df.infer_objects()
     else:
-        # Only use the dictionary keys that correspond to column names in the current dataframe
-        dtype_dict = dict()
-        df_columns = list(converted_df.columns)
-        for key, val in dtypes.items():
-            if key in df_columns:
-                dtype_dict[key] = dtypes[key]
         # Set the desired dtypes
-        converted_df = converted_df.astype(dtype_dict, copy=False)
+        converted_df = convert_dtypes(converted_df, dtypes=dtypes, inplace=True)
     if return_library is True:
         return converted_df, new_pd
     else:
