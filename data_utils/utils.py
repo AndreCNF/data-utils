@@ -336,6 +336,7 @@ def convert_dataframe(df, to='pandas', return_library=True, dtypes=None):
     else:
         # Only use the dictionary keys that correspond to column names in the current dataframe
         dtype_dict = dict()
+        df_columns = list(converted_df.columns)
         for key, val in dtypes.items():
             if key in df_columns:
                 dtype_dict[key] = dtypes[key]
