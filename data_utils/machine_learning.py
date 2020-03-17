@@ -366,6 +366,7 @@ def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
         experiment.log_parameter('validation_ratio', validation_ratio)
         experiment.log_asset(f'{config_path}config_name', config_name)
         experiment.log_other('param_optimizer_status', param_optimizer.status())
+    print(f'Finished the hyperparameter optimization! The best performing experiment was {exp_name_min}, with a minimum validation loss of {val_loss_min}')
     return val_loss_min, exp_name_min
 
 

@@ -334,8 +334,13 @@ def convert_dataframe(df, to='pandas', return_library=True, dtypes=None):
         # Infer adequate dtypes for the dataframe's columns
         converted_df = converted_df.infer_objects()
     else:
+        # Only use the dictionary keys that correspond to column names in the current dataframe
+        dtype_dict = dict()
+        for key, val in dtype_dict.items():
+            if key in df_columns:
+                dtype_dict[key] = dtypes[key]
         # Set the desired dtypes
-        converted_df = converted_df.astype(dtypes)
+        converted_df = converted_df.astype(dtype_dict, copy=False)
     if return_library is True:
         return converted_df, new_pd
     else:
