@@ -34,7 +34,7 @@ def apply_dict_convertion(x, conv_dict, nan_value=0):
     '''
     # Check if it's a missing value (NaN)
     if isinstance(x, numbers.Number):
-        if np.isnan(x):
+        if is_num_nan(x):
             return nan_value
     # Must be a convertable value
     else:
@@ -205,6 +205,28 @@ def is_definitely_string(x):
 
     except Exception:
         return isinstance(x, str)
+
+
+def is_num_nan(x):
+    '''Indicates if a number corresponds to a missing value.
+
+    Parameters
+    ----------
+    x : int or float or string
+        A numeric value that will be compared with possible missing value
+        representations.
+
+    Returns
+    -------
+    boolean
+        Returns a boolean, being it True if the number corresponds to a missing
+        value representation or False if it doesn't.
+    '''
+    str_val = str(x).lower()
+    if str_val == 'nan' or str_val == '<na>':
+        return True
+    else:
+        return False
 
 
 def is_string_nan(x, specific_nan_strings=[]):

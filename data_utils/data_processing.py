@@ -1362,11 +1362,11 @@ def merge_values(x1, x2, separator=';', str_over_num=True, join_strings=True,
         Resulting merged value.
     '''
     if is_bool is True:
-        if (x1 is None or np.isnan(x1)) and (x2 is None or np.isnan(x2)):
+        if (x1 is None or utils.is_num_nan(x1)) and (x2 is None or utils.is_num_nan(x2)):
             return 0
-        elif (x1 is None or np.isnan(x1)) and not (x2 is None or np.isnan(x2)):
+        elif (x1 is None or utils.is_num_nan(x1)) and not (x2 is None or utils.is_num_nan(x2)):
             return x2
-        elif not (x1 is None or np.isnan(x1)) and (x2 is None or np.isnan(x2)):
+        elif not (x1 is None or utils.is_num_nan(x1)) and (x2 is None or utils.is_num_nan(x2)):
             return x1
         else:
             return max(x1, x2)
@@ -1394,7 +1394,7 @@ def merge_values(x1, x2, separator=';', str_over_num=True, join_strings=True,
                 return x2
     elif ((isinstance(x1, float) or isinstance(x1, int))
     and not (isinstance(x2, float) or isinstance(x2, int))):
-        if np.isnan(x1) and x2 != 'nan':
+        if utils.is_num_nan(x1) and not utils.is_num_nan(x2):
             # Return the not NaN value
             return x2
         if str_over_num is True:
@@ -1405,7 +1405,7 @@ def merge_values(x1, x2, separator=';', str_over_num=True, join_strings=True,
             return x1
     elif not ((isinstance(x1, float) or isinstance(x1, int))
     and (isinstance(x2, float) or isinstance(x2, int))):
-        if np.isnan(x2) and x1 != 'nan':
+        if utils.is_num_nan(x2) and not utils.is_num_nan(x1):
             # Return the not NaN value
             return x1
         if str_over_num is True:

@@ -85,7 +85,10 @@ def is_one_hot_encoded_column(df, column, n_unique_values=None):
         # Check if the possible values are all numeric
         if all([isinstance(x, numbers.Number) for x in unique_values]):
             # Check if the only possible values are 0 and 1 (and ignore NaN's)
-            if (np.sort(list(set(np.nan_to_num(unique_values)))) == [0, 1]).all():
+            unique_values = list(set(np.nan_to_num(unique_values)))
+            unique_values.sort()
+            unique_values = [val for val in unique_values if str(val).lower() != 'nan' ]
+            if unique_values == [0, 1]:
                 return True
     return False
 
