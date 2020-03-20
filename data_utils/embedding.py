@@ -117,7 +117,7 @@ def create_enum_dict(unique_values, nan_value=None, forbidden_digit=None):
                 # Move NaN-like key to nan_value
                 enum_dict[key] = nan_value
         elif isinstance(key, numbers.Number):
-            if utils.is_num_nan(key) or str(key).lower() == 'nan':
+            if utils.is_num_nan(key):
                 # Move NaN-like key to nan_value
                 enum_dict[key] = nan_value
     return enum_dict

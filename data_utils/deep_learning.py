@@ -1011,8 +1011,10 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
         if do_test is True:
             # Run inference on the test data
             model_inference(model, dataloader=test_dataloader,
-                            seq_len_dict=seq_len_dict, experiment=experiment,
-                            model_type=model_type, cols_to_remove=cols_to_remove)
+                            model_type=model_type, is_custom=is_custom,
+                            seq_len_dict=seq_len_dict, padding_value=padding_value,
+                            experiment=experiment, cols_to_remove=cols_to_remove,
+                            already_embedded=already_embedded)
     except UnboundLocalError:
         warnings.warn('Inference failed due to non existent saved models. Skipping evaluation on test set.')
     except Exception:
