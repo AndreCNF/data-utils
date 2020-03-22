@@ -1961,7 +1961,8 @@ def save_chunked_data(df, file_name, n_chunks, data_path='', format='feather'):
         del df_i
 
 
-def load_chunked_data(file_name, n_chunks, data_path='', format='feather'):
+def load_chunked_data(file_name, n_chunks, data_path='', format='feather',
+                      dtypes=None):
     '''Load a dataframe in chunks, i.e. in separate files, so as to prevent
     memory issues and other problems when loading.
 
@@ -1976,6 +1977,9 @@ def load_chunked_data(file_name, n_chunks, data_path='', format='feather'):
     format : str, default 'feather'
         Data format used to saved the dataframe. Currently available options are
         'feather'.
+    dtypes : dict, default None
+        Dictionary that indicates the desired dtype for each column.
+        e.g. {'Var1': 'float64', 'Var2': 'UInt8', 'Var3': str}
     '''
     format = str(format).lower()
     if format == 'feather':
@@ -1983,10 +1987,16 @@ def load_chunked_data(file_name, n_chunks, data_path='', format='feather'):
     else:
         raise Exception(f'ERROR: Invalid data format "{format}". Please choose one of the currently supported formats "feather".')
     # Load the first file
+    print('Loading the first file {data_path}{file_name}_{i}{file_ext}')
     df = pd.read_feather(f'{data_path}{file_name}_{i}{file_ext}')
+    print('Loading the remaning files...')
     for i in du.utils.iterations_loop(range(1, n_chunks)):
         # Load another file and join it with the already loaded ones
         tmp_df = pd.read_feather(f'{data_path}{file_name}_{i}{file_ext}')
         df = pd.concat((df, tmp_df))
         # Remove the already concatenated dataframe from memory
         del tmp_df
+    if dtypes is not None:
+        print('Converting the dataframe to the specified data types...')
+        df = du.utils.convert_dtypes(df, dtypes=dtypes, inplace=True)
+        print('Done!')
