@@ -1980,6 +1980,11 @@ def load_chunked_data(file_name, n_chunks, data_path='', format='feather',
     dtypes : dict, default None
         Dictionary that indicates the desired dtype for each column.
         e.g. {'Var1': 'float64', 'Var2': 'UInt8', 'Var3': str}
+
+    Returns
+    -------
+    df : pandas.DataFrame or dask.DataFrame
+        Loaded dataframe.
     '''
     format = str(format).lower()
     if format == 'feather':
@@ -2000,3 +2005,4 @@ def load_chunked_data(file_name, n_chunks, data_path='', format='feather',
         print('Converting the dataframe to the specified data types...')
         df = du.utils.convert_dtypes(df, dtypes=dtypes, inplace=True)
         print('Done!')
+    return df
