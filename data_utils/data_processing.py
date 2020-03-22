@@ -1919,3 +1919,74 @@ def slopes_outlier_detect(s, max_thrs=4, bidir_sens=0.5, threshold_type='std',
         outlier_s = ((bckwrds_deriv.abs() > max_thrs) | (frwrds_deriv.abs() > max_thrs)
                      | ((bckwrds_deriv.abs() > bidir_max) & (frwrds_deriv.abs() > bidir_max)))
     return outlier_s
+
+
+def save_chunked_data(df, file_name, n_chunks, data_path='', format='feather'):
+    '''Save a dataframe in chunks, i.e. in separate files, so as to prevent
+    memory issues and other problems when loading it back again.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe which will be saved in chunks.
+    file_name : str
+        Name to be given to the file.
+    n_chunks : int
+        Number of chunks, i.e. number of files, on which to split and save the
+        dataframe.
+    data_path : str, default ''
+        Directory path where the file will be stored.
+    format : str, default 'feather'
+        Data format used to saved the dataframe. Currently available options are
+        'feather'.
+    '''
+    n_rows = len(df)
+    chunk_size = int(n_rows / n_chunks)
+    format = str(format).lower()
+    if format == 'feather':
+        file_ext = '.ftr'
+    else:
+        raise Exception(f'ERROR: Invalid data format "{format}". Please choose one of the currently supported formats "feather".')
+    for i in du.utils.iterations_loop(range(n_chunks)):
+        # Get a chunk of the dataframe
+        if i < n_chunks-1:
+            df_i = df[i*chunk_size:(i+1)*chunk_size]
+        else:
+            df_i = df[i*chunk_size:]
+        # Reset the index, so as to make it feather compatible
+        df_i.reset_index(drop=True, inplace=True)
+        # Save the current dataframe
+        df_i.to_feather(f'{data_path}{file_name}_{i}{file_ext}')
+        # Remove the already saved dataframe from memory
+        del df_i
+
+
+def load_chunked_data(file_name, n_chunks, data_path='', format='feather'):
+    '''Load a dataframe in chunks, i.e. in separate files, so as to prevent
+    memory issues and other problems when loading.
+
+    Parameters
+    ----------
+    file_name : str
+        Name of the file where the dataframe is saved.
+    n_chunks : int
+        Number of chunks, i.e. number of files, needed to load the dataframe.
+    data_path : str, default ''
+        Directory path where the file is stored.
+    format : str, default 'feather'
+        Data format used to saved the dataframe. Currently available options are
+        'feather'.
+    '''
+    format = str(format).lower()
+    if format == 'feather':
+        file_ext = '.ftr'
+    else:
+        raise Exception(f'ERROR: Invalid data format "{format}". Please choose one of the currently supported formats "feather".')
+    # Load the first file
+    df = pd.read_feather(f'{data_path}{file_name}_{i}{file_ext}')
+    for i in du.utils.iterations_loop(range(1, n_chunks)):
+        # Load another file and join it with the already loaded ones
+        tmp_df = pd.read_feather(f'{data_path}{file_name}_{i}{file_ext}')
+        df = pd.concat((df, tmp_df))
+        # Remove the already concatenated dataframe from memory
+        del tmp_df

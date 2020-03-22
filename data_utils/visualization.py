@@ -53,8 +53,9 @@ def set_bar_color(values, ids, seq_len, threshold=0,
 
 def bullet_indicator(value, min_val=0, max_val=100, higher_is_better=True,
                      background_color='white', output_type='dash', dash_id='some_indicator',
-                     dash_height='70%', show_number=False, show_delta=False,
-                     ref_value=None):
+                     dash_height='70%', show_number=True, show_delta=False,
+                     ref_value=None, font_family='Roboto', font_size=14,
+                     font_color='black', prefix='', suffix=''):
     '''Generate a bullet indicator plot, which can help visualize.
 
     Parameters
@@ -78,13 +79,27 @@ def bullet_indicator(value, min_val=0, max_val=100, higher_is_better=True,
         ID to be used in Dash.
     dash_height : str, default '70%'
         Height value to be used in the Dash graph.
-    show_number : bool, default False
+    show_number : bool, default True
         If set to True, the number will be shown next to the plot.
     show_delta : bool, default False
         If set to True, the value's variation, based on a reference value, will
         be plotted.
     ref_value : int, default None
         Reference value to use in the delta visualization.
+    font_family : str, default 'Roboto'
+        Text font family to be used in the numbers shown next to the graph.
+    font_size : int, default 14
+        Text font size to be used in the numbers shown next to the graph.
+    font_color : str, default 'black'
+        Text font color to be used in the numbers shown next to the graph. Can
+        be set in color name (e.g. 'white'), hexadecimal code (e.g. '#555') or
+        GB (e.g. 'rgb(0,0,255)').
+    prefix : str, default ''
+        Text to be appended to the beginning of the number, shown next to the
+        indicator graph. e.g. '%', '€', 'km', 'g'
+    suffix : str, default ''
+        Text to be appended to the end of the number, shown next to the 
+        indicator graph. e.g. '%', '€', 'km', 'g'
 
     Returns
     -------
@@ -104,12 +119,31 @@ def bullet_indicator(value, min_val=0, max_val=100, higher_is_better=True,
         color = perf_colors[int(max((value/max_val)*len(perf_colors)-1, 0))]
     else:
         perf_colors[len(perf_colors)-1-int(max((value/max_val)*len(perf_colors)-1, 0))]
+    # Define if the value and the delta is shown next to the plot
+    if show_number and show_delta:
+        mode='number+gauge+delta'
+    elif show_number and not show_delta:
+        mode='number+gauge'
+    elif not show_number and show_delta:
+        mode='gauge+delta'
+    else:
+        mode='gauge'
     # Create the figure
     figure={
     'data': [
         dict(
             type='indicator',
-            mode='gauge',
+            mode=mode,
+            value=value,
+            number=dict(
+                font=dict(
+                    family=font_family,
+                    size=font_size,
+                    color=font_color
+                ),
+                prefix=prefix,
+                suffix=suffix
+            ),
             gauge=dict(
                 shape='bullet',
                 bar=dict(
@@ -118,7 +152,7 @@ def bullet_indicator(value, min_val=0, max_val=100, higher_is_better=True,
                     ),
                 axis=dict(range=[min_val, max_val])
                 ),
-            value=value
+            delta=dict(reference=ref_value)
         )
     ],
     'layout': dict(
@@ -131,7 +165,8 @@ def bullet_indicator(value, min_val=0, max_val=100, higher_is_better=True,
     elif output_type == 'dash':
         return dcc.Graph(id=dash_id,
             figure=figure,
-            style=dict(height=dash_height)
+            style=dict(height=dash_height),
+            config=dict(displayModeBar=False)
             )
     else:
         raise Exception(f'ERROR: Invalid output type {output_type}. Only `figure` and `dash` are currently supported.')

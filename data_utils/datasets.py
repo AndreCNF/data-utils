@@ -16,13 +16,15 @@ class Tabular_Dataset(Dataset):
         col_num = 0
         for col in df.columns:
             if 'label' in col or col == label_name:
+                # Column name corresponding to the label
+                self.label_column = col
                 # Column number corresponding to the label
-                self.label_column = col_num
+                self.label_column_num = col_num
                 break
             col_num += 1
         # Column numbers corresponding to the features
-        self.features_columns = (list(range(self.label_column))
-                                 + list(range(self.label_column + 1, arr.shape[1])))
+        self.features_columns = (list(range(self.label_column_num))
+                                 + list(range(self.label_column_num + 1, arr.shape[1])))
         # Features
         self.X = arr[:, self.features_columns]
         # Labels

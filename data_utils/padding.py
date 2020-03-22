@@ -20,10 +20,10 @@ def get_sequence_length_dict(df, id_column='subject_id', ts_column='ts'):
     df : pandas.DataFrame or dask.DataFrame
         Data in a Pandas dataframe format which will be padded and converted
         to the requested data type.
-    id_column : string, default 'subject_id'
+    id_column : string or int, default 'subject_id'
         Name of the column which corresponds to the subject identifier in the
         dataframe.
-    ts_column : string, default 'ts'
+    ts_column : string or int, default 'ts'
         Name of the column which corresponds to the timestamp in the
         dataframe.
 
@@ -34,6 +34,11 @@ def get_sequence_length_dict(df, id_column='subject_id', ts_column='ts'):
         The keys should be the sequence identifiers (the numbers obtained from
         the id_column) and the values should be the length of each sequence.
     '''
+    if isinstance(id_column, int) and isinstance(ts_column, int):
+        # Convert the column indeces to the column names
+        column_names = list(df.columns)
+        id_column = column_names[id_column]
+        ts_column = column_names[ts_column]
     # Dictionary containing the sequence length (number of temporal events) of each sequence (patient)
     seq_len_df = df.groupby(id_column)[ts_column].count().to_frame().sort_values(by=ts_column, ascending=False)
     seq_len_dict = dict([(idx, val[0]) for idx, val in list(zip(seq_len_df.index, seq_len_df.values))])
