@@ -1987,8 +1987,8 @@ def load_chunked_data(file_name, n_chunks, data_path='', format='feather',
     else:
         raise Exception(f'ERROR: Invalid data format "{format}". Please choose one of the currently supported formats "feather".')
     # Load the first file
-    print('Loading the first file {data_path}{file_name}_{i}{file_ext}')
-    df = pd.read_feather(f'{data_path}{file_name}_{i}{file_ext}')
+    print(f'Loading the first file {data_path}{file_name}_0{file_ext}')
+    df = pd.read_feather(f'{data_path}{file_name}_0{file_ext}')
     print('Loading the remaning files...')
     for i in du.utils.iterations_loop(range(1, n_chunks)):
         # Load another file and join it with the already loaded ones
