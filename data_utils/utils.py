@@ -375,6 +375,8 @@ def convert_dtypes(df, dtypes=None, inplace=False):
     for key, val in dtypes.items():
         if key in df_columns:
             dtype_dict[key] = dtypes[key]
+        elif key.lower() in df_columns:
+            dtype_dict[key.lower()] = dtypes[key]
     try:
         # Set the desired dtypes
         data_df = data_df.astype(dtype_dict)
