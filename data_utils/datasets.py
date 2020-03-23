@@ -17,7 +17,7 @@ class Tabular_Dataset(Dataset):
         for col in df.columns:
             if 'label' in col or col == label_name:
                 # Column name corresponding to the label
-                self.label_column = col
+                self.label_column_name = col
                 # Column number corresponding to the label
                 self.label_column_num = col_num
                 break
@@ -48,8 +48,8 @@ class Time_Series_Dataset(Dataset):
         # [TODO] Add documentation
         if arr is None:
             self.data_type = 'dataframe'
-            self.id_column = id_column
-            self.ts_column = ts_column
+            self.id_column_name = id_column
+            self.ts_column_name = ts_column
             self.padding_value = padding_value
             if embed_layers is not None and embed_features is not None:
                 self.embed_layers = embed_layers
@@ -61,7 +61,7 @@ class Time_Series_Dataset(Dataset):
         for col in df.columns:
             if 'label' in col or col == label_name:
                 # Column name corresponding to the label
-                self.label_column = col
+                self.label_column_name = col
                 # Column number corresponding to the label
                 self.label_column_num = col_num
                 break
@@ -77,14 +77,14 @@ class Time_Series_Dataset(Dataset):
         elif self.data_type == 'dataframe':
             # Column names corresponding to the features
             self.features_columns = list(df.columns)
-            self.features_columns.remove(self.label_column)
+            self.features_columns.remove(self.label_column_name)
             # Column numbers corresponding to the features
             self.features_columns_num = (list(range(self.label_column_num))
                                          + list(range(self.label_column_num + 1, len(df.columns))))
             # Features
             self.X = df[self.features_columns]
             # Labels
-            self.y = df[self.label_column]
+            self.y = df[self.label_column_name]
             # List of items (sequences)
             self.seq_items = df[id_column].unique()
         # Sequence length dictionary
@@ -103,7 +103,7 @@ class Time_Series_Dataset(Dataset):
             # Get the sequence ID
             seq = self.seq_items[item]
             # Find the indeces of the dataframes
-            idx = self.X.index[self.X[self.id_column] == seq]
+            idx = self.X.index[self.X[self.id_column_num] == seq]
             # Get the data
             x_t = self.X.iloc[idx]
             y_t = self.y.iloc[idx]
@@ -116,8 +116,8 @@ class Time_Series_Dataset(Dataset):
             # Pad the data (both X and y)
             df = pd.concat([x_t, y_t], axis=1)
             df = padding.dataframe_to_padded_tensor(df, seq_len_dict=self.seq_len_dict,
-                                                    id_column=self.id_column,
-                                                    ts_column=self.ts_column,
+                                                    id_column=self.id_column_name,
+                                                    ts_column=self.ts_column_name,
                                                     padding_value=self.padding_value,
                                                     inplace=True)
             # Features

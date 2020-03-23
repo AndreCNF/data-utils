@@ -146,19 +146,48 @@ def merge_dicts(dict1, dict2=None):
     if isinstance(dict1, dict):
         if dict2 is not None:
             if isinstance(dict2, dict):
+                # Find if there are any overlapping keys
+                dict1_keys = set(dict1.keys())
+                dict2_keys = set(dict2.keys())
+                overlap_keys = dict1_keys.intersection(dict2_keys)
+                for key in overlap_keys:
+                    if ((isinstance(dict1[key], list) or isinstance(dict1[key], set))
+                    or (isinstance(dict2[key], list) or isinstance(dict2[key], set))):
+                        # Merge the lists
+                        dict1[key] = set(dict1[key]) | set(dict2[key])
+                        if isinstance(dict2[key], list):
+                            dict1[key] = list(dict1[key])
+                        dict2[key] = dict1[key]
+                    else:
+                        warnings.warn(f'Found an overlapping key {key} when merging two dictionaries which, as it doesn\'t point to a list or a set, can\'t be merged. As such, the value from the dictionary on the right will be kept.')
                 # Merge the two input dictionaries
                 return {**dict1, **dict2}
             else:
                 raise Exception(f'ERROR: When `dict1` is specified as a single dictionary, the second argument `dict2` must also be a dictionary. Instead, received `dict2` of type {type(dict2)}.')
         else:
             raise Exception(f'ERROR: When `dict1` is specified as a single dictionary, the second argument `dict2` must also be set.')
-    elif isinstance(dict1, list):
+    elif isinstance(dict1, list) and dict2 is None:
         # Initialize the new dictionary with the first one on the list
         new_dict = dict1[0]
         for i in range(len(dict1)):
             try:
+                dict2 = dict1[i+1]
+                # Find if there are any overlapping keys
+                new_dict_keys = set(new_dict.keys())
+                dict2_keys = set(dict2.keys())
+                overlap_keys = new_dict_keys.intersection(dict2_keys)
+                for key in overlap_keys:
+                    if ((isinstance(new_dict[key], list) or isinstance(new_dict[key], set))
+                    or (isinstance(dict2[key], list) or isinstance(dict2[key], set))):
+                        # Merge the lists
+                        new_dict[key] = set(new_dict[key]) | set(dict2[key])
+                        if isinstance(dict2[key], list):
+                            new_dict[key] = list(new_dict[key])
+                        dict2[key] = new_dict[key]
+                    else:
+                        warnings.warn(f'Found an overlapping key {key} when merging two dictionaries which, as it doesn\'t point to a list or a set, can\'t be merged. As such, the value from the dictionary on the right will be kept.')
                 # Try to merge with the next dictionary, if there is any
-                new_dict = {**new_dict, **dict1[i+1]}
+                new_dict = {**new_dict, **dict2}
             except:
                 break
         return new_dict
