@@ -252,13 +252,15 @@ def inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
     features = remove_tensor_column(features, cols_to_remove, inplace=True)
     # Feedforward the data through the model
     if is_custom is False:
-        scores = model.forward(features, x_lengths, prob_output=False, already_embedded=already_embedded)
+        scores = model.forward(features, get_hidden_state=False, x_lengths=x_lengths,
+                               prob_output=False, already_embedded=already_embedded)
         # Adjust the labels so that it gets the exact same shape as the predictions
         # (i.e. sequence length = max sequence length of the current batch, not the max of all the data)
         labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
         labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
     else:
-        scores = model.forward(features, prob_output=False, already_embedded=already_embedded)
+        scores = model.forward(features, get_hidden_state=False, prob_output=False,
+                               already_embedded=already_embedded)
     # Calculate the negative log likelihood loss
     loss = model.loss(scores, labels)
     if is_train is True:

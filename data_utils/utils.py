@@ -211,6 +211,38 @@ def merge_lists(lists):
     return list(itertools.chain.from_iterable(lists))
 
 
+def remove_from_list(data, to_remove, update_idx=False):
+    '''Remove values from a list, with the option to update the remaining values
+    everytime one is removed.
+
+    Parameters
+    ----------
+    data : list
+        Data list to update by removing specified values.
+    to_remove : list or int or float or str
+        Values to remove from the list.
+    update_idx : bool, default False
+
+    Returns
+    -------
+    data : list
+        Updated data list.
+    '''
+    if isinstance(to_remove, int) or isinstance(to_remove, float) or isinstance(to_remove, str):
+        # Make sure that the values to remove are in a list format, even if it's just one
+        to_remove = [to_remove]
+    # Check if we need to update the values, in case they'll be used as indeces
+    update_idx = all([isinstance(val, int) for val in to_remove]) and update_idx is True
+    for val in to_remove:
+        data.remove(val)
+        if update_idx is True:
+            for i in range(len(data)):
+                if data[i] > val:
+                    # Update value (which could be an index) to decrease its value
+                    data[i] -= 1
+    return data
+
+
 def is_definitely_string(x):
     '''Reports if a value is actually a real string or if it has some number in it.
 
