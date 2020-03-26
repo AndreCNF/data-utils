@@ -1991,19 +1991,20 @@ def load_chunked_data(file_name, n_chunks, data_path='', format='feather',
         file_ext = '.ftr'
     else:
         raise Exception(f'ERROR: Invalid data format "{format}". Please choose one of the currently supported formats "feather".')
-    # Load the first file
-    print(f'Loading the first file {data_path}{file_name}_0{file_ext}')
-    df = pd.read_feather(f'{data_path}{file_name}_0{file_ext}')
-    if dtypes is not None:
-        df = du.utils.convert_dtypes(df, dtypes=dtypes, inplace=True)
-    print('Loading the remaning files...')
-    for i in du.utils.iterations_loop(range(1, n_chunks)):
-        # Load another file and join it with the already loaded ones
-        tmp_df = pd.read_feather(f'{data_path}{file_name}_{i}{file_ext}')
-        if dtypes is not None:
-            tmp_df = du.utils.convert_dtypes(tmp_df, dtypes=dtypes, inplace=True)
-        df = pd.concat((df, tmp_df))
-        # Remove the already concatenated dataframe from memory
-        del tmp_df
+    for i in du.utils.iterations_loop(range(n_chunks)):
+        if i == 0:
+            # Load the first file
+            df = pd.read_feather(f'{data_path}{file_name}_{i}{file_ext}')
+            if dtypes is not None:
+                df = du.utils.convert_dtypes(df, dtypes=dtypes, inplace=True)
+            continue
+        else:
+            # Load another file and join it with the already loaded ones
+            tmp_df = pd.read_feather(f'{data_path}{file_name}_{i}{file_ext}')
+            if dtypes is not None:
+                tmp_df = du.utils.convert_dtypes(tmp_df, dtypes=dtypes, inplace=True)
+            df = pd.concat((df, tmp_df))
+            # Remove the already concatenated dataframe from memory
+            del tmp_df
     print('Done!')
     return df
