@@ -2006,5 +2006,4 @@ def load_chunked_data(file_name, n_chunks, data_path='', format='feather',
             df = pd.concat((df, tmp_df))
             # Remove the already concatenated dataframe from memory
             del tmp_df
-    print('Done!')
     return df

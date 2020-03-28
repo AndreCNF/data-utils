@@ -1,5 +1,7 @@
 import colorlover as cl                                 # Get colors from colorscales
+import plotly.graph_objs as go                          # Plotly for interactive and pretty plots
 import dash_core_components as dcc                      # Dash components to be used in a dashboard
+import numpy as np                                      # NumPy to handle numeric and NaN operations
 import data_utils as du
 
 # Pandas to handle the data in dataframes
@@ -52,7 +54,7 @@ def set_bar_color(values, ids, seq_len, threshold=0,
 
 
 def bullet_indicator(value, min_val=0, max_val=100, higher_is_better=True,
-                     background_color='white', output_type='dash', dash_id='some_indicator',
+                     background_color='white', output_type='plotly', dash_id='some_indicator',
                      dash_height='70%', show_number=True, show_delta=False,
                      ref_value=None, font_family='Roboto', font_size=14,
                      font_color='black', prefix='', suffix=''):
@@ -72,9 +74,9 @@ def bullet_indicator(value, min_val=0, max_val=100, higher_is_better=True,
     background_color : str, default 'white'
         The plot's background color. Can be set in color name (e.g. 'white'),
         hexadecimal code (e.g. '#555') or RGB (e.g. 'rgb(0,0,255)').
-    output_type : str, default 'dash'
-        The format on which the output is presented. Available options are 'dash'
-        and 'figure'.
+    output_type : str, default 'plotly'
+        The format on which the output is presented. Available options are
+        'dash', `plotly` and 'figure'.
     dash_id : str, default 'some_indicator'
         ID to be used in Dash.
     dash_height : str, default '70%'
@@ -98,7 +100,7 @@ def bullet_indicator(value, min_val=0, max_val=100, higher_is_better=True,
         Text to be appended to the beginning of the number, shown next to the
         indicator graph. e.g. '%', '€', 'km', 'g'
     suffix : str, default ''
-        Text to be appended to the end of the number, shown next to the 
+        Text to be appended to the end of the number, shown next to the
         indicator graph. e.g. '%', '€', 'km', 'g'
 
     Returns
@@ -107,6 +109,11 @@ def bullet_indicator(value, min_val=0, max_val=100, higher_is_better=True,
 
     figure : dict
         Figure dictionary which can be used in Plotly.
+
+    Else if output_type == 'plotly':
+
+    figure : plotly.graph_objs._figure.Figure
+        Figure in a plotly figure object, which can be displayed in a notebook.
 
     Else if output_type == 'dash':
 
@@ -130,43 +137,139 @@ def bullet_indicator(value, min_val=0, max_val=100, higher_is_better=True,
         mode='gauge'
     # Create the figure
     figure={
-    'data': [
-        dict(
-            type='indicator',
-            mode=mode,
-            value=value,
-            number=dict(
-                font=dict(
-                    family=font_family,
-                    size=font_size,
-                    color=font_color
-                ),
-                prefix=prefix,
-                suffix=suffix
-            ),
-            gauge=dict(
-                shape='bullet',
-                bar=dict(
-                    thickness=1,
-                    color=color
+        'data': [dict(
+                type='indicator',
+                mode=mode,
+                value=value,
+                number=dict(
+                    font=dict(
+                        family=font_family,
+                        size=font_size,
+                        color=font_color
                     ),
-                axis=dict(range=[min_val, max_val])
+                    prefix=prefix,
+                    suffix=suffix
                 ),
-            delta=dict(reference=ref_value)
-        )
-    ],
-    'layout': dict(
-        paper_bgcolor=background_color,
-        margin=dict(l=0, r=0, t=0, b=0, pad=0),
+                gauge=dict(
+                    shape='bullet',
+                    bar=dict(
+                        thickness=1,
+                        color=color
+                    ),
+                    axis=dict(range=[min_val, max_val])
+                ),
+                delta=dict(reference=ref_value)
+        )],
+        'layout': dict(
+            paper_bgcolor=background_color,
+            margin=dict(l=0, r=0, t=0, b=0, pad=0),
+            font=dict(
+                family=font_family,
+                size=font_size,
+                color=font_color
+            )
         )
     }
     if output_type == 'figure':
         return figure
+    elif output_type == 'plotly':
+        return go.Figure(figure)
     elif output_type == 'dash':
-        return dcc.Graph(id=dash_id,
+        return dcc.Graph(
+            id=dash_id,
             figure=figure,
             style=dict(height=dash_height),
             config=dict(displayModeBar=False)
-            )
+        )
     else:
-        raise Exception(f'ERROR: Invalid output type {output_type}. Only `figure` and `dash` are currently supported.')
+        raise Exception(f'ERROR: Invalid output type {output_type}. Only `figure`, `plotly` and `dash` are currently supported.')
+
+
+def shap_summary_plot(shap_values, feature_names, background_color='white',
+                      output_type='plotly', dash_id='some_shap_summary_plot',
+                      dash_height='70%', font_family='Roboto', font_size=14,
+                      font_color='black'):
+    '''Plot the overall feature importance, based on SHAP values, through an
+    horizontal bar plot.
+
+    Parameters
+    ----------
+    shap_values : numpy.ndarray or list
+        Array or list containing all the SHAP values which we want to plot.
+    feature_names : list
+        List with the names of the features that the SHAP values refer to.
+    background_color : str, default 'white'
+        The plot's background color. Can be set in color name (e.g. 'white'),
+        hexadecimal code (e.g. '#555') or RGB (e.g. 'rgb(0,0,255)').
+    output_type : str, default 'plotly'
+        The format on which the output is presented. Available options are
+        'dash', `plotly` and 'figure'.
+    dash_id : str, default 'some_shap_summary_plot'
+        ID to be used in Dash.
+    dash_height : str, default '70%'
+        Height value to be used in the Dash graph.
+    font_family : str, default 'Roboto'
+        Text font family to be used in the numbers shown next to the graph.
+    font_size : int, default 14
+        Text font size to be used in the numbers shown next to the graph.
+    font_color : str, default 'black'
+        Text font color to be used in the numbers shown next to the graph. Can
+        be set in color name (e.g. 'white'), hexadecimal code (e.g. '#555') or
+        GB (e.g. 'rgb(0,0,255)').
+
+    Returns
+    -------
+    If output_type == 'figure':
+
+    figure : dict
+        Figure dictionary which can be used in Plotly.
+
+    Else if output_type == 'plotly':
+
+    figure : plotly.graph_objs._figure.Figure
+        Figure in a plotly figure object, which can be displayed in a notebook.
+
+    Else if output_type == 'dash':
+
+    figure : dcc.Graph
+        Figure in a Dash graph format, ready to be used in a dashboard.
+    '''
+    # Calculate the mean absolute value of each feature's SHAP values
+    mean_abs_shap = np.mean(np.abs(shap_values).reshape(-1, shap_values.shape[-1]), axis=0)
+    # Sort the SHAP values and the feature names
+    sorted_idx = np.argsort(mean_abs_shap)
+    sorted_mean_abs_shap = mean_abs_shap[sorted_idx]
+    sorted_feature_names = [feature_names[idx] for idx in sorted_idx]
+    # Create the figure
+    figure={
+        'data': [dict(
+            type='bar',
+            x=sorted_mean_abs_shap,
+            y=sorted_feature_names,
+            orientation='h'
+        )],
+        'layout': dict(
+            paper_bgcolor=background_color,
+            plot_bgcolor=background_color,
+            margin=dict(l=0, r=0, t=0, b=0, pad=0),
+            xaxis_title='mean(|SHAP value|) (average impact on model output magnitude)',
+            xaxis=dict(showgrid=False),
+            font=dict(
+                family=font_family,
+                size=font_size,
+                color=font_color
+            )
+        )
+    }
+    if output_type == 'figure':
+        return figure
+    elif output_type == 'plotly':
+        return go.Figure(figure)
+    elif output_type == 'dash':
+        return dcc.Graph(
+            id=dash_id,
+            figure=figure,
+            style=dict(height=dash_height)
+        )
+    else:
+        raise Exception(f'ERROR: Invalid output type {output_type}. Only `figure`, `plotly` and `dash` are currently supported.')
