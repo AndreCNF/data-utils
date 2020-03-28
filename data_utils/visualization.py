@@ -185,10 +185,10 @@ def bullet_indicator(value, min_val=0, max_val=100, higher_is_better=True,
         raise Exception(f'ERROR: Invalid output type {output_type}. Only `figure`, `plotly` and `dash` are currently supported.')
 
 
-def shap_summary_plot(shap_values, feature_names, background_color='white',
-                      output_type='plotly', dash_id='some_shap_summary_plot',
-                      dash_height='70%', font_family='Roboto', font_size=14,
-                      font_color='black'):
+def shap_summary_plot(shap_values, feature_names, max_display=10,
+                      background_color='white', output_type='plotly',
+                      dash_id='some_shap_summary_plot', dash_height='70%',
+                      font_family='Roboto', font_size=14, font_color='black'):
     '''Plot the overall feature importance, based on SHAP values, through an
     horizontal bar plot.
 
@@ -198,6 +198,8 @@ def shap_summary_plot(shap_values, feature_names, background_color='white',
         Array or list containing all the SHAP values which we want to plot.
     feature_names : list
         List with the names of the features that the SHAP values refer to.
+    max_display : str
+        The maximum number of features to plot.
     background_color : str, default 'white'
         The plot's background color. Can be set in color name (e.g. 'white'),
         hexadecimal code (e.g. '#555') or RGB (e.g. 'rgb(0,0,255)').
@@ -241,6 +243,7 @@ def shap_summary_plot(shap_values, feature_names, background_color='white',
     sorted_mean_abs_shap = mean_abs_shap[sorted_idx]
     sorted_feature_names = [feature_names[idx] for idx in sorted_idx]
     # Create the figure
+    # [TODO] Implement max_display
     figure={
         'data': [dict(
             type='bar',
@@ -254,6 +257,114 @@ def shap_summary_plot(shap_values, feature_names, background_color='white',
             margin=dict(l=0, r=0, t=0, b=0, pad=0),
             xaxis_title='mean(|SHAP value|) (average impact on model output magnitude)',
             xaxis=dict(showgrid=False),
+            font=dict(
+                family=font_family,
+                size=font_size,
+                color=font_color
+            )
+        )
+    }
+    if output_type == 'figure':
+        return figure
+    elif output_type == 'plotly':
+        return go.Figure(figure)
+    elif output_type == 'dash':
+        return dcc.Graph(
+            id=dash_id,
+            figure=figure,
+            style=dict(height=dash_height)
+        )
+    else:
+        raise Exception(f'ERROR: Invalid output type {output_type}. Only `figure`, `plotly` and `dash` are currently supported.')
+
+
+def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
+                        max_display=10, background_color='white',
+                        output_type='plotly', dash_id='some_shap_summary_plot',
+                        dash_height='70%', font_family='Roboto', font_size=14,
+                        font_color='black'):
+    '''Do a waterfall plot on a single sample, based on SHAP values, showing
+    each feature's contribution to the corresponding output.
+
+    Parameters
+    ----------
+    expected_value : float
+        This is the reference value that the feature contributions start from.
+        For SHAP values it should be the value of explainer.expected_value.
+    shap_values : numpy.array
+        One dimensional array of SHAP values.
+    features : numpy.array
+        One dimensional array of feature values. This provides the values of all
+        the features, and should be the same shape as the shap_values argument.
+    feature_names : list
+        List of feature names (# features).
+    max_display : str
+        The maximum number of features to plot.
+    background_color : str, default 'white'
+        The plot's background color. Can be set in color name (e.g. 'white'),
+        hexadecimal code (e.g. '#555') or RGB (e.g. 'rgb(0,0,255)').
+    output_type : str, default 'plotly'
+        The format on which the output is presented. Available options are
+        'dash', `plotly` and 'figure'.
+    dash_id : str, default 'some_shap_summary_plot'
+        ID to be used in Dash.
+    dash_height : str, default '70%'
+        Height value to be used in the Dash graph.
+    font_family : str, default 'Roboto'
+        Text font family to be used in the numbers shown next to the graph.
+    font_size : int, default 14
+        Text font size to be used in the numbers shown next to the graph.
+    font_color : str, default 'black'
+        Text font color to be used in the numbers shown next to the graph. Can
+        be set in color name (e.g. 'white'), hexadecimal code (e.g. '#555') or
+        GB (e.g. 'rgb(0,0,255)').
+
+    Returns
+    -------
+    If output_type == 'figure':
+
+    figure : dict
+        Figure dictionary which can be used in Plotly.
+
+    Else if output_type == 'plotly':
+
+    figure : plotly.graph_objs._figure.Figure
+        Figure in a plotly figure object, which can be displayed in a notebook.
+
+    Else if output_type == 'dash':
+
+    figure : dcc.Graph
+        Figure in a Dash graph format, ready to be used in a dashboard.
+    '''
+    if len(shap_values.shape) > 1:
+        raise Exception(f'ERROR: Received multiple samples, with input shape {shap_values.shape}. The waterfall plot only handles individual samples, i.e. one-dimensional inputs.')
+    # Sort the SHAP values and the feature names
+    sorted_idx = np.argsort(np.abs(shap_values))
+    sorted_shap_values = shap_values[sorted_idx]
+    sorted_features = features[sorted_idx]
+    sorted_feature_names = [feature_names[idx] for idx in sorted_idx]
+    # Create the figure
+    # [TODO] Fix the xaxis positioning to center on the expected value
+    # [TODO] Add markers for the expected value and the output value
+    # [TODO] Use SHAP's colors
+    # [TODO] Implement max_display
+    figure={
+        'data': [dict(
+            type='waterfall',
+#             offset=expected_value,
+#             measure='relative',
+            x=sorted_shap_values,
+            y=sorted_feature_names,
+            base=expected_value,
+            hovertext=[f'{feature}={val:.2e}' for (feature, val) in zip(sorted_feature_names, features)],
+            orientation='h'
+        )],
+        'layout': dict(
+            paper_bgcolor=background_color,
+            plot_bgcolor=background_color,
+            margin=dict(l=0, r=0, t=0, b=0, pad=0),
+            xaxis_title='Output value',
+            xaxis=dict(showgrid=False, autorange=True, rangemode='normal'),
             font=dict(
                 family=font_family,
                 size=font_size,
