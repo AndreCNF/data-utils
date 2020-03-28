@@ -41,7 +41,7 @@ def get_sequence_length_dict(df, id_column='subject_id', ts_column='ts'):
         ts_column = column_names[ts_column]
     # Dictionary containing the sequence length (number of temporal events) of each sequence (patient)
     seq_len_df = df.groupby(id_column)[ts_column].count().to_frame().sort_values(by=ts_column, ascending=False)
-    seq_len_dict = dict([(idx, val[0]) for idx, val in list(zip(seq_len_df.index, seq_len_df.values))])
+    seq_len_dict = dict([(idx, val[0]) for idx, val in list(zip(seq_len_df.index, seq_len_df.to_numpy()))])
     return seq_len_dict
 
 

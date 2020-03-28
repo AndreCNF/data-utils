@@ -900,15 +900,15 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                     # Get the categories columns as a numpy array, so as to
                     # index the groupby-resulting dataframes of mean and standard
                     # deviation values
-                    cat_arr = df[categ_columns].values
+                    cat_arr = df[categ_columns].to_numpy()
                     if isinstance(categ_columns, list) and len(categ_columns) > 1:
                         # Convert the sets of values into tuples so as to be
                         # properly readable as dataframe indeces
                         cat_arr = list(map(tuple, cat_arr))
                     # Get the mean and standard deviation values in the same
                     # order as the original dataframe's row order
-                    means_cat = means_grpb.loc[cat_arr].values
-                    stds_cat = stds_grpb.loc[cat_arr].values
+                    means_cat = means_grpb.loc[cat_arr].to_numpy()
+                    stds_cat = stds_grpb.loc[cat_arr].to_numpy()
                     # Normalize the right categories
                     data[column_to_normalize] = (data[column_to_normalize] - means_cat) / stds_cat
                 if get_stats is True:
@@ -1012,15 +1012,15 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                     # Get the categories columns as a numpy array, so as to
                     # index the groupby-resulting dataframes of minimum and
                     # maximum values
-                    cat_arr = df[categ_columns].values
+                    cat_arr = df[categ_columns].to_numpy()
                     if isinstance(categ_columns, list) and len(categ_columns) > 1:
                         # Convert the sets of values into tuples so as to be
                         # properly readable as dataframe indeces
                         cat_arr = list(map(tuple, cat_arr))
                     # Get the minimum and maximum values in the same
                     # order as the original dataframe's row order
-                    mins_cat = mins_grpb.loc[cat_arr].values
-                    maxs_cat = maxs_grpb.loc[cat_arr].values
+                    mins_cat = mins_grpb.loc[cat_arr].to_numpy()
+                    maxs_cat = maxs_grpb.loc[cat_arr].to_numpy()
                     # Normalize the right categories
                     data[column_to_normalize] = (data[column_to_normalize] - mins_cat) / (maxs_cat - mins_cat)
                 if get_stats is True:
@@ -1655,7 +1655,7 @@ def set_dosage_and_units(df, orig_column='dosage', new_column_names=['drug_dosag
     for col in new_column_names:
         df[col] = np.nan
     # Add the new dosage and units columns
-    df[new_column_names] = pd.DataFrame(dosage_unit_data.values.tolist(),
+    df[new_column_names] = pd.DataFrame(dosage_unit_data.to_numpy().tolist(),
                                         index=dosage_unit_data.index)
     return df
 

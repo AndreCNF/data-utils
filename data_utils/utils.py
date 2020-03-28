@@ -290,6 +290,27 @@ def is_num_nan(x):
         return False
 
 
+def is_integer(x):
+    '''Indicates if a number is an integer.
+
+    Parameters
+    ----------
+    x : int or float or string
+        A numeric value that will be checked if it's an integer.
+
+    Returns
+    -------
+    boolean
+        Returns a boolean, being it True if the number corresponds to an integer
+        or False if it doesn't.
+    '''
+    try:
+        float(x)
+    except ValueError:
+        return False
+    return float(x).is_integer()
+
+
 def is_string_nan(x, specific_nan_strings=[]):
     '''Indicates if a string corresponds to a missing value.
 

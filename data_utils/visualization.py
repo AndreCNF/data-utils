@@ -280,9 +280,10 @@ def shap_summary_plot(shap_values, feature_names, max_display=10,
 
 def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
                         max_display=10, background_color='white',
-                        output_type='plotly', dash_id='some_shap_summary_plot',
-                        dash_height='70%', font_family='Roboto', font_size=14,
-                        font_color='black'):
+                        line_color='gray', increasing_color='red',
+                        decreasing_color='blue', output_type='plotly',
+                        dash_id='some_shap_summary_plot', dash_height='70%',
+                        font_family='Roboto', font_size=14, font_color='black'):
     '''Do a waterfall plot on a single sample, based on SHAP values, showing
     each feature's contribution to the corresponding output.
 
@@ -303,6 +304,13 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
     background_color : str, default 'white'
         The plot's background color. Can be set in color name (e.g. 'white'),
         hexadecimal code (e.g. '#555') or RGB (e.g. 'rgb(0,0,255)').
+    line_color : str, default 'gray'
+        The waterfall plot's connector color. Can be set in color name
+        (e.g. 'white'), hexadecimal code (e.g. '#555') or RGB (e.g. 'rgb(0,0,255)').
+    increasing_color : str, default 'red'
+        Color of the waterfall bars that indicate an increasing value.
+    decreasing_color : str, default 'blue'
+        Color of the waterfall bars that indicate a decreasing value.
     output_type : str, default 'plotly'
         The format on which the output is presented. Available options are
         'dash', `plotly` and 'figure'.
@@ -338,26 +346,48 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
     '''
     if len(shap_values.shape) > 1:
         raise Exception(f'ERROR: Received multiple samples, with input shape {shap_values.shape}. The waterfall plot only handles individual samples, i.e. one-dimensional inputs.')
+    # Get the model's output on the current sample
+    model_output = shap_values.sum() + expected_value
     # Sort the SHAP values and the feature names
     sorted_idx = np.argsort(np.abs(shap_values))
     sorted_shap_values = shap_values[sorted_idx]
     sorted_features = features[sorted_idx]
     sorted_feature_names = [feature_names[idx] for idx in sorted_idx]
+    if max_display is None:
+        max_display = len(sorted_feature_names)
+    if max_display < len(sorted_feature_names):
+        # Isolate the data regarding the less relevant features that will be aggregated
+        other_features_shap_values = sorted_shap_values[:-(max_display-1)]
+        other_features_names = sorted_feature_names[:-(max_display-1)]
+        n_other_features = len(other_features_names)
+        # Get the sum of the less relevant features' SHAP values
+        other_features_shap_values = other_features_shap_values.sum()
+        # Remove the detailed info of the less relevant features
+        sorted_shap_values = sorted_shap_values[-(max_display-1):]
+        sorted_feature_names = sorted_feature_names[-(max_display-1):]
+        sorted_features = sorted_features[-(max_display-1):]
+        # Add the less relevant features aggregate data into the plot
+        hovertext = [f'{feature}={val}' if du.utils.is_integer(val) else f'{feature}={val:.2e}'
+                     for (feature, val) in zip(sorted_feature_names, sorted_features)]
+        hovertext = ['Multiple features'] + hovertext
+        sorted_shap_values = np.insert(sorted_shap_values, 0, other_features_shap_values)
+        sorted_feature_names = [f'{n_other_features} other features'] + sorted_feature_names
+    else:
+        hovertext = [f'{feature}={val}' if du.utils.is_integer(val) else f'{feature}={val:.2e}'
+                     for (feature, val) in zip(sorted_feature_names, sorted_features)]
     # Create the figure
     # [TODO] Fix the xaxis positioning to center on the expected value
-    # [TODO] Add markers for the expected value and the output value
-    # [TODO] Use SHAP's colors
-    # [TODO] Implement max_display
     figure={
         'data': [dict(
             type='waterfall',
-#             offset=expected_value,
-#             measure='relative',
             x=sorted_shap_values,
             y=sorted_feature_names,
             base=expected_value,
-            hovertext=[f'{feature}={val:.2e}' for (feature, val) in zip(sorted_feature_names, features)],
-            orientation='h'
+            hovertext=hovertext,
+            orientation='h',
+            connector=dict(line=dict(color=line_color)),
+            increasing=dict(marker=dict(color=increasing_color)),
+            decreasing=dict(marker=dict(color=decreasing_color))
         )],
         'layout': dict(
             paper_bgcolor=background_color,
@@ -369,7 +399,79 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
                 family=font_family,
                 size=font_size,
                 color=font_color
-            )
+            ),
+            annotations=[
+                # Expected value indicator
+                dict(
+                    # x-reference is assigned to the x-values
+                    xref='x',
+                    # y-reference is assigned to the plot paper [0,1]
+                    yref='paper',
+                    x=expected_value,
+                    y=0,
+                    text=f'E[f(X)]={expected_value:.2e}',
+                    showarrow=True,
+                    arrowhead=0,
+                    ax=0,
+                    ay=30
+                ),
+                # Output value indicator
+                dict(
+                    # x-reference is assigned to the x-values
+                    xref='x',
+                    # y-reference is assigned to the plot paper [0,1]
+                    yref='paper',
+                    x=model_output,
+                    y=1,
+                    text=f'f(x)={model_output:.2e}',
+                    showarrow=True,
+                    arrowhead=0,
+                    ax=0,
+                    ay=8
+                )
+            ],
+            shapes=[
+                # Expected value line
+                dict(
+                    type='line',
+                    # x-reference is assigned to the x-values
+                    xref='x',
+                    # y-reference is assigned to the plot paper [0,1]
+                    yref='paper',
+                    x0=expected_value,
+                    y0=0,
+                    x1=expected_value,
+                    y1=1,
+                    fillcolor=line_color,
+                    line=dict(
+                        color=line_color,
+                        width=1
+                    ),
+                    opacity=0.5,
+                    # NOTE: I can't put this line bellow the traces, otherwise
+                    # the waterfall conectors will create a blank line in the middle of it
+#                     layer='below'
+                ),
+                # Output value line
+                dict(
+                    type='line',
+                    # x-reference is assigned to the x-values
+                    xref='x',
+                    # y-reference is assigned to the plot paper [0,1]
+                    yref='paper',
+                    x0=model_output,
+                    y0=0,
+                    x1=model_output,
+                    y1=1,
+                    fillcolor=line_color,
+                    line=dict(
+                        color=line_color,
+                        width=1
+                    ),
+                    opacity=0.5,
+                    layer='below'
+                )
+            ]
         )
     }
     if output_type == 'figure':
