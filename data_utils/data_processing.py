@@ -5,6 +5,7 @@ import numpy as np                                      # NumPy to handle numeri
 import numbers                                          # numbers allows to check if data is numeric
 import warnings                                         # Print warnings for bad practices
 from functools import partial                           # Enables using functions with some fixed parameters
+from tqdm.auto import tqdm                              # tqdm allows to track code execution progress
 from . import utils                                     # Generic and useful methods
 from . import search_explore                            # Methods to search and explore data
 import data_utils as du
@@ -1487,7 +1488,8 @@ def merge_columns(df, cols_to_merge=None, drop_old_cols=True, separator=';',
     return data_df
 
 
-def missing_values_imputation(data, method='zero', id_column=None, inplace=False):
+def missing_values_imputation(data, method='zero', id_column=None,
+                              reset_index=True, inplace=False):
     '''Performs missing values imputation to a tensor or dataframe corresponding to
     a single column.
 
@@ -1516,6 +1518,9 @@ def missing_values_imputation(data, method='zero', id_column=None, inplace=False
         in the dataframe. If not specified, the imputation will not differenciate
         different IDs nor sequences. Only used if the chosen imputation method is
         'zigzag' or 'interpolation'.
+    reset_index : bool, default True
+        If set to True (recommended), the dataframe's index will be reset. This
+        can prevent values from being assigned to the wrong rows.
     inplace : bool, default False
         If set to True, the original tensor or dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -1542,6 +1547,9 @@ def missing_values_imputation(data, method='zero', id_column=None, inplace=False
     # [TODO] Implement an option to only imputate specified column(s)
     # if columns is None:
     #     columns = list(data_copy.columns)
+    if reset_index is True:
+        # Reset index to avoid assigning values in the wrong rows
+        data_copy.reset_index(drop=True, inplace=True)
     # Check if there are boolean features
     bool_feat = search_explore.list_one_hot_encoded_columns(data_copy)
     if len(bool_feat) > 0:
@@ -1557,12 +1565,9 @@ def missing_values_imputation(data, method='zero', id_column=None, inplace=False
         if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
             if id_column is not None:
                 # Perform imputation on each ID separately
-                # Forward fill
-                data_copy = (data_copy.set_index(id_column, append=True).groupby(id_column)
-                            .fillna(method='ffill').reset_index(level=1))
-                # Backward fill
-                data_copy = (data_copy.set_index(id_column, append=True).groupby(id_column)
-                            .fillna(method='bfill').reset_index(level=1))
+                # Forward fill and backward fill
+                # tqdm.pandas(desc='ffill&bfill', leave=False)
+                data_copy = data_copy.groupby(id_column).apply(lambda group: group.ffill().bfill())
                 # Replace remaining missing values with zero
                 data_copy = data_copy.fillna(value=0)
             else:
@@ -1582,9 +1587,8 @@ def missing_values_imputation(data, method='zero', id_column=None, inplace=False
             # before or after, respectively
             if id_column is not None:
                 # Perform imputation on each ID separately
-                data_copy = (data_copy.set_index(id_column, append=True).groupby(id_column)
-                                      .apply(lambda group: group.interpolate(limit_direction='both'))
-                                      .reset_index(level=1))
+                # tqdm.pandas(desc='Interpolation', leave=False)
+                data_copy = data_copy.groupby(id_column).apply(lambda group: group.interpolate(limit_direction='both'))
                 # Replace remaining missing values with zero
                 data_copy = data_copy.fillna(value=0)
             else:

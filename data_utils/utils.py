@@ -390,11 +390,11 @@ def in_ipynb():
         return False
 
 
-def iterations_loop(x, see_progress=True):
+def iterations_loop(x, see_progress=True, desc=None, leave=True):
     '''Determine if a progress bar is shown or not.'''
     if see_progress is True:
         # Use a progress bar
-        return tqdm(x)
+        return tqdm(x, desc=desc, leave=leave)
     else:
         # Don't show any progress bar if see_progress is False
         return x

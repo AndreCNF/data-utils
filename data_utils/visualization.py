@@ -427,7 +427,7 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
                     showarrow=True,
                     arrowhead=0,
                     ax=0,
-                    ay=8
+                    ay=10
                 )
             ],
             shapes=[
