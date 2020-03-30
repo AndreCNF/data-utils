@@ -435,8 +435,8 @@ def convert_dtypes(df, dtypes=None, inplace=False):
         if key in df_columns:
             dtype_dict[key] = dtypes[key]
         elif key.lower() in df_columns:
+            dtype_dict[key.lower()] = dtypes[key]
             key = key.lower()
-            dtype_dict[key] = dtypes[key]
         else:
             continue
         if 'float' in str(cur_dtypes[key]).lower() and 'Int' in str(dtype_dict[key]):
