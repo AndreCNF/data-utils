@@ -442,9 +442,9 @@ def convert_dtypes(df, dtypes=None, inplace=False):
         if 'float' in str(cur_dtypes[key]).lower() and 'Int' in str(dtype_dict[key]):
             # Convert the current column to a normal integer type, before converting to the new one
             # NOTE: When trying to convert from a float type to a UInt type, the safe casting rule
-            # stops the conversion from happening; as such, we need to try to convert to a normal
+            # can stop the conversion from happening; as such, we need to try to convert to a normal
             # integer tyoe first (e.g. int or uint)
-            data_df[key] = data_df[key].astype(str(dtype_dict[key]).lower())
+            data_df[key] = data_df[key].astype(str(dtype_dict[key]).lower(), errors='ignore')
     try:
         # Set the desired dtypes
         data_df = data_df.astype(dtype_dict)
