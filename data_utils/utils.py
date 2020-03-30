@@ -410,6 +410,10 @@ def convert_dtypes(df, dtypes=None, inplace=False):
     dtypes : dict, default None
         Dictionary that indicates the desired dtype for each column.
         e.g. {'Var1': 'float64', 'Var2': 'UInt8', 'Var3': str}
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
 
     Returns
     -------
@@ -422,6 +426,8 @@ def convert_dtypes(df, dtypes=None, inplace=False):
     else:
         # Use the original dataframes
         data_df = df
+    # Current data types
+    cur_dtypes = dict(data_df.dtypes)
     # Only use the dictionary keys that correspond to column names in the current dataframe
     dtype_dict = dict()
     df_columns = list(data_df.columns)
@@ -429,13 +435,22 @@ def convert_dtypes(df, dtypes=None, inplace=False):
         if key in df_columns:
             dtype_dict[key] = dtypes[key]
         elif key.lower() in df_columns:
-            dtype_dict[key.lower()] = dtypes[key]
+            key = key.lower()
+            dtype_dict[key] = dtypes[key]
+        else:
+            continue
+        if 'float' in str(cur_dtypes[key]).lower() and 'Int' in str(dtype_dict[key]):
+            # Convert the current column to a normal integer type, before converting to the new one
+            # NOTE: When trying to convert from a float type to a UInt type, the safe casting rule
+            # stops the conversion from happening; as such, we need to try to convert to a normal
+            # integer tyoe first (e.g. int or uint)
+            data_df[key] = data_df[key].astype(str(dtype_dict[key]).lower())
     try:
         # Set the desired dtypes
         data_df = data_df.astype(dtype_dict)
     except:
         # Replace the '<NA>' objects with NumPy's NaN
-        data_df = data_df.applymap(lambda x: x if str(x) != '<NA>' else np.nan)
+        data_df = data_df.applymap(lambda x: x if not is_num_nan(x) else np.nan)
         # Set the desired dtypes
         data_df = data_df.astype(dtype_dict)
     return data_df

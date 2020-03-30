@@ -130,7 +130,7 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
         arr[seq_len_dict[idt]:, :] = padding_value
     if bool_feat is None:
         # Find the boolean columns in the dataframe
-        bool_feat = search_explore.list_one_hot_encoded_columns(data_df)
+        bool_feat = search_explore.list_boolean_columns(data_df)
         # Make sure that none of the ID columns are considered boolean
         bool_feat = list(set(bool_feat) - set([id_column, ts_column]))
         # Get the indeces of the boolean features

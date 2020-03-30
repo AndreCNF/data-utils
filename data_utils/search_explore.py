@@ -51,7 +51,7 @@ def dataframe_missing_values(df, column=None):
         return col_percent_missing
 
 
-def is_one_hot_encoded_column(df, column, n_unique_values=None):
+def is_boolean_column(df, column, n_unique_values=None):
     '''Checks if a given column is one hot encoded.
 
     Parameters
@@ -59,7 +59,7 @@ def is_one_hot_encoded_column(df, column, n_unique_values=None):
     df : pandas.DataFrame or dask.DataFrame
         Dataframe that will be used, which contains the specified column.
     column : string
-        Name of the column that will be checked for one hot encoding.
+        Name of the column that will be checked for boolean format.
     n_unique_values : int, default None
         Number of the column's unique values. If not specified, it will
         be automatically calculated.
@@ -67,7 +67,7 @@ def is_one_hot_encoded_column(df, column, n_unique_values=None):
     Returns
     -------
     bool
-        Returns true if the column is in one hot encoding format.
+        Returns true if the column is in boolean format.
         Otherwise, returns false.
     '''
     if n_unique_values is None:
@@ -82,8 +82,11 @@ def is_one_hot_encoded_column(df, column, n_unique_values=None):
         if isinstance(df, dd.DataFrame):
             # Make sure that the unique values are computed, in case we're using Dask
             unique_values = unique_values.compute()
+        # Remove NaNs from the list of unique values
+        unique_values = [val for val in unique_values if not utils.is_num_nan(val)]
         # Check if the possible values are all numeric
-        if all([isinstance(x, numbers.Number) for x in unique_values]):
+        if (all([isinstance(x, numbers.Number) for x in unique_values])
+        or all([isinstance(x, bool) or isinstance(x, np.bool_) for x in unique_values])):
             # Check if the only possible values are 0 and 1 (and ignore NaN's)
             unique_values = list(set(np.nan_to_num(unique_values)))
             unique_values.sort()
@@ -93,8 +96,8 @@ def is_one_hot_encoded_column(df, column, n_unique_values=None):
     return False
 
 
-def list_one_hot_encoded_columns(df):
-    '''Lists the columns in a dataframe which are in a one hot encoding format.
+def list_boolean_columns(df):
+    '''Lists the columns in a dataframe which are in a boolean format.
 
     Parameters
     ----------
@@ -115,7 +118,7 @@ def list_one_hot_encoded_columns(df):
         # If there are no columns with just 2 unique values, then there are no binary columns
         return []
     else:
-        return [col for col in df.columns if is_one_hot_encoded_column(df, col, n_unique_values[col])]
+        return [col for col in df.columns if is_boolean_column(df, col, n_unique_values[col])]
 
 
 def find_col_idx(df, feature):

@@ -559,7 +559,7 @@ def join_repeated_rows(df, bool_feat=None, cat_feat=[], id_columns=['patientunit
             has_timestamp = False
     if bool_feat is None:
         # Find the boolean columns in the dataframe
-        bool_feat = search_explore.list_one_hot_encoded_columns(data_df)
+        bool_feat = search_explore.list_boolean_columns(data_df)
         # Make sure that none of the ID columns are considered boolean
         bool_feat = list(set(bool_feat) - set(id_columns))
         # Keep it alphabetically sorted

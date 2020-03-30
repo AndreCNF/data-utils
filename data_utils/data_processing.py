@@ -352,7 +352,7 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_value
         ohe_df = pd.get_dummies(data_df, columns=columns)
     if join_rows is True:
         # Columns which are one hot encoded
-        ohe_columns = search_explore.list_one_hot_encoded_columns(ohe_df)
+        ohe_columns = search_explore.list_boolean_columns(ohe_df)
         # Group the rows that have the same identifiers
         ohe_df = ohe_df.groupby(join_by).sum(min_count=1).reset_index()
         # Clip the one hot encoded columns to a maximum value of 1
@@ -811,7 +811,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             # Prevent all features that will be embedded from being normalized
             [columns_to_normalize.remove(col) for col in categ_columns]
         # List of binary or one hot encoded columns
-        binary_cols = search_explore.list_one_hot_encoded_columns(df[columns_to_normalize])
+        binary_cols = search_explore.list_boolean_columns(df[columns_to_normalize])
         if binary_cols is not None:
             # Prevent binary features from being normalized
             [columns_to_normalize.remove(col) for col in binary_cols]
@@ -1132,7 +1132,7 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             [columns_to_denormalize.remove(col) for col in categ_columns]
 
         # List of binary or one hot encoded columns
-        binary_cols = search_explore.list_one_hot_encoded_columns(df[columns_to_denormalize])
+        binary_cols = search_explore.list_boolean_columns(df[columns_to_denormalize])
 
         if binary_cols is not None:
             # Prevent binary features from being denormalized
@@ -1471,7 +1471,7 @@ def merge_columns(df, cols_to_merge=None, drop_old_cols=True, separator=';',
     print('Merging the duplicate columns...')
     for col in utils.iterations_loop(cols_to_merge, see_progress=see_progress):
         # Check if the columns being merged are boolean
-        is_bool = all([search_explore.is_one_hot_encoded_column(data_df, col, n_unique_values=None)]
+        is_bool = all([search_explore.is_boolean_column(data_df, col, n_unique_values=None)]
                        for col in [f'{col}_x', f'{col}_y'])
         # Create a column, with the original name, merging the associated columns' values
         data_df[col] = data_df.apply(lambda x: merge_values(x[f'{col}_x'], x[f'{col}_y'],
@@ -1488,8 +1488,9 @@ def merge_columns(df, cols_to_merge=None, drop_old_cols=True, separator=';',
     return data_df
 
 
-def missing_values_imputation(data, method='zero', id_column=None,
-                              reset_index=True, inplace=False):
+def missing_values_imputation(data, columns_to_imputate=None, method='zero',
+                              id_column=None, zero_bool=True, reset_index=True,
+                              inplace=False):
     '''Performs missing values imputation to a tensor or dataframe corresponding to
     a single column.
 
@@ -1498,12 +1499,11 @@ def missing_values_imputation(data, method='zero', id_column=None,
     data : torch.Tensor or pandas.DataFrame or dask.DataFrame
         PyTorch tensor corresponding to a single column or a dataframe which will
         be imputed.
-    # [TODO]
-    # columns : str or list of str, default None
-    #     Specific column(s) to run missing values imputation on. Might be useful
-    #     if some columns should be imputated in a specific method, different from
-    #     the rest. If left unspecified, all columns will be imputated with the
-    #     same method.
+    columns_to_imputate : str or list of str, default None
+        Specific column(s) to run missing values imputation on. Might be useful
+        if some columns should be imputated in a specific method, different from
+        the rest. If left unspecified, all columns will be imputated with the
+        same method.
     method : string, default 'zero'
         Imputation method to be used. If user inputs 'zero', it will just fill all
         missing values with zero. If the user chooses 'zigzag', it will do a
@@ -1518,6 +1518,9 @@ def missing_values_imputation(data, method='zero', id_column=None,
         in the dataframe. If not specified, the imputation will not differenciate
         different IDs nor sequences. Only used if the chosen imputation method is
         'zigzag' or 'interpolation'.
+    zero_bool : bool, default True
+        If set to True, it will look for boolean features and replace their
+        missing values with zero, regardless of the chosen imputation method.
     reset_index : bool, default True
         If set to True (recommended), the dataframe's index will be reset. This
         can prevent values from being assigned to the wrong rows.
@@ -1549,35 +1552,57 @@ def missing_values_imputation(data, method='zero', id_column=None,
     #     columns = list(data_copy.columns)
     if reset_index is True:
         # Reset index to avoid assigning values in the wrong rows
+        print('Resetting the index...')
         data_copy.reset_index(drop=True, inplace=True)
-    # Check if there are boolean features
-    bool_feat = search_explore.list_one_hot_encoded_columns(data_copy)
-    if len(bool_feat) > 0:
-        # Fill all boolean features' missing values with zeros
-        data_copy[bool_feat] = data_copy[bool_feat].fillna(value=0)
+    if columns_to_imputate is None:
+        # Imputate all the columns
+        columns_to_imputate = list(data_copy.columns)
+    # Make sure that the columns_to_imputate is a list
+    if isinstance(columns_to_imputate, str):
+        columns_to_imputate = [columns_to_imputate]
+    if id_column is not None:
+        # Make sure that the ID column is in columns_to_imputate
+        if id_column not in columns_to_imputate:
+            columns_to_imputate = [id_column] + columns_to_imputate
+    if zero_bool is True:
+        # Check if there are boolean features
+        print('Searching for boolean features...')
+        bool_feat = search_explore.list_boolean_columns(data_copy)
+        if len(bool_feat) > 0:
+            # Fill all boolean features' missing values with zeros
+            print('Replacing boolean features\' missing values with zero...')
+            data_copy[bool_feat] = data_copy[bool_feat].fillna(value=0)
+        # Remove the boolean columns from the list of columns to imputate
+        columns_to_imputate = list(set(columns_to_imputate) - set(bool_feat))
     if method.lower() == 'zero':
         # Replace NaN's with zeros
+        print('Replacing missing values with zero...')
         if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
-            data_copy = data_copy.fillna(value=0)
+            data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].fillna(value=0)
         elif isinstance(data, torch.Tensor):
+            # [TODO] Add the ability to specify the tensor columns to imputate
             data_copy = torch.where(data_copy != data_copy, torch.zeros_like(data_copy), data_copy)
     elif method.lower() == 'zigzag':
         if isinstance(data, pd.DataFrame) or isinstance(data, dd.DataFrame):
             if id_column is not None:
                 # Perform imputation on each ID separately
                 # Forward fill and backward fill
-                # tqdm.pandas(desc='ffill&bfill', leave=False)
-                data_copy = data_copy.groupby(id_column).apply(lambda group: group.ffill().bfill())
+                print('Forward filling and backward filling missing values...')
+                data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].groupby(id_column).apply(lambda group: group.ffill().bfill())
                 # Replace remaining missing values with zero
-                data_copy = data_copy.fillna(value=0)
+                print('Replacing remaining missing values with zero...')
+                data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].fillna(value=0)
             else:
                 # Apply imputation on all the data as one single sequence
                 # Forward fill
-                data_copy = data_copy.fillna(method='ffill')
+                print('Forward filling missing values...')
+                data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].ffill()
                 # Backward fill
-                data_copy = data_copy.fillna(method='bfill')
+                print('Backward filling missing values...')
+                data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].bfill()
                 # Replace remaining missing values with zero
-                data_copy = data_copy.fillna(value=0)
+                print('Replacing remaining missing values with zero...')
+                data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].fillna(value=0)
         elif isinstance(data, torch.Tensor):
             raise Exception('ERROR: PyTorch tensors aren\'t supported in the zigzag imputation method. Please use a dataframe instead.')
     elif method.lower() == 'interpolation':
@@ -1586,21 +1611,54 @@ def missing_values_imputation(data, method='zero', id_column=None,
             # backward and forward fill, when the missing value doesn't have known data points
             # before or after, respectively
             if id_column is not None:
-                # Perform imputation on each ID separately
-                # tqdm.pandas(desc='Interpolation', leave=False)
-                data_copy = data_copy.groupby(id_column).apply(lambda group: group.interpolate(limit_direction='both'))
-                # Replace remaining missing values with zero
-                data_copy = data_copy.fillna(value=0)
+                try:
+                    # Perform imputation on each ID separately
+                    print('Interpolating missing values...')
+                    data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].groupby(id_column)[columns_to_imputate].apply(lambda group: group.interpolate(limit_direction='both'))
+                    # Replace remaining missing values with zero
+                    data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].fillna(value=0)
+                except ValueError:
+                    warnings.warn(f'Initial attempt to interpolate failed. Trying again after replacing all possible <NA> occurences with a Numpy NaN.')
+                    # Save the current data types
+                    dtype_dict = dict(data_copy.dtypes)
+                    # Replace the '<NA>' objects with NumPy's NaN
+                    data_copy = data_copy.applymap(lambda x: x if not utils.is_num_nan(x) else np.nan)
+                    print('Finished replacing all possible <NA> values.')
+                    # Perform imputation on each ID separately
+                    print('Interpolating missing values...')
+                    data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].groupby(id_column)[columns_to_imputate].apply(lambda group: group.interpolate(limit_direction='both'))
+                    # Replace remaining missing values with zero
+                    data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].fillna(value=0)
+                    # Convert the data types back to the original ones
+                    print('Converting data types back to the original ones...')
+                    data_copy = utils.convert_dtypes(data_copy, dtypes=dtype_dict, inplace=True)
             else:
-                # Apply imputation on all the data as one single sequence
-                data_copy = data_copy.interpolate(limit_direction='both')
-                # Replace remaining missing values with zero
-                data_copy = data_copy.fillna(value=0)
+                try:
+                    # Apply imputation on all the data as one single sequence
+                    data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].interpolate(limit_direction='both')
+                    # Replace remaining missing values with zero
+                    data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].fillna(value=0)
+                except ValueError:
+                    warnings.warn(f'Initial attempt to interpolate failed. Trying again after replacing all possible <NA> occurences with a Numpy NaN.')
+                    # Save the current data types
+                    dtype_dict = dict(data_copy.dtypes)
+                    # Replace the '<NA>' objects with NumPy's NaN
+                    data_copy = data_copy.applymap(lambda x: x if not utils.is_num_nan(x) else np.nan)
+                    print('Finished replacing all possible <NA> values.')
+                    print('Interpolating missing values...')
+                    # Apply imputation on all the data as one single sequence
+                    data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].interpolate(limit_direction='both')
+                    # Replace remaining missing values with zero
+                    data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].fillna(value=0)
+                    # Convert the data types back to the original ones
+                    print('Converting data types back to the original ones...')
+                    data_copy = utils.convert_dtypes(data_copy, dtypes=dtype_dict, inplace=True)
         elif isinstance(data, torch.Tensor):
             raise Exception('ERROR: PyTorch tensors aren\'t supported in the interpolation imputation method. Please use a dataframe instead.')
     else:
         raise Exception(f'ERROR: Unsupported {method} imputation method. Currently available options are `zero` and `zigzag`.')
     # [TODO] Add other, more complex imputation methods, like a denoising autoencoder
+    print('Done!')
     return data_copy
 
 
