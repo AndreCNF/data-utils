@@ -426,8 +426,6 @@ def convert_dtypes(df, dtypes=None, inplace=False):
     else:
         # Use the original dataframes
         data_df = df
-    # Current data types
-    cur_dtypes = dict(data_df.dtypes)
     # Only use the dictionary keys that correspond to column names in the current dataframe
     dtype_dict = dict()
     df_columns = list(data_df.columns)
@@ -436,19 +434,11 @@ def convert_dtypes(df, dtypes=None, inplace=False):
             dtype_dict[key] = dtypes[key]
         elif key.lower() in df_columns:
             dtype_dict[key.lower()] = dtypes[key]
-            key = key.lower()
-        else:
-            continue
-        if 'float' in str(cur_dtypes[key]).lower() and 'Int' in str(dtype_dict[key]):
-            # Convert the current column to a normal integer type, before converting to the new one
-            # NOTE: When trying to convert from a float type to a UInt type, the safe casting rule
-            # can stop the conversion from happening; as such, we need to try to convert to a normal
-            # integer tyoe first (e.g. int or uint)
-            data_df[key] = data_df[key].astype(str(dtype_dict[key]).lower(), errors='ignore')
     try:
         # Set the desired dtypes
         data_df = data_df.astype(dtype_dict)
     except:
+        warnings.warn('Failed to assign the desired data types. Replacing all <NA> values with Numpy NaN and trying again.')
         # Replace the '<NA>' objects with NumPy's NaN
         data_df = data_df.applymap(lambda x: x if not is_num_nan(x) else np.nan)
         # Set the desired dtypes

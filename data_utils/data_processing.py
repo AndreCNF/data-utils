@@ -1493,6 +1493,8 @@ def missing_values_imputation(data, columns_to_imputate=None, method='zero',
                               inplace=False):
     '''Performs missing values imputation to a tensor or dataframe corresponding to
     a single column.
+    NOTE: Most imputation methods don't work with float16 data types and
+    interpolation can't be applied to nullable integer types.
 
     Parameters
     ----------
@@ -1571,7 +1573,7 @@ def missing_values_imputation(data, columns_to_imputate=None, method='zero',
         if len(bool_feat) > 0:
             # Fill all boolean features' missing values with zeros
             print('Replacing boolean features\' missing values with zero...')
-            data_copy[bool_feat] = data_copy[bool_feat].fillna(value=0)
+            data_copy.loc[:, bool_feat] = data_copy[bool_feat].fillna(value=0)
         # Remove the boolean columns from the list of columns to imputate
         columns_to_imputate = list(set(columns_to_imputate) - set(bool_feat))
     if method.lower() == 'zero':
@@ -1610,13 +1612,35 @@ def missing_values_imputation(data, columns_to_imputate=None, method='zero',
             # Linear interpolation, placing a linear scale between known points and doing simple
             # backward and forward fill, when the missing value doesn't have known data points
             # before or after, respectively
+            # NOTE: Since the interpolate method doesn't work on nullable integer data types,
+            # we need to find and separate columns with that dtype and apply zigzag imputation on them
+            columns_cant_interpolate = list()
+            for col in columns_to_imputate:
+                if (('Int' in str(data[col].dtype) or 'boolean' in str(data[col].dtype))
+                and col != id_column):
+                    columns_cant_interpolate.append(col)
+                    columns_to_imputate.remove(col)
             if id_column is not None:
                 try:
-                    # Perform imputation on each ID separately
-                    print('Interpolating missing values...')
-                    data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].groupby(id_column)[columns_to_imputate].apply(lambda group: group.interpolate(limit_direction='both'))
-                    # Replace remaining missing values with zero
-                    data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].fillna(value=0)
+                    if len(columns_cant_interpolate) > 0:
+                        # Perform zigzag imputation on columns that can't be interpolated
+                        print('Running zigzag imputation on columns that can\'t be interpolated...')
+                        print(f'(These columns are {columns_cant_interpolate})')
+                        columns_cant_interpolate = [id_column] + columns_cant_interpolate
+                        # Forward fill and backward fill
+                        print('Forward filling and backward filling missing values...')
+                        data_copy.loc[:, columns_cant_interpolate] = data_copy[columns_cant_interpolate].groupby(id_column).apply(lambda group: group.ffill().bfill())
+                        # Replace remaining missing values with zero
+                        print('Replacing remaining missing values with zero...')
+                        data_copy.loc[:, columns_cant_interpolate] = data_copy[columns_cant_interpolate].fillna(value=0)
+                    # There's no need to interpolate if the only column in columns_to_imputate is the ID column
+                    if len(columns_to_imputate) > 1:
+                        # Perform imputation on each ID separately
+                        print('Interpolating missing values...')
+                        data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].groupby(id_column)[columns_to_imputate].apply(lambda group: group.interpolate(limit_direction='both'))
+                        # Replace remaining missing values with zero
+                        print('Replacing remaining missing values with zero...')
+                        data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].fillna(value=0)
                 except ValueError:
                     warnings.warn(f'Initial attempt to interpolate failed. Trying again after replacing all possible <NA> occurences with a Numpy NaN.')
                     # Save the current data types
@@ -1628,27 +1652,45 @@ def missing_values_imputation(data, columns_to_imputate=None, method='zero',
                     print('Interpolating missing values...')
                     data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].groupby(id_column)[columns_to_imputate].apply(lambda group: group.interpolate(limit_direction='both'))
                     # Replace remaining missing values with zero
+                    print('Replacing remaining missing values with zero...')
                     data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].fillna(value=0)
                     # Convert the data types back to the original ones
                     print('Converting data types back to the original ones...')
                     data_copy = utils.convert_dtypes(data_copy, dtypes=dtype_dict, inplace=True)
             else:
                 try:
-                    # Apply imputation on all the data as one single sequence
-                    data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].interpolate(limit_direction='both')
-                    # Replace remaining missing values with zero
-                    data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].fillna(value=0)
+                    if len(columns_cant_interpolate) > 0:
+                        # Perform zigzag imputation on columns that can't be interpolated
+                        print('Running zigzag imputation on columns that can\'t be interpolated...')
+                        print(f'(These columns are {columns_cant_interpolate})')
+                        # Forward fill
+                        print('Forward filling missing values...')
+                        data_copy.loc[:, columns_cant_interpolate] = data_copy[columns_cant_interpolate].ffill()
+                        # Backward fill
+                        print('Backward filling missing values...')
+                        data_copy.loc[:, columns_cant_interpolate] = data_copy[columns_cant_interpolate].bfill()
+                        # Replace remaining missing values with zero
+                        print('Replacing remaining missing values with zero...')
+                        data_copy.loc[:, columns_cant_interpolate] = data_copy[columns_cant_interpolate].fillna(value=0)
+                    # There's no need to interpolate if columns_to_imputate is empty
+                    if len(columns_to_imputate) > 0:
+                        # Apply imputation on all the data as one single sequence
+                        print('Interpolating missing values...')
+                        data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].interpolate(limit_direction='both')
+                        # Replace remaining missing values with zero
+                        print('Replacing remaining missing values with zero...')
+                        data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].fillna(value=0)
                 except ValueError:
                     warnings.warn(f'Initial attempt to interpolate failed. Trying again after replacing all possible <NA> occurences with a Numpy NaN.')
                     # Save the current data types
                     dtype_dict = dict(data_copy.dtypes)
-                    # Replace the '<NA>' objects with NumPy's NaN
-                    data_copy = data_copy.applymap(lambda x: x if not utils.is_num_nan(x) else np.nan)
+                    data_copy = utils.convert_dtypes(data_copy, dtypes=dtype_dict, inplace=True)
                     print('Finished replacing all possible <NA> values.')
-                    print('Interpolating missing values...')
                     # Apply imputation on all the data as one single sequence
+                    print('Interpolating missing values...')
                     data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].interpolate(limit_direction='both')
                     # Replace remaining missing values with zero
+                    print('Replacing remaining missing values with zero...')
                     data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].fillna(value=0)
                     # Convert the data types back to the original ones
                     print('Converting data types back to the original ones...')
