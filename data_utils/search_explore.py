@@ -70,6 +70,8 @@ def is_boolean_column(df, column, n_unique_values=None):
         Returns true if the column is in boolean format.
         Otherwise, returns false.
     '''
+    if str(df[column].dtype) == 'boolean':
+        return True
     if n_unique_values is None:
         # Calculate the number of unique values
         n_unique_values = df[column].nunique()

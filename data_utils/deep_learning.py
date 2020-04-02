@@ -397,9 +397,9 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
         should be the labels tensor.
     metrics : list of strings, default ['loss', 'accuracy', 'AUC'],
         List of metrics to be used to evaluate the model on the infered data.
-        Available metrics are cross entropy loss (loss), accuracy, AUC
-        (Receiver Operating Curve Area Under the Curve), precision, recall
-        and F1.
+        Available metrics are cross entropy loss (`loss`), accuracy (`accuracy`),
+        AUC (`AUC`), weighted AUC (`AUC_weighted`), precision (`precision`),
+        recall (`recall`) and F1 (`F1`).
     model_type : string, default 'multivariate_rnn'
         Sets the type of model to train. Important to know what type of
         inference to do. Currently available options are ['multivariate_rnn',
@@ -702,8 +702,9 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
 def train(model, train_dataloader, val_dataloader, test_dataloader=None,
           cols_to_remove=[0, 1], model_type='multivariate_rnn',
           is_custom=False, seq_len_dict=None, batch_size=32, n_epochs=50,
-          lr=0.001, clip_value=0.5, models_path='models/', ModelClass=None,
-          padding_value=999999, do_test=True, log_comet_ml=False,
+          lr=0.001, clip_value=0.5, models_path='models/', model_name='checkpoint',
+          ModelClass=None, padding_value=999999, do_test=True,
+          metrics=['loss', 'accuracy', 'AUC'], log_comet_ml=False,
           comet_ml_api_key=None, comet_ml_project_name=None,
           comet_ml_workspace=None, comet_ml_save_model=False,
           experiment=None, features_list=None, get_val_loss_min=False,
@@ -754,6 +755,9 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
     models_path : string, default 'models/'
         Path where the model will be saved. By default, it saves in
         the directory named "models".
+    model_name : string, default 'checkpoint'
+        Name that will be given to the saved models. Validation loss and
+        timestamp info will then be appended to the name.
     ModelClass : object, default None
         Sets the class which corresponds to the machine learning
         model type. It will be needed if test inference is
@@ -764,6 +768,11 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
     do_test : bool, default True
         If true, evaluates the model on the test set, after completing
         the training.
+    metrics : list of strings, default ['loss', 'accuracy', 'AUC'],
+        List of metrics to be used to evaluate the model on the infered data.
+        Available metrics are cross entropy loss (`loss`), accuracy (`accuracy`),
+        AUC (`AUC`), weighted AUC (`AUC_weighted`), precision (`precision`),
+        recall (`recall`) and F1 (`F1`).
     log_comet_ml : bool, default False
         If true, makes the code upload a training report and metrics
         to comet.ml, a online platform which allows for a detailed
@@ -961,7 +970,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                 # Get the current day and time to attach to the saved model's name
                 current_datetime = datetime.now().strftime('%d_%m_%Y_%H_%M')
                 # Filename and path where the model will be saved
-                model_filename = f'{models_path}checkpoint_{current_datetime}.pth'
+                model_filename = f'{models_path}{model_name}_{val_loss}valloss_{current_datetime}.pth'
                 print(f'Saving model in {model_filename}')
                 # Save the best performing model so far, along with additional information to implement it
                 checkpoint = hyper_params

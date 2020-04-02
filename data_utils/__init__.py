@@ -13,7 +13,7 @@ torch.manual_seed(random_seed[1][0])
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 # Boolean that sets whether to use the original Pandas library or the Modin distributed version
-use_modin = True
+use_modin = False
 
 from . import utils                                     # Generic and useful methods
 from . import datasets                                  # PyTorch dataset classes

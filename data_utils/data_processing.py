@@ -1641,8 +1641,8 @@ def missing_values_imputation(data, columns_to_imputate=None, method='zero',
                         # Replace remaining missing values with zero
                         print('Replacing remaining missing values with zero...')
                         data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].fillna(value=0)
-                except ValueError:
-                    warnings.warn(f'Initial attempt to interpolate failed. Trying again after replacing all possible <NA> occurences with a Numpy NaN.')
+                except ValueError as e:
+                    warnings.warn(f'Initial attempt to interpolate failed. Original exception message: "{str(e)}"\nTrying again after replacing all possible <NA> occurences with a Numpy NaN.')
                     # Save the current data types
                     dtype_dict = dict(data_copy.dtypes)
                     # Replace the '<NA>' objects with NumPy's NaN
@@ -1680,8 +1680,8 @@ def missing_values_imputation(data, columns_to_imputate=None, method='zero',
                         # Replace remaining missing values with zero
                         print('Replacing remaining missing values with zero...')
                         data_copy.loc[:, columns_to_imputate] = data_copy[columns_to_imputate].fillna(value=0)
-                except ValueError:
-                    warnings.warn(f'Initial attempt to interpolate failed. Trying again after replacing all possible <NA> occurences with a Numpy NaN.')
+                except ValueError as e:
+                    warnings.warn(f'Initial attempt to interpolate failed. Original exception message: "{str(e)}"\nTrying again after replacing all possible <NA> occurences with a Numpy NaN.')
                     # Save the current data types
                     dtype_dict = dict(data_copy.dtypes)
                     data_copy = utils.convert_dtypes(data_copy, dtypes=dtype_dict, inplace=True)
