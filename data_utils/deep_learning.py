@@ -970,7 +970,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                 # Get the current day and time to attach to the saved model's name
                 current_datetime = datetime.now().strftime('%d_%m_%Y_%H_%M')
                 # Filename and path where the model will be saved
-                model_filename = f'{models_path}{model_name}_{val_loss}valloss_{current_datetime}.pth'
+                model_filename = f'{models_path}{model_name}_{val_loss:.4f}valloss_{current_datetime}.pth'
                 print(f'Saving model in {model_filename}')
                 # Save the best performing model so far, along with additional information to implement it
                 checkpoint = hyper_params

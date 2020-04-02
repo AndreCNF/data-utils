@@ -10,7 +10,7 @@ else:
     import pandas as pd
 
 class Tabular_Dataset(Dataset):
-    def __init__(self, arr, df, label_name=None):
+    def __init__(self, df, arr, label_name=None):
         # [TODO] Add documentation
         # Counter that indicates in which column we're in when searching for the label column
         col_num = 0
@@ -37,8 +37,6 @@ class Tabular_Dataset(Dataset):
 
     def __len__(self):
         return len(self.X)
-
-        from torch.utils.data import Dataset
 
 
 class Time_Series_Dataset(Dataset):
