@@ -30,7 +30,8 @@ def one_hot_label(labels, n_outputs=None, dataset=None):
 
 def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch_size=32,
                       get_indeces=True, shuffle_dataset=True):
-    '''Distributes the data into train, validation and test sets and returns the respective data loaders.
+    '''Distributes the data into train, validation and test sets and returns the
+    respective data loaders.
 
     Parameters
     ----------
