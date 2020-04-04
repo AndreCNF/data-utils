@@ -377,10 +377,11 @@ def inference_iter_mlp(model, features, labels, cols_to_remove=0,
     return pred, correct_pred, scores, loss
 
 
-def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accuracy', 'AUC'],
-                    model_type='multivariate_rnn', is_custom=False, seq_len_dict=None,
-                    padding_value=999999, output_rounded=False, experiment=None,
-                    set_name='test', seq_final_outputs=False, cols_to_remove=[0, 1],
+def model_inference(model, dataloader=None, data=None, dataset=None,
+                    metrics=['loss', 'accuracy', 'AUC'], model_type='multivariate_rnn',
+                    is_custom=False, seq_len_dict=None, padding_value=999999,
+                    output_rounded=False, experiment=None, set_name='test',
+                    seq_final_outputs=False, cols_to_remove=[0, 1],
                     already_embedded=False):
     '''Do inference on specified data using a given model.
 
@@ -395,6 +396,14 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
         tuple of PyTorch tensor on which inference will be done. The first
         tensor must correspond to the features tensor whe second one
         should be the labels tensor.
+    dataset : torch.utils.data.Dataset
+        Dataset object that contains the data used to train, validate and test
+        the machine learning models. Having the dataloaders set, this argument
+        is only needed if the data has variable sequence length and its dataset
+        object loads files in each batch, instead of data from a single file.
+        In essence, it's needed to give us the current batch's sequence length
+        information, when we couldn't have known this for the whole data
+        beforehand.
     metrics : list of strings, default ['loss', 'accuracy', 'AUC'],
         List of metrics to be used to evaluate the model on the infered data.
         Available metrics are cross entropy loss (`loss`), accuracy (`accuracy`),
@@ -453,7 +462,6 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
     if on_gpu is True:
         # Move the model to GPU
         model = model.cuda()
-
     # Create an empty dictionary with all the possible metrics
     metrics_vals = {'loss': None,
                     'accuracy': None,
@@ -462,7 +470,6 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
                     'precision': None,
                     'recall': None,
                     'F1': None}
-
     # Initialize the metrics
     if 'loss' in metrics:
         loss = 0
@@ -485,6 +492,9 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
         if on_gpu is True:
             # Move data to GPU
             features, labels = features.cuda(), labels.cuda()
+        if dataset is not None:
+            # Update the sequence length dictionary to the current batch
+            seq_len_dict = dataset.seq_len_dict
         # Do inference on the data
         if model_type.lower() == 'multivariate_rnn':
             (pred, correct_pred,
@@ -577,6 +587,9 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
             if on_gpu is True:
                 # Move data to GPU
                 features, labels = features.cuda(), labels.cuda()
+            if dataset is not None:
+                # Update the sequence length dictionary to the current batch
+                seq_len_dict = dataset.seq_len_dict
             # Do inference on the data
             if model_type.lower() == 'multivariate_rnn':
                 (pred, correct_pred,
@@ -700,7 +713,7 @@ def model_inference(model, dataloader=None, data=None, metrics=['loss', 'accurac
 
 
 def train(model, train_dataloader, val_dataloader, test_dataloader=None,
-          cols_to_remove=[0, 1], model_type='multivariate_rnn',
+          dataset=None, cols_to_remove=[0, 1], model_type='multivariate_rnn',
           is_custom=False, seq_len_dict=None, batch_size=32, n_epochs=50,
           lr=0.001, clip_value=0.5, models_path='models/', model_name='checkpoint',
           ModelClass=None, padding_value=999999, do_test=True,
@@ -725,6 +738,14 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
         Data loader which will be used to get data batches whe evaluating
         the model's performance on a test set, after finishing the
         training process.
+    dataset : torch.utils.data.Dataset
+        Dataset object that contains the data used to train, validate and test
+        the machine learning models. Having the dataloaders set, this argument
+        is only needed if the data has variable sequence length and its dataset
+        object loads files in each batch, instead of data from a single file.
+        In essence, it's needed to give us the current batch's sequence length
+        information, when we couldn't have known this for the whole data
+        beforehand.
     cols_to_remove : list of ints, default [0, 1]
         List of indeces of columns to remove from the features before feeding to
         the model. This tend to be the identifier columns, such as subject_id
@@ -866,11 +887,12 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
             model.train()
             # Clear the gradients of all optimized variables
             optimizer.zero_grad()
-
             if on_gpu is True:
                 # Move data to GPU
                 features, labels = features.cuda(), labels.cuda()
-
+            if dataset is not None:
+                # Update the sequence length dictionary to the current batch
+                seq_len_dict = dataset.seq_len_dict
             # Do inference on the data
             if model_type.lower() == 'multivariate_rnn':
                 (pred, correct_pred,
@@ -912,7 +934,6 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
             val_auc = 0
             if model.n_outputs > 1:
                 val_auc_wgt = 0
-
             # Loop through the validation data
             for features, labels in val_dataloader:
                 # Turn off gradients for validation, saves memory and computations
@@ -920,6 +941,9 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                     if on_gpu is True:
                         # Move data to GPU
                         features, labels = features.cuda(), labels.cuda()
+                    if dataset is not None:
+                        # Update the sequence length dictionary to the current batch
+                        seq_len_dict = dataset.seq_len_dict
                     # Do inference on the data
                     if model_type.lower() == 'multivariate_rnn':
                         (pred, correct_pred,
@@ -1021,7 +1045,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
             model = load_checkpoint(model_filename, ModelClass)
         if do_test is True:
             # Run inference on the test data
-            model_inference(model, dataloader=test_dataloader,
+            model_inference(model, dataloader=test_dataloader, dataset=dataset,
                             model_type=model_type, is_custom=is_custom,
                             seq_len_dict=seq_len_dict, padding_value=padding_value,
                             experiment=experiment, cols_to_remove=cols_to_remove,

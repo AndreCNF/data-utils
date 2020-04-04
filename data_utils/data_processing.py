@@ -2111,28 +2111,3 @@ def load_chunked_data(file_name, n_chunks, data_path='', format='feather',
             # Remove the already concatenated dataframe from memory
             del tmp_df
     return df
-
-
-    def time_series_process_pipeline():
-
-        # [TODO] Set the label column
-        # [TODO] Remove the now unneeded `death_ts` column
-        # [TODO] Possibly add a time variation column
-        # Pad the data (both X and y)
-        df = pd.concat([x_t, y_t], axis=1)
-        df = padding.dataframe_to_padded_tensor(df, seq_len_dict=None,
-                                                id_column=self.id_column_name,
-                                                ts_column=self.ts_column_name,
-                                                padding_value=self.padding_value,
-                                                inplace=True)
-        # Check if we need to pre-embed the categorical features
-        if self.embed_layers is not None and self.embed_features is not None:
-            # Run each embedding layer on each respective feature, adding the
-            # resulting embedding values to the tensor and removing the original,
-            # categorical encoded columns
-            x_t = embedding_bag_pipeline(x_t, self.embed_layers, self.embed_features,
-                                         inplace=True)
-        # Features
-        x_t = df[:, :-1]
-        # Labels
-        y_t = df[:, -1]

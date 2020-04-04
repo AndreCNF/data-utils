@@ -133,9 +133,9 @@ class Time_Series_Dataset(Dataset):
             return len(self.seq_items)
 
 
-class Large_Time_Series_Dataset(Dataset):
-    def __init__(self, files_name, process_pipeline, files_path='',
-                 id_column='subject_id', ts_column='ts', **kwargs):
+class Large_Dataset(Dataset):
+    def __init__(self, files_name, process_pipeline, id_column,
+                 initial_analysis=None, files_path='', **kwargs):
         # [TODO] Add documentation
         # Load the file names
         self.files = glob(f'{files_path}{files_name}_*.ftr')
@@ -145,26 +145,20 @@ class Large_Time_Series_Dataset(Dataset):
         self.process_pipeline_args = inspect.getfullargspec(process_pipeline).args
         # Other basic data information
         self.id_column_name = id_column
-        self.ts_column_name = ts_column
-        self.padding_value = padding_value
         # Add aditional data that the user might have specified
         self.__dict__.update(kwargs)
-        # Load a header of one of the files, in order to get some info on its features
-        df = pd.read_feather(self.files[0])
-        # Column names corresponding to the features
-        self.features_columns = list(df.columns)
-        # Column numbers corresponding to the features
-        self.features_columns_num = list(range(self.label_column_num))
+        # Initial analysis pipeline to fetch important, context specific information
+        self.initial_analysis = initial_analysis
+        if self.initial_analysis is not None:
+            # Run the initial analysis
+            self.initial_analysis(self)
 
     def __getitem__(self, item):
         # Load a data file
         df = pd.read_feather(self.files[item])
-        # Get the attributes needed for the data preprocessing pipeline
-        process_args = dict([(arg, getattr(self, arg))
-                             for arg in self.process_pipeline_args])
         # Run the data preprocessing pipeline, which should return the features
         # and label tensors
-        x_t, y_t = self.process_pipeline(df, process_args)
+        x_t, y_t = self.process_pipeline(self, df)
         return x_t, y_t
 
     def __len__(self):
