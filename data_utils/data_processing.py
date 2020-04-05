@@ -1,6 +1,7 @@
 from comet_ml import Experiment                         # Comet.ml can log training metrics, parameters, do version control and parameter optimization
 import torch                                            # PyTorch to create and apply deep learning models
 import dask.dataframe as dd                             # Dask to handle big data in dataframes
+import math                                             # Some mathematical operations
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import numbers                                          # numbers allows to check if data is numeric
 import warnings                                         # Print warnings for bad practices
@@ -264,7 +265,8 @@ def clean_categories_naming(df, column, clean_missing_values=True,
 def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_values=True,
                                specific_nan_strings=[], has_nan=False, join_rows=False,
                                join_by=['patientunitstayid', 'ts'],
-                               get_new_column_names=False, inplace=False):
+                               get_new_column_names=False,
+                               search_by_dtypes=False, inplace=False):
     '''Transforms specified column(s) from a dataframe into a one hot encoding
     representation.
 
@@ -296,6 +298,10 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_value
         list of strings (multiple columns).
     get_new_column_names : bool, default False
         If set to True, the names of the new columns will also be outputed.
+    search_by_dtypes : bool, default False
+        If set to True, the method will only look for boolean columns based on
+        their data type. This is only reliable if all the columns' data types
+        have been properly set.
     inplace : bool, default False
         If set to True, the original dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -352,7 +358,7 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_value
         ohe_df = pd.get_dummies(data_df, columns=columns)
     if join_rows is True:
         # Columns which are one hot encoded
-        ohe_columns = search_explore.list_boolean_columns(ohe_df)
+        ohe_columns = search_explore.list_boolean_columns(ohe_df, search_by_dtypes=search_by_dtypes)
         # Group the rows that have the same identifiers
         ohe_df = ohe_df.groupby(join_by).sum(min_count=1).reset_index()
         # Clip the one hot encoded columns to a maximum value of 1
@@ -715,7 +721,8 @@ def apply_minmax_denorm(value, df=None, min=None, max=None, categories_mins=None
 def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                    normalization_method='z-score', columns_to_normalize=None,
                    columns_to_normalize_categ=None, categ_columns=None,
-                   see_progress=True, get_stats=False, inplace=False):
+                   see_progress=True, get_stats=False,
+                   search_by_dtypes=False, inplace=False):
     '''Performs data normalization to a continuous valued tensor or dataframe,
        changing the scale of the data.
 
@@ -764,6 +771,10 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
     get_stats : bool, default False
         If set to True, the stats used to normalize the data (e.g. mean and
         standard deviation) are also outputed.
+    search_by_dtypes : bool, default False
+        If set to True, the method will only look for boolean columns based on
+        their data type. This is only reliable if all the columns' data types
+        have been properly set.
     inplace : bool, default False
         If set to True, the original dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -810,11 +821,11 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                 raise Exception(f'ERROR: The `categ_columns` argument must be specified as either a single string or a list of strings. Received input with type {type(categ_columns)}.')
             # Prevent all features that will be embedded from being normalized
             [columns_to_normalize.remove(col) for col in categ_columns]
-        # List of binary or one hot encoded columns
-        binary_cols = search_explore.list_boolean_columns(df[columns_to_normalize])
-        if binary_cols is not None:
-            # Prevent binary features from being normalized
-            [columns_to_normalize.remove(col) for col in binary_cols]
+        # List of boolean or one hot encoded columns
+        boolean_cols = search_explore.list_boolean_columns(df[columns_to_normalize], search_by_dtypes=search_by_dtypes)
+        if boolean_cols is not None:
+            # Prevent boolean features from being normalized
+            [columns_to_normalize.remove(col) for col in boolean_cols]
         # Remove all non numeric columns that could be left
         columns_to_normalize = [col for col in columns_to_normalize
                                 if df[col].dtype == int or df[col].dtype == float]
@@ -1062,7 +1073,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
 def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                      denormalization_method='z-score', columns_to_denormalize=None,
                      columns_to_denormalize_cat=None, categ_columns=None,
-                     see_progress=True, inplace=False):
+                     see_progress=True, search_by_dtypes=False, inplace=False):
     '''Performs data denormalization to a continuous valued tensor or dataframe,
        changing the scale of the data.
 
@@ -1107,6 +1118,10 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
     see_progress : bool, default True
         If set to True, a progress bar will show up indicating the execution
         of the denormalization calculations.
+    search_by_dtypes : bool, default False
+        If set to True, the method will only look for boolean columns based on
+        their data type. This is only reliable if all the columns' data types
+        have been properly set.
     inplace : bool, default False
         If set to True, the original dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -1131,12 +1146,12 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
             # Prevent all features that will be embedded from being denormalized
             [columns_to_denormalize.remove(col) for col in categ_columns]
 
-        # List of binary or one hot encoded columns
-        binary_cols = search_explore.list_boolean_columns(df[columns_to_denormalize])
+        # List of boolean or one hot encoded columns
+        boolean_cols = search_explore.list_boolean_columns(df[columns_to_denormalize])
 
-        if binary_cols is not None:
-            # Prevent binary features from being denormalized
-            [columns_to_denormalize.remove(col) for col in binary_cols]
+        if boolean_cols is not None:
+            # Prevent boolean features from being denormalized
+            [columns_to_denormalize.remove(col) for col in boolean_cols]
 
         if columns_to_denormalize is None:
             print('No columns to denormalize, returning the original dataframe.')
@@ -1490,7 +1505,7 @@ def merge_columns(df, cols_to_merge=None, drop_old_cols=True, separator=';',
 
 def missing_values_imputation(data, columns_to_imputate=None, method='zero',
                               id_column=None, zero_bool=True, reset_index=True,
-                              inplace=False):
+                              search_by_dtypes=False, inplace=False):
     '''Performs missing values imputation to a tensor or dataframe corresponding to
     a single column.
     NOTE: Most imputation methods don't work with float16 data types and
@@ -1526,6 +1541,10 @@ def missing_values_imputation(data, columns_to_imputate=None, method='zero',
     reset_index : bool, default True
         If set to True (recommended), the dataframe's index will be reset. This
         can prevent values from being assigned to the wrong rows.
+    search_by_dtypes : bool, default False
+        If set to True, the method will only look for boolean columns based on
+        their data type. This is only reliable if all the columns' data types
+        have been properly set.
     inplace : bool, default False
         If set to True, the original tensor or dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -1569,7 +1588,7 @@ def missing_values_imputation(data, columns_to_imputate=None, method='zero',
     if zero_bool is True:
         # Check if there are boolean features
         print('Searching for boolean features...')
-        bool_feat = search_explore.list_boolean_columns(data_copy)
+        bool_feat = search_explore.list_boolean_columns(data_copy, search_by_dtypes=search_by_dtypes)
         if len(bool_feat) > 0:
             # Fill all boolean features' missing values with zeros
             print('Replacing boolean features\' missing values with zero...')
@@ -2025,7 +2044,8 @@ def slopes_outlier_detect(s, max_thrs=4, bidir_sens=0.5, threshold_type='std',
     return outlier_s
 
 
-def save_chunked_data(df, file_name, n_chunks, data_path='', format='feather'):
+def save_chunked_data(df, file_name, n_chunks=None, batch_size=32,
+                      id_column=None, data_path='', format='feather'):
     '''Save a dataframe in chunks, i.e. in separate files, so as to prevent
     memory issues and other problems when loading it back again.
 
@@ -2035,9 +2055,18 @@ def save_chunked_data(df, file_name, n_chunks, data_path='', format='feather'):
         Dataframe which will be saved in chunks.
     file_name : str
         Name to be given to the file.
-    n_chunks : int
+    n_chunks : int, default None
         Number of chunks, i.e. number of files, on which to split and save the
         dataframe.
+    batch_size : int, default 32
+        Defines the batch size, i.e. the number of samples used in each
+        training iteration to update the model's weights.
+    id_column : string, default None
+        Name of the column which corresponds to the sequence or subject identifier
+        in the dataframe. If specified, the data will be saved in files
+        containing a `batch_size` number of unique IDs. This is useful if we're
+        working with large datasets, which therefore need to be loaded file by
+        file, lazily, in each training or inference batch.
     data_path : str, default ''
         Directory path where the file will be stored.
     format : str, default 'feather'
@@ -2045,24 +2074,49 @@ def save_chunked_data(df, file_name, n_chunks, data_path='', format='feather'):
         'feather'.
     '''
     n_rows = len(df)
-    chunk_size = int(n_rows / n_chunks)
     format = str(format).lower()
     if format == 'feather':
         file_ext = '.ftr'
     else:
         raise Exception(f'ERROR: Invalid data format "{format}". Please choose one of the currently supported formats "feather".')
-    for i in du.utils.iterations_loop(range(n_chunks)):
-        # Get a chunk of the dataframe
-        if i < n_chunks-1:
-            df_i = df[i*chunk_size:(i+1)*chunk_size]
-        else:
-            df_i = df[i*chunk_size:]
-        # Reset the index, so as to make it feather compatible
-        df_i.reset_index(drop=True, inplace=True)
-        # Save the current dataframe
-        df_i.to_feather(f'{data_path}{file_name}_{i}{file_ext}')
-        # Remove the already saved dataframe from memory
-        del df_i
+    if n_chunks is not None:
+        # Total number of rows per file
+        chunk_size = int(n_rows / n_chunks)
+        for i in du.utils.iterations_loop(range(n_chunks)):
+            # Get a chunk of the dataframe
+            if i < n_chunks-1:
+                df_i = df.iloc[i*chunk_size:(i+1)*chunk_size]
+            else:
+                df_i = df.iloc[i*chunk_size:]
+            # Reset the index, so as to make it feather compatible
+            df_i.reset_index(drop=True, inplace=True)
+            # Save the current dataframe
+            df_i.to_feather(f'{data_path}{file_name}_{i}{file_ext}')
+            # Remove the already saved dataframe from memory
+            del df_i
+    elif batch_size is not None and id_column is not None:
+        # List of unique sequence identifiers
+        ids = list(df[id_column].unique())
+        # Number of unique IDs
+        n_ids = len(ids)
+        # Total number of files to be saved
+        n_chunks = max(1, math.ceil(n_ids / batch_size))
+        for i in du.utils.iterations_loop(range(n_chunks)):
+            # Set the current batch's list of IDs
+            if i < n_chunks-1:
+                ids_i = ids[i*batch_size:(i+1)*batch_size]
+            else:
+                ids_i = ids[i*batch_size:]
+            # Get a chunk of the dataframe
+            df_i = df[df[id_column].isin(ids_i)]
+            # Reset the index, so as to make it feather compatible
+            df_i.reset_index(drop=True, inplace=True)
+            # Save the current dataframe
+            df_i.to_feather(f'{data_path}{file_name}_{i}{file_ext}')
+            # Remove the already saved dataframe from memory
+            del df_i
+    else:
+        raise Exception(f'ERROR: Invalid set of input parameters. The user must either specify a number of chunks (`n_chunks`) to save the data or a batch size (`batch_size`) and an ID column (`id_column`) on which to fetch sequences.')
 
 
 def load_chunked_data(file_name, n_chunks, data_path='', format='feather',

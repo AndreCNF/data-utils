@@ -141,8 +141,6 @@ class Large_Dataset(Dataset):
         self.files = glob(f'{files_path}{files_name}_*.ftr')
         # Data preprocessing pipeline function
         self.process_pipeline = process_pipeline
-        # Find the required arguments for the data preprocessing pipeline
-        self.process_pipeline_args = inspect.getfullargspec(process_pipeline).args
         # Other basic data information
         self.id_column_name = id_column
         # Add aditional data that the user might have specified
@@ -158,8 +156,8 @@ class Large_Dataset(Dataset):
         df = pd.read_feather(self.files[item])
         # Run the data preprocessing pipeline, which should return the features
         # and label tensors
-        x_t, y_t = self.process_pipeline(self, df)
-        return x_t, y_t
+        features, labels = self.process_pipeline(self, df)
+        return features, labels
 
     def __len__(self):
         return len(self.files)

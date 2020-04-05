@@ -142,6 +142,9 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
         bool_feat = [bool_feat]
     if not isinstance(bool_feat, list):
         raise Exception(f'ERROR: The `bool_feat` argument must be specified as either a single string or a list of strings. Received input with type {type(bool_feat)}.')
+    if all(isinstance(feat, str) for feat in bool_feat):
+        # Convert from the feature's name to its index
+        bool_feat = [search_explore.find_col_idx(data_df, feat) for feat in bool_feat]
     if len(bool_feat) > 0:
         if n_ids > 1:
             # Iterator that outputs each unique identifier

@@ -98,29 +98,36 @@ def is_boolean_column(df, column, n_unique_values=None):
     return False
 
 
-def list_boolean_columns(df):
+def list_boolean_columns(df, search_by_dtypes=False):
     '''Lists the columns in a dataframe which are in a boolean format.
 
     Parameters
     ----------
     df : pandas.DataFrame or dask.DataFrame
         Dataframe that will be used checked for one hot encoded columns.
+    search_by_dtypes : bool, default False
+        If set to True, the method will only look for boolean columns based on
+        their data type. This is only reliable if all the columns' data types
+        have been properly set.
 
     Returns
     -------
     list of strings
         Returns a list of the column names which correspond to one hot encoded columns.
     '''
-    # Calculate the columns' number of unique values
-    n_unique_values = df.nunique()
-    if isinstance(df, dd.DataFrame):
-        # Make sure that the number of unique values are computed, in case we're using Dask
-        n_unique_values = n_unique_values.compute()
-    if n_unique_values.min() > 2:
-        # If there are no columns with just 2 unique values, then there are no binary columns
-        return []
+    if search_by_dtypes is True:
+        return [col for col in df.columns if str(df[col].dtype) == 'boolean' or df[col].dtype == 'UInt8']
     else:
-        return [col for col in df.columns if is_boolean_column(df, col, n_unique_values[col])]
+        # Calculate the columns' number of unique values
+        n_unique_values = df.nunique()
+        if isinstance(df, dd.DataFrame):
+            # Make sure that the number of unique values are computed, in case we're using Dask
+            n_unique_values = n_unique_values.compute()
+        if n_unique_values.min() > 2:
+            # If there are no columns with just 2 unique values, then there are no binary columns
+            return []
+        else:
+            return [col for col in df.columns if is_boolean_column(df, col, n_unique_values[col])]
 
 
 def find_col_idx(df, feature):

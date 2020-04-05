@@ -582,6 +582,9 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
 
     # Evaluate the model on the set
     for features, labels in dataloader:
+        if dataset is not None:
+            # Make sure that the data has the right amount of dimensions
+            features, labels = features.squeeze(), labels.squeeze()
         # Turn off gradients, saves memory and computations
         with torch.no_grad():
             if on_gpu is True:
@@ -883,6 +886,9 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
         # try:
         # Loop through the training data
         for features, labels in train_dataloader:
+            if dataset is not None:
+                # Make sure that the data has the right amount of dimensions
+                features, labels = features.squeeze(), labels.squeeze()
             # Activate dropout to train the model
             model.train()
             # Clear the gradients of all optimized variables
@@ -936,6 +942,9 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                 val_auc_wgt = 0
             # Loop through the validation data
             for features, labels in val_dataloader:
+                if dataset is not None:
+                    # Make sure that the data has the right amount of dimensions
+                    features, labels = features.squeeze(), labels.squeeze()
                 # Turn off gradients for validation, saves memory and computations
                 with torch.no_grad():
                     if on_gpu is True:
