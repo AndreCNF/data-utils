@@ -138,16 +138,21 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
         return model
 
 
-def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
-                             comet_ml_project_name, comet_ml_workspace, n_inputs,
-                             id_column, label_column, inst_column=None,
-                             n_outputs=1, Dataset=None, model_type='multivariate_rnn',
-                             is_custom=False, models_path='models/', array_param=None,
+def optimize_hyperparameters(Model, config_name, comet_ml_api_key,
+                             comet_ml_project_name, comet_ml_workspace, df=None,
+                             dataset=None, train_dataloader=None,
+                             val_dataloader=None, test_dataloader=None,
+                             n_inputs=None, id_column=None, label_column=None,
+                             inst_column=None, id_columns_idx=None, n_outputs=1,
+                             Dataset=None, model_type='multivariate_rnn',
+                             is_custom=False, models_path='models/',
+                             model_name='checkpoint', array_param=None,
+                             metrics=['loss', 'accuracy', 'AUC'],
                              config_path='', var_seq=True, clip_value=0.5,
-                             padding_value=999999, batch_size=32, n_epochs=10,
-                             lr=0.001, test_train_ratio=0.2, validation_ratio=0.1,
-                             comet_ml_save_model=True, already_embedded=False,
-                             **kwargs):
+                             padding_value=999999, batch_size=32,
+                             n_epochs=10, lr=0.001, test_train_ratio=0.2,
+                             validation_ratio=0.1, comet_ml_save_model=True,
+                             already_embedded=False, **kwargs):
     '''Optimize a machine learning model's hyperparameters, by training it
     several times while exploring different hyperparameters values, returning
     the best performing ones.
@@ -156,9 +161,6 @@ def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
     ----------
     Model : torch.nn.Module or sklearn.* (any machine learning model)
         Class constructor for the desired machine learning model.
-    df : pandas.DataFrame or dask.DataFrame
-        Dataframe containing all the data that will be used in the
-        optimization's training processes.
     config_name : str
         Name of the configuration file, containing information about the
         parameters to optimize. This data is organized in a YAML format, akin to
@@ -173,15 +175,42 @@ def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
         Name of the comet.ml project used when logging data to the platform.
     comet_ml_workspace : string
         Name of the comet.ml workspace used when logging data to the platform.
-    n_inputs : int
+    df : pandas.DataFrame or dask.DataFrame, default None
+        Dataframe containing all the data that will be used in the
+        optimization's training processes.
+    train_dataloader : torch.utils.data.DataLoader, default None
+        Data loader which will be used to get data batches during training. If
+        not specified, the method will create one automatically.
+    val_dataloader : torch.utils.data.DataLoader, default None
+        Data loader which will be used to get data batches when evaluating
+        the model's performance on a validation set during training. If not
+        specified, the method will create one automatically.
+    test_dataloader : torch.utils.data.DataLoader, default None
+        Data loader which will be used to get data batches whe evaluating
+        the model's performance on a test set, after finishing the
+        training process If not specified, the method will create one
+        automatically.
+    dataset : torch.utils.data.Dataset, default None
+        Dataset object that contains the data used to train, validate and test
+        the machine learning models. Having the dataloaders set, this argument
+        is only needed if the data has variable sequence length and its dataset
+        object loads files in each batch, instead of data from a single file.
+        In essence, it's needed to give us the current batch's sequence length
+        information, when we couldn't have known this for the whole data
+        beforehand. If not specified, the method will create one automatically.
+    n_inputs : int, default None
         Total number of input features present in the dataframe.
-    id_column : str
+    id_column : str, default None
         Name of the column which corresponds to the subject identifier.
-    label_column : str
+    label_column : str, default None
         Name of the column which corresponds to the label.
     inst_column : str, default None
         Name of the column which corresponds to the instance or timestamp
         identifier.
+    id_columns_idx : int or list of ints, default None
+        Index or list of indeces of columns to remove from the features before
+        feeding to the model. This tend to be the identifier columns, such as
+        `subject_id` and `ts` (timestamp).
     n_outputs : int, default 1
         Total number of outputs givenm by the machine learning model.
     Dataset : torch.torch.utils.data.Dataset, default None
@@ -199,11 +228,19 @@ def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
     models_path : string, default 'models/'
         Path where the model will be saved. By default, it saves in
         the directory named "models".
+    model_name : string, default 'checkpoint'
+        Name that will be given to the saved models. Validation loss and
+        timestamp info will then be appended to the name.
     array_param : list of strings, default None
         List of feature names that might have multiple values associated to
         them. For example, in a neural network with multiple layers, there
         could be multiple `n_hidden` values, each one indicating the number
         of units in each hidden layer.
+    metrics : list of strings, default ['loss', 'accuracy', 'AUC'],
+        List of metrics to be used to evaluate the model on the infered data.
+        Available metrics are cross entropy loss (`loss`), accuracy (`accuracy`),
+        AUC (`AUC`), weighted AUC (`AUC_weighted`), precision (`precision`),
+        recall (`recall`) and F1 (`F1`).
     config_path : str, default ''
         Path to the directory where the configuration file is stored.
     var_seq : bool, default True
@@ -259,6 +296,9 @@ def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
     # Get all the names of the hyperparameters that will be optimized
     params_names = list(config_dict['parameters'].keys())
     if array_param is not None:
+        if isinstance(array_param, str):
+            # Make sure that the array parameter names are in a list format
+            array_param = [array_param]
         # Create a dictionary of lists, attributing all subparameter
         # names that belong to each array parameter
         array_subparam = dict()
@@ -272,38 +312,45 @@ def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
                                          project_name=comet_ml_project_name,
                                          workspace=comet_ml_workspace)
 
-    if inst_column is not None and var_seq is True:
-        print('Building a dictionary containing the sequence length of each patient\'s time series...')
-        # Dictionary containing the sequence length (number of temporal events) of each sequence (patient)
-        seq_len_dict = padding.get_sequence_length_dict(df, id_column=id_column, ts_column=inst_column)
-        print('Creating a padded tensor version of the dataframe...')
-        # Pad data (to have fixed sequence length) and convert into a PyTorch tensor
-        data = padding.dataframe_to_padded_tensor(df, seq_len_dict=seq_len_dict,
-                                                  id_column=id_column,
-                                                  ts_column=inst_column,
-                                                  padding_value=padding_value,
-                                                  inplace=True)
-    else:
-        # Just convert the data into a PyTorch tensor
-        data = torch.from_numpy(df.to_numpy())
-
-    print('Creating a dataset object...')
-    # Create a Dataset object from the data tensor
-    if Dataset is not None:
-        dataset = Dataset(data, df)
-    else:
-        if model_type.lower() == 'multivariate_rnn':
-            dataset = datasets.Time_Series_Dataset(df, data, id_column=id_column,
-                                                   ts_column=inst_column, seq_len_dict=seq_len_dict)
-        elif model_type.lower() == 'mlp':
-            dataset = datasets.Tabular_Dataset(data, df)
+    seq_len_dict = None
+    if df is not None:
+        if inst_column is not None and var_seq is True:
+            print('Building a dictionary containing the sequence length of each patient\'s time series...')
+            # Dictionary containing the sequence length (number of temporal events) of each sequence (patient)
+            seq_len_dict = padding.get_sequence_length_dict(df, id_column=id_column, ts_column=inst_column)
+            print('Creating a padded tensor version of the dataframe...')
+            # Pad data (to have fixed sequence length) and convert into a PyTorch tensor
+            data = padding.dataframe_to_padded_tensor(df, seq_len_dict=seq_len_dict,
+                                                      id_column=id_column,
+                                                      ts_column=inst_column,
+                                                      padding_value=padding_value,
+                                                      inplace=True)
         else:
-            raise Exception(f'ERROR: Invalid model type. It must be "multivariate_rnn" or "mlp", not {model_type}.')
-    print('Distributing the data to train, validation and test sets and getting their data loaders...')
-    # Get the train, validation and test sets data loaders, which will allow loading batches
-    train_dataloader, val_dataloader, test_dataloader = create_train_sets(dataset, test_train_ratio=test_train_ratio,
-                                                                          validation_ratio=validation_ratio,
-                                                                          batch_size=batch_size, get_indeces=False)
+            # Just convert the data into a PyTorch tensor
+            data = torch.from_numpy(df.to_numpy())
+        if id_columns_idx is None:
+            # Find the column indeces for the ID columns
+            id_columns_idx = [search_explore.find_col_idx(df, col) for col in [id_column, inst_column]]
+
+    if dataset is None:
+        print('Creating a dataset object...')
+        # Create a Dataset object from the data tensor
+        if Dataset is not None:
+            dataset = Dataset(data, df)
+        else:
+            if model_type.lower() == 'multivariate_rnn':
+                dataset = datasets.Time_Series_Dataset(df, data, id_column=id_column,
+                                                       ts_column=inst_column, seq_len_dict=seq_len_dict)
+            elif model_type.lower() == 'mlp':
+                dataset = datasets.Tabular_Dataset(data, df)
+            else:
+                raise Exception(f'ERROR: Invalid model type. It must be "multivariate_rnn" or "mlp", not {model_type}.')
+    if train_dataloader is None and val_dataloader is None and test_dataloader is None:
+        print('Distributing the data to train, validation and test sets and getting their data loaders...')
+        # Get the train, validation and test sets data loaders, which will allow loading batches
+        train_dataloader, val_dataloader, test_dataloader = create_train_sets(dataset, test_train_ratio=test_train_ratio,
+                                                                              validation_ratio=validation_ratio,
+                                                                              batch_size=batch_size, get_indeces=False)
     # Start off with a minimum validation score of infinity
     val_loss_min = np.inf
 
@@ -318,7 +365,8 @@ def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
                 subparam_names = array_subparam[param]
                 params_values[param] = [params_values[subparam] for subparam in subparam_names]
                 # Remove the now redundant subparameters
-                [params_values.pop(subparam, default=None) for subparam in subparam_names]
+                for subparam in subparam_names:
+                    del params_values[subparam]
         # Instantiate the model (removing the two identifier columns and the labels from the input size)
         model = Model(n_inputs=n_inputs, n_outputs=n_outputs, **params_values, **kwargs)
         # Check if GPU (CUDA) is available
@@ -326,12 +374,11 @@ def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
         if on_gpu:
             # Move the model to the GPU
             model = model.cuda()
-        # Find the column indeces for the ID columns
-        id_columns_idx = [search_explore.find_col_idx(df, col) for col in [id_column, inst_column]]
         print('Training the model...')
         # Train the model and get the minimum validation loss
         model, val_loss = deep_learning.train(model, train_dataloader, val_dataloader,
                                               test_dataloader=test_dataloader,
+                                              dataset=dataset,
                                               cols_to_remove=id_columns_idx,
                                               model_type=model_type,
                                               is_custom=is_custom,
@@ -339,9 +386,11 @@ def optimize_hyperparameters(Model, df, config_name, comet_ml_api_key,
                                               batch_size=batch_size, n_epochs=n_epochs,
                                               lr=lr, clip_value=clip_value,
                                               models_path=models_path,
+                                              model_name=model_name,
                                               ModelClass=Model,
                                               padding_value=padding_value,
-                                              do_test=True, log_comet_ml=True,
+                                              do_test=True, metrics=metrics,
+                                              log_comet_ml=True,
                                               comet_ml_api_key=comet_ml_api_key,
                                               comet_ml_project_name=comet_ml_project_name,
                                               comet_ml_workspace=comet_ml_workspace,

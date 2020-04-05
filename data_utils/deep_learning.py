@@ -204,8 +204,8 @@ def inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
     output_rounded : bool, default False
     cols_to_remove : list of ints, default [0, 1]
         List of indeces of columns to remove from the features before feeding to
-        the model. This tend to be the identifier columns, such as subject_id
-        and ts (timestamp).
+        the model. This tend to be the identifier columns, such as `subject_id`
+        and `ts` (timestamp).
     is_train : bool, default True
         Indicates if the method is being called in a training loop. If
         set to True, the network's weights will be updated by the
@@ -438,8 +438,8 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
         sequence's end.
     cols_to_remove : list of ints, default [0, 1]
         List of indeces of columns to remove from the features before feeding to
-        the model. This tend to be the identifier columns, such as subject_id
-        and ts (timestamp).
+        the model. This tend to be the identifier columns, such as `subject_id`
+        and `ts` (timestamp).
     already_embedded : bool, default False
         If set to True, it means that the categorical features are already
         embedded when fetching a batch, i.e. there's no need to run the embedding
@@ -751,8 +751,8 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
         beforehand.
     cols_to_remove : list of ints, default [0, 1]
         List of indeces of columns to remove from the features before feeding to
-        the model. This tend to be the identifier columns, such as subject_id
-        and ts (timestamp
+        the model. This tend to be the identifier columns, such as `subject_id`
+        and `ts` (timestamp).
     model_type : string, default 'multivariate_rnn'
         Sets the type of model to train. Important to know what type of
         inference to do. Currently available options are ['multivariate_rnn',
