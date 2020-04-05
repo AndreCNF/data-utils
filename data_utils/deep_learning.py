@@ -540,13 +540,19 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
         if 'AUC' in metrics:
             # Add the ROC AUC of the current batch
             if model.n_outputs == 1:
-                metrics_vals['AUC'] = roc_auc_score(labels.numpy(), scores.detach().numpy())
+                try:
+                    metrics_vals['AUC'] = roc_auc_score(labels.numpy(), scores.detach().numpy())
+                except Exception as e:
+                    warnings.warn(f'Couldn\'t calculate the AUC metric. Received exception {str(e)}.')
             else:
                 # It might happen that not all labels are present in the current batch;
                 # as such, we must focus on the ones that appear in the batch
                 labels_in_batch = labels.unique().long()
-                metrics_vals['AUC'] = roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
-                                                    multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
+                try:
+                    metrics_vals['AUC'] = roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                                        multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
+                except Exception as e:
+                    warnings.warn(f'Couldn\'t calculate the AUC metric. Received exception {str(e)}.')
         if 'AUC_weighted' in metrics:
             # Calculate a weighted version of the AUC; important for imbalanced datasets
             if model.n_outputs == 1:
@@ -555,8 +561,11 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
                 # It might happen that not all labels are present in the current batch;
                 # as such, we must focus on the ones that appear in the batch
                 labels_in_batch = labels.unique().long()
-                metrics_vals['AUC_weighted'] = roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
-                                                             multi_class='ovr', average='weighted', labels=labels_in_batch.numpy())
+                try:
+                    metrics_vals['AUC_weighted'] = roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                                                 multi_class='ovr', average='weighted', labels=labels_in_batch.numpy())
+                except Exception as e:
+                    warnings.warn(f'Couldn\'t calculate the weighted AUC metric. Received exception {str(e)}.')
         if 'precision' in metrics:
             # Add the precision of the current batch
             curr_prec = true_pos / (true_pos + false_pos)
@@ -640,13 +649,19 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
             if 'AUC' in metrics:
                 # Add the ROC AUC of the current batch
                 if model.n_outputs == 1:
-                    auc += roc_auc_score(labels.numpy(), scores.detach().numpy())
+                    try:
+                        auc += roc_auc_score(labels.numpy(), scores.detach().numpy())
+                    except Exception as e:
+                        warnings.warn(f'Couldn\'t calculate the AUC metric. Received exception {str(e)}.')
                 else:
                     # It might happen that not all labels are present in the current batch;
                     # as such, we must focus on the ones that appear in the batch
                     labels_in_batch = labels.unique().long()
-                    auc += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
-                                         multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
+                    try:
+                        auc += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                             multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
+                    except Exception as e:
+                        warnings.warn(f'Couldn\'t calculate the AUC metric. Received exception {str(e)}.')
             if 'AUC_weighted' in metrics:
                 # Calculate a weighted version of the AUC; important for imbalanced datasets
                 if model.n_outputs == 1:
@@ -655,8 +670,11 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
                     # It might happen that not all labels are present in the current batch;
                     # as such, we must focus on the ones that appear in the batch
                     labels_in_batch = labels.unique().long()
-                    auc_wgt += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
-                                             multi_class='ovr', average='weighted', labels=labels_in_batch.numpy())
+                    try:
+                        auc_wgt += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                                 multi_class='ovr', average='weighted', labels=labels_in_batch.numpy())
+                    except Exception as e:
+                        warnings.warn(f'Couldn\'t calculate the AUC metric. Received exception {str(e)}.')
             if 'precision' in metrics:
                 # Add the precision of the current batch
                 curr_prec = true_pos / (true_pos + false_pos)
@@ -921,16 +939,22 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                 scores, labels = scores.cpu(), labels.cpu()
             # Add the training ROC AUC of the current batch
             if model.n_outputs == 1:
-                train_auc += roc_auc_score(labels.numpy(), scores.detach().numpy())
+                try:
+                    train_auc += roc_auc_score(labels.numpy(), scores.detach().numpy())
+                except Exception as e:
+                    warnings.warn(f'Couldn\'t calculate the training AUC on step {step}. Received exception {str(e)}.')
             else:
                 # It might happen that not all labels are present in the current batch;
                 # as such, we must focus on the ones that appear in the batch
                 labels_in_batch = labels.unique().long()
-                train_auc += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
-                                           multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
-                # Also calculate a weighted version of the AUC; important for imbalanced dataset
-                train_auc_wgt += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
-                                               multi_class='ovr', average='weighted', labels=labels_in_batch.numpy())
+                try:
+                    train_auc += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                               multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
+                    # Also calculate a weighted version of the AUC; important for imbalanced dataset
+                    train_auc_wgt += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                                   multi_class='ovr', average='weighted', labels=labels_in_batch.numpy())
+                except Exception as e:
+                    warnings.warn(f'Couldn\'t calculate the training AUC on step {step}. Received exception {str(e)}.')
             step += 1                                                       # Count one more iteration step
             model.eval()                                                    # Deactivate dropout to test the model
 
@@ -974,16 +998,22 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                         scores, labels = scores.cpu(), labels.cpu()
                     # Add the training ROC AUC of the current batch
                     if model.n_outputs == 1:
-                        val_auc += roc_auc_score(labels.numpy(), scores.detach().numpy())
+                        try:
+                            val_auc += roc_auc_score(labels.numpy(), scores.detach().numpy())
+                        except Exception as e:
+                            warnings.warn(f'Couldn\'t calculate the validation AUC on step {step}. Received exception {str(e)}.')
                     else:
                         # It might happen that not all labels are present in the current batch;
                         # as such, we must focus on the ones that appear in the batch
                         labels_in_batch = labels.unique().long()
-                        val_auc += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
-                                                 multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
-                        # Also calculate a weighted version of the AUC; important for imbalanced dataset
-                        val_auc_wgt += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
-                                                     multi_class='ovr', average='weighted', labels=labels_in_batch.numpy())
+                        try:
+                            val_auc += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                                     multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
+                            # Also calculate a weighted version of the AUC; important for imbalanced dataset
+                            val_auc_wgt += roc_auc_score(labels.numpy(), softmax(scores[:, labels_in_batch], dim=1).detach().numpy(),
+                                                         multi_class='ovr', average='weighted', labels=labels_in_batch.numpy())
+                        except Exception as e:
+                            warnings.warn(f'Couldn\'t calculate the validation AUC on step {step}. Received exception {str(e)}.')
 
             # Calculate the average of the metrics over the batches
             val_loss = val_loss / len(val_dataloader)
