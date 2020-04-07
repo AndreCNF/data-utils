@@ -210,6 +210,34 @@ def find_subject_idx(data, subject_id, subject_id_col=0):
     return (data[:, 0, subject_id_col] == subject_id).nonzero().item()
 
 
+def find_seq_len(labels, padding_value=999999):
+    '''Find the lengths of the sequences based on the padding values present in
+    a labels tensor.
+
+    Parameters
+    ----------
+    labels : torch.Tensor
+        PyTorch tensor containing the data on which the subject's index will be
+        searched for.
+    padding_value : numeric, default 999999
+        Value to use in the padding, to fill the sequences.
+
+    Returns
+    -------
+    x_lengths : torch.Tensor
+        List of sequence lengths, relative to the input data.'''
+    # Find when in each sequence the padding starts
+    padding_start = ((labels == padding_value).cumsum(dim=1) == 1)
+    # Detect the sequence lengths
+    seq_lengths = padding_start.nonzero()[:, 1]
+    if len(seq_lengths) < labels.shape[0]:
+        # Assign the maximum sequence length to the sequences that aren't padded
+        all_zero_seq_len = (padding_start.sum(dim=1) == 0) * labels.shape[1]
+        all_zero_seq_len[all_zero_seq_len == 0] = seq_lengths
+        seq_lengths = all_zero_seq_len
+    return seq_lengths
+
+
 def find_row_contains_word(df, feature, words):
     '''Find if each row in a specified dataframe string feature contains some
     word from a list.

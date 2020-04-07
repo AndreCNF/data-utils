@@ -8,6 +8,7 @@ import sys                                              # Identify types of exce
 import inspect                                          # Inspect methods and their arguments
 from sklearn.metrics import roc_auc_score               # ROC AUC model performance metric
 from . import utils                                     # Generic and useful methods
+from . import search_explore                            # Methods to search and explore data
 from . import padding                                   # Padding and variable sequence length related methods
 from . import machine_learning                          # Machine learning focused pipeline methods
 import data_utils as du
@@ -178,7 +179,7 @@ def ts_tensor_to_np_matrix(data, feat_num=None, padding_value=999999):
     return data_matrix
 
 
-def inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
+def inference_iter_multi_var_rnn(model, features, labels,
                                  padding_value=999999, cols_to_remove=[0, 1],
                                  is_train=False, prob_output=True, optimizer=None,
                                  is_custom=False, already_embedded=False):
@@ -246,18 +247,14 @@ def inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
     global sigmoid, softmax
     # Make the data have type float instead of double, as it would cause problems
     features, labels = features.float(), labels.float()
-    # Sort the data by sequence length
-    features, labels, x_lengths = padding.sort_by_seq_len(features, seq_len_dict, labels)
     # Remove unwanted columns from the data
     features = remove_tensor_column(features, cols_to_remove, inplace=True)
     # Feedforward the data through the model
     if is_custom is False:
-        scores = model.forward(features, get_hidden_state=False, x_lengths=x_lengths,
+        # Find the original sequence lengths
+        seq_lengths = search_explore.find_seq_len(labels, padding_value=padding_value)
+        scores = model.forward(features, get_hidden_state=False, x_lengths=seq_lengths,
                                prob_output=False, already_embedded=already_embedded)
-        # Adjust the labels so that it gets the exact same shape as the predictions
-        # (i.e. sequence length = max sequence length of the current batch, not the max of all the data)
-        labels = torch.nn.utils.rnn.pack_padded_sequence(labels, x_lengths, batch_first=True)
-        labels, _ = torch.nn.utils.rnn.pad_packed_sequence(labels, batch_first=True, padding_value=padding_value)
     else:
         scores = model.forward(features, get_hidden_state=False, prob_output=False,
                                already_embedded=already_embedded)
@@ -492,13 +489,10 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
         if on_gpu is True:
             # Move data to GPU
             features, labels = features.cuda(), labels.cuda()
-        if dataset is not None:
-            # Update the sequence length dictionary to the current batch
-            seq_len_dict = dataset.seq_len_dict
         # Do inference on the data
         if model_type.lower() == 'multivariate_rnn':
             (pred, correct_pred,
-             scores, labels, loss) = (inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
+             scores, labels, loss) = (inference_iter_multi_var_rnn(model, features, labels,
                                                                    padding_value=padding_value,
                                                                    cols_to_remove=cols_to_remove, is_train=False,
                                                                    prob_output=True, is_custom=is_custom,
@@ -602,13 +596,10 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
             if on_gpu is True:
                 # Move data to GPU
                 features, labels = features.cuda(), labels.cuda()
-            if dataset is not None:
-                # Update the sequence length dictionary to the current batch
-                seq_len_dict = dataset.seq_len_dict
             # Do inference on the data
             if model_type.lower() == 'multivariate_rnn':
                 (pred, correct_pred,
-                 scores, labels, cur_loss) = (inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
+                 scores, labels, cur_loss) = (inference_iter_multi_var_rnn(model, features, labels,
                                                                            padding_value=padding_value,
                                                                            cols_to_remove=cols_to_remove, is_train=False,
                                                                            prob_output=True, is_custom=is_custom,
@@ -920,13 +911,10 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                 if on_gpu is True:
                     # Move data to GPU
                     features, labels = features.cuda(), labels.cuda()
-                if dataset is not None:
-                    # Update the sequence length dictionary to the current batch
-                    seq_len_dict = dataset.seq_len_dict
                 # Do inference on the data
                 if model_type.lower() == 'multivariate_rnn':
                     (pred, correct_pred,
-                     scores, labels, loss) = (inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
+                     scores, labels, loss) = (inference_iter_multi_var_rnn(model, features, labels,
                                                                            padding_value=padding_value,
                                                                            cols_to_remove=cols_to_remove, is_train=True,
                                                                            prob_output=True, optimizer=optimizer,
@@ -983,13 +971,10 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                         if on_gpu is True:
                             # Move data to GPU
                             features, labels = features.cuda(), labels.cuda()
-                        if dataset is not None:
-                            # Update the sequence length dictionary to the current batch
-                            seq_len_dict = dataset.seq_len_dict
                         # Do inference on the data
                         if model_type.lower() == 'multivariate_rnn':
                             (pred, correct_pred,
-                             scores, labels, loss) = (inference_iter_multi_var_rnn(model, features, labels, seq_len_dict,
+                             scores, labels, loss) = (inference_iter_multi_var_rnn(model, features, labels,
                                                                                    padding_value=padding_value,
                                                                                    cols_to_remove=cols_to_remove, is_train=False,
                                                                                    prob_output=True, is_custom=is_custom,

@@ -40,14 +40,15 @@ def get_sequence_length_dict(df, id_column='subject_id', ts_column='ts'):
         id_column = column_names[id_column]
         ts_column = column_names[ts_column]
     # Dictionary containing the sequence length (number of temporal events) of each sequence (patient)
-    seq_len_df = df.groupby(id_column)[ts_column].count().to_frame().sort_values(by=ts_column, ascending=False)
-    seq_len_dict = dict([(idx, val[0]) for idx, val in list(zip(seq_len_df.index, seq_len_df.to_numpy()))])
+    seq_len_df = df.groupby(id_column)[ts_column].count()
+    seq_len_dict = dict([(idx, val) for idx, val in list(zip(seq_len_df.index, seq_len_df.to_numpy()))])
     return seq_len_dict
 
 
 def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
                                ts_column='ts', bool_feat=None, data_type='PyTorch',
-                               padding_value=999999, inplace=False):
+                               padding_value=999999, total_length=None,
+                               inplace=False):
     '''Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
 
     Parameters
@@ -77,6 +78,10 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
         the function outputs a PyTorch tensor.
     padding_value : numeric
         Value to use in the padding, to fill the sequences.
+    total_length : int, default None
+        If not None, the output will be padded to have length total_length.
+        This method will throw ValueError if total_length is less than the
+        max sequence length in sequence.
     inplace : bool, default False
         If set to True, the original dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -105,11 +110,12 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
         n_ids = n_ids.compute()
     # Get the number of columns in the dataframe
     n_inputs = len(data_df.columns)
-    # Max sequence length (e.g. patient with the most temporal events)
-    max_seq_len = seq_len_dict[max(seq_len_dict, key=seq_len_dict.get)]
+    if total_length is None:
+        # Max sequence length in the current data
+        total_length = seq_len_dict[max(seq_len_dict, key=seq_len_dict.get)]
     if n_ids > 1:
         # Making a padded numpy array version of the dataframe (all index has the same sequence length as the one with the max)
-        arr = np.ones((n_ids, max_seq_len, n_inputs)) * padding_value
+        arr = np.ones((n_ids, total_length, n_inputs)) * padding_value
         # Fetch a list with all the unique identifiers (e.g. each patient in the dataset)
         unique_ids = data_df[id_column].unique()
         # Iterator that outputs each unique identifier
@@ -123,7 +129,7 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
             count += 1
     else:
         # Making a padded numpy array version of the dataframe (all index has the same sequence length as the one with the max)
-        arr = np.ones((max_seq_len, n_inputs)) * padding_value
+        arr = np.ones((total_length, n_inputs)) * padding_value
         # Assign each value from the dataframe to the numpy array
         idt = data_df[id_column].iloc[0]
         arr[:seq_len_dict[idt], :] = data_df.to_numpy()
@@ -135,14 +141,14 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
         bool_feat = list(set(bool_feat) - set([id_column, ts_column]))
         # Get the indeces of the boolean features
         bool_feat = [search_explore.find_col_idx(data_df, feature) for feature in bool_feat]
-    if isinstance(bool_feat, str):
+    elif isinstance(bool_feat, str):
         # Get the index of the boolean feature
         bool_feat = search_explore.find_col_idx(data_df, bool_feat)
         # Make sure that the boolean feature names are in a list format
         bool_feat = [bool_feat]
-    if not isinstance(bool_feat, list):
+    elif not isinstance(bool_feat, list):
         raise Exception(f'ERROR: The `bool_feat` argument must be specified as either a single string or a list of strings. Received input with type {type(bool_feat)}.')
-    if all(isinstance(feat, str) for feat in bool_feat):
+    elif all(isinstance(feat, str) for feat in bool_feat):
         # Convert from the feature's name to its index
         bool_feat = [search_explore.find_col_idx(data_df, feat) for feat in bool_feat]
     if len(bool_feat) > 0:

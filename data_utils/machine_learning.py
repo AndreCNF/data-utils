@@ -29,7 +29,7 @@ def one_hot_label(labels, n_outputs=None, dataset=None):
 
 
 def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch_size=32,
-                      get_indeces=True, shuffle_dataset=True):
+                      get_indeces=True, shuffle_dataset=True, num_workers=0):
     '''Distributes the data into train, validation and test sets and returns the
     respective data loaders.
 
@@ -54,6 +54,12 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
         sets' data. Otherwise, it only returns the data loaders.
     shuffle_dataset : bool, default True
         If set to True, the data of each set is shuffled.
+    num_workers : int, default 0
+        How many subprocesses to use for data loading. 0 means that the data
+        will be loaded in the main process. Therefore, data loading may block
+        computing. On the other hand, with `num_workers` > 0 we can get multiple
+        workers loading the data in the background while my GPU is busy training,
+        which might hide the loading time.
 
     Returns
     -------
@@ -102,9 +108,15 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
     test_sampler = SubsetRandomSampler(test_indices)
 
     # Create dataloaders for each set, which will allow loading batches
-    train_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, sampler=train_sampler)
-    val_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, sampler=val_sampler)
-    test_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, sampler=test_sampler)
+    train_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+                                                   sampler=train_sampler,
+                                                   num_workers=num_workers)
+    val_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+                                                 sampler=val_sampler,
+                                                 num_workers=num_workers)
+    test_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+                                                  sampler=test_sampler,
+                                                  num_workers=num_workers)
 
     if get_indeces is True:
         # Return the data loaders and the indices of the sets
