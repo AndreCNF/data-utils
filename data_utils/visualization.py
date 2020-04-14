@@ -53,17 +53,20 @@ def set_bar_color(values, ids, seq_len, threshold=0,
         return [pos_color if val > 0 else neg_color for val in values[ids, :seq_len]]
 
 
-def bullet_indicator(value, min_val=0, max_val=100, higher_is_better=True,
-                     background_color='white', output_type='plotly', dash_id='some_indicator',
-                     dash_height='70%', show_number=True, show_delta=False,
-                     ref_value=None, font_family='Roboto', font_size=14,
-                     font_color='black', prefix='', suffix=''):
-    '''Generate a bullet indicator plot, which can help visualize.
+def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_better=True,
+                   background_color='white', output_type='plotly', dash_id='some_indicator',
+                   dash_height='70%', show_number=True, show_delta=False,
+                   ref_value=None, font_family='Roboto', font_size=14,
+                   font_color='black', prefix='', suffix='', showticklabels=False):
+    '''Generate an indicator plot, which can help visualize performance. Can
+    either be of type bullet or gauge.
 
     Parameters
     ----------
     value : int
         Value which will be plotted on the graph.
+    type : str, default 'bullet'
+        Type of indicator plot. Can either be 'bullet' or 'gauge'.
     min_val : int, default 0
         Minimum value in the range of numbers that the input can assume.
     max_val : int, default 100
@@ -102,6 +105,8 @@ def bullet_indicator(value, min_val=0, max_val=100, higher_is_better=True,
     suffix : str, default ''
         Text to be appended to the end of the number, shown next to the
         indicator graph. e.g. '%', '€', 'km', 'g'
+    showticklabels : bool, default False
+        Determines whether or not the tick labels are drawn.
 
     Returns
     -------
@@ -135,6 +140,12 @@ def bullet_indicator(value, min_val=0, max_val=100, higher_is_better=True,
         mode='gauge+delta'
     else:
         mode='gauge'
+    if type.lower() == 'bullet':
+        shape = 'bullet'
+    elif type.lower() == 'gauge':
+        shape = 'angular'
+    else:
+        raise Exception(f'ERROR: Invalid indicator plot type inserted. Expected "bullet" or "gauge", received "{type}".')
     # Create the figure
     figure={
         'data': [dict(
@@ -151,12 +162,15 @@ def bullet_indicator(value, min_val=0, max_val=100, higher_is_better=True,
                     suffix=suffix
                 ),
                 gauge=dict(
-                    shape='bullet',
+                    shape=shape,
                     bar=dict(
                         thickness=1,
                         color=color
                     ),
-                    axis=dict(range=[min_val, max_val])
+                    axis=dict(
+                        range=[min_val, max_val],
+                        showticklabels=showticklabels
+                    )
                 ),
                 delta=dict(reference=ref_value)
         )],
