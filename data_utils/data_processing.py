@@ -368,6 +368,7 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_value
     if get_new_column_names is True:
         # Find the new column names and output them
         new_column_names = list(set(ohe_df.columns) - set(old_column_names))
+        new_column_names.sort()
         return ohe_df, new_column_names
     else:
         return ohe_df

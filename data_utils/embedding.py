@@ -913,6 +913,8 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
             encod_list, offset_list = prepare_embed_bag(data_emb, features)
         # Run the embedding bag and add the embedding columns to the tensor
         data_emb = run_embed_bag(data_emb, embedding_layer, encod_list, offset_list, features, inplace)
+        # Remove the old categorical feature(s)
+        feat_to_remove = [feature for feature in features]
     elif (isinstance(embedding_layer, torch.nn.ModuleList)
     and isinstance(features, list)
     and [isinstance(feat_list, list) for feat_list in features]):
@@ -924,12 +926,12 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
                 encod_list, offset_list = prepare_embed_bag(data_emb, features[i])
             # Run the embedding bag and add the embedding columns to the tensor
             data_emb = run_embed_bag(data_emb, embedding_layer[i], encod_list, offset_list, features[i], inplace)
+        # Remove the old categorical feature(s)
+        feat_to_remove = [feature for feat_list in features for feature in feat_list]
     else:
         raise Exception(f'ERROR: The user must either a single embedding bag and feature index or lists of embedding bag layers and feature indeces. The input `embedding_layer` has type {type(embedding_layer)} while `feature` has type {type(features)}.')
     # [TODO] Implement the case of using dataframe inputs instead of tensors
     # [TODO] Implement the option of using individual encoded features instead of ohe
-    # Remove the old categorical feature(s)
-    feat_to_remove = [feature for feat_list in features for feature in feat_list]
     if isinstance(data_emb, torch.Tensor):
         if model_forward is True:
             data_emb = deep_learning.remove_tensor_column(data_emb, [feature-n_id_cols for feature in feat_to_remove], inplace=inplace)

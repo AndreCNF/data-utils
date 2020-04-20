@@ -55,7 +55,7 @@ def set_bar_color(values, ids, seq_len, threshold=0,
 
 def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_better=True,
                    background_color='white', output_type='plotly', dash_id='some_indicator',
-                   dash_height='70%', show_number=True, show_delta=False,
+                   dash_height=None, dash_width=None, show_number=True, show_delta=False,
                    ref_value=None, font_family='Roboto', font_size=14,
                    font_color='black', prefix='', suffix='', showticklabels=False):
     '''Generate an indicator plot, which can help visualize performance. Can
@@ -82,8 +82,10 @@ def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_bette
         'dash', `plotly` and 'figure'.
     dash_id : str, default 'some_indicator'
         ID to be used in Dash.
-    dash_height : str, default '70%'
+    dash_height : str, default None
         Height value to be used in the Dash graph.
+    dash_width : str, default None
+        Width value to be used in the Dash graph.
     show_number : bool, default True
         If set to True, the number will be shown next to the plot.
     show_delta : bool, default False
@@ -189,10 +191,15 @@ def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_bette
     elif output_type == 'plotly':
         return go.Figure(figure)
     elif output_type == 'dash':
+        style = dict()
+        if dash_height is not None:
+            style['height'] = dash_height
+        if dash_width is not None:
+            style['width'] = dash_width
         return dcc.Graph(
             id=dash_id,
             figure=figure,
-            style=dict(height=dash_height),
+            style=style,
             config=dict(displayModeBar=False)
         )
     else:
@@ -201,8 +208,10 @@ def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_bette
 
 def shap_summary_plot(shap_values, feature_names, max_display=10,
                       background_color='white', output_type='plotly',
-                      dash_id='some_shap_summary_plot', dash_height='70%',
-                      font_family='Roboto', font_size=14, font_color='black'):
+                      dash_id='some_shap_summary_plot', dash_height=None,
+                      dash_width=None, font_family='Roboto', font_size=14,
+                      font_color='black',
+                      xaxis_title='mean(|SHAP value|) (average impact on model output magnitude)'):
     '''Plot the overall feature importance, based on SHAP values, through an
     horizontal bar plot.
 
@@ -212,7 +221,7 @@ def shap_summary_plot(shap_values, feature_names, max_display=10,
         Array or list containing all the SHAP values which we want to plot.
     feature_names : list
         List with the names of the features that the SHAP values refer to.
-    max_display : str
+    max_display : int
         The maximum number of features to plot.
     background_color : str, default 'white'
         The plot's background color. Can be set in color name (e.g. 'white'),
@@ -222,8 +231,10 @@ def shap_summary_plot(shap_values, feature_names, max_display=10,
         'dash', `plotly` and 'figure'.
     dash_id : str, default 'some_shap_summary_plot'
         ID to be used in Dash.
-    dash_height : str, default '70%'
+    dash_height : str, default None
         Height value to be used in the Dash graph.
+    dash_width : str, default None
+        Width value to be used in the Dash graph.
     font_family : str, default 'Roboto'
         Text font family to be used in the numbers shown next to the graph.
     font_size : int, default 14
@@ -232,6 +243,8 @@ def shap_summary_plot(shap_values, feature_names, max_display=10,
         Text font color to be used in the numbers shown next to the graph. Can
         be set in color name (e.g. 'white'), hexadecimal code (e.g. '#555') or
         GB (e.g. 'rgb(0,0,255)').
+    xaxis_title : str, default 'mean(|SHAP value|) (average impact on model output magnitude)'
+        Phrase that appears bellow the X axis.
 
     Returns
     -------
@@ -254,10 +267,10 @@ def shap_summary_plot(shap_values, feature_names, max_display=10,
     mean_abs_shap = np.mean(np.abs(shap_values).reshape(-1, shap_values.shape[-1]), axis=0)
     # Sort the SHAP values and the feature names
     sorted_idx = np.argsort(mean_abs_shap)
+    sorted_idx = sorted_idx[:max_display]
     sorted_mean_abs_shap = mean_abs_shap[sorted_idx]
     sorted_feature_names = [feature_names[idx] for idx in sorted_idx]
     # Create the figure
-    # [TODO] Implement max_display
     figure={
         'data': [dict(
             type='bar',
@@ -269,7 +282,7 @@ def shap_summary_plot(shap_values, feature_names, max_display=10,
             paper_bgcolor=background_color,
             plot_bgcolor=background_color,
             margin=dict(l=0, r=0, t=0, b=0, pad=0),
-            xaxis_title='mean(|SHAP value|) (average impact on model output magnitude)',
+            xaxis_title=xaxis_title,
             xaxis=dict(showgrid=False),
             font=dict(
                 family=font_family,
@@ -283,10 +296,15 @@ def shap_summary_plot(shap_values, feature_names, max_display=10,
     elif output_type == 'plotly':
         return go.Figure(figure)
     elif output_type == 'dash':
+        style = dict()
+        if dash_height is not None:
+            style['height'] = dash_height
+        if dash_width is not None:
+            style['width'] = dash_width
         return dcc.Graph(
             id=dash_id,
             figure=figure,
-            style=dict(height=dash_height)
+            style=style
         )
     else:
         raise Exception(f'ERROR: Invalid output type {output_type}. Only `figure`, `plotly` and `dash` are currently supported.')
@@ -296,8 +314,9 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
                         max_display=10, background_color='white',
                         line_color='gray', increasing_color='red',
                         decreasing_color='blue', output_type='plotly',
-                        dash_id='some_shap_summary_plot', dash_height='70%',
-                        font_family='Roboto', font_size=14, font_color='black'):
+                        dash_id='some_shap_summary_plot', dash_height=None,
+                        dash_width=None, font_family='Roboto', font_size=14,
+                        font_color='black'):
     '''Do a waterfall plot on a single sample, based on SHAP values, showing
     each feature's contribution to the corresponding output.
 
@@ -330,8 +349,10 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
         'dash', `plotly` and 'figure'.
     dash_id : str, default 'some_shap_summary_plot'
         ID to be used in Dash.
-    dash_height : str, default '70%'
+    dash_height : str, default None
         Height value to be used in the Dash graph.
+    dash_width : str, default None
+        Width value to be used in the Dash graph.
     font_family : str, default 'Roboto'
         Text font family to be used in the numbers shown next to the graph.
     font_size : int, default 14
@@ -493,10 +514,15 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
     elif output_type == 'plotly':
         return go.Figure(figure)
     elif output_type == 'dash':
+        style = dict()
+        if dash_height is not None:
+            style['height'] = dash_height
+        if dash_width is not None:
+            style['width'] = dash_width
         return dcc.Graph(
             id=dash_id,
             figure=figure,
-            style=dict(height=dash_height)
+            style=style
         )
     else:
         raise Exception(f'ERROR: Invalid output type {output_type}. Only `figure`, `plotly` and `dash` are currently supported.')
