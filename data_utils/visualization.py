@@ -207,10 +207,10 @@ def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_bette
 
 
 def shap_summary_plot(shap_values, feature_names, max_display=10,
-                      background_color='white', output_type='plotly',
-                      dash_id='some_shap_summary_plot', dash_height=None,
-                      dash_width=None, font_family='Roboto', font_size=14,
-                      font_color='black',
+                      background_color='white', marker_color='blue',
+                      output_type='plotly', dash_id='some_shap_summary_plot',
+                      dash_height=None, dash_width=None, font_family='Roboto',
+                      font_size=14, font_color='black',
                       xaxis_title='mean(|SHAP value|) (average impact on model output magnitude)'):
     '''Plot the overall feature importance, based on SHAP values, through an
     horizontal bar plot.
@@ -225,6 +225,9 @@ def shap_summary_plot(shap_values, feature_names, max_display=10,
         The maximum number of features to plot.
     background_color : str, default 'white'
         The plot's background color. Can be set in color name (e.g. 'white'),
+        hexadecimal code (e.g. '#555') or RGB (e.g. 'rgb(0,0,255)').
+    marker_color : str, default 'blue'
+        The color of the bars in the plot. Can be set in color name (e.g. 'white'),
         hexadecimal code (e.g. '#555') or RGB (e.g. 'rgb(0,0,255)').
     output_type : str, default 'plotly'
         The format on which the output is presented. Available options are
@@ -267,7 +270,9 @@ def shap_summary_plot(shap_values, feature_names, max_display=10,
     mean_abs_shap = np.mean(np.abs(shap_values).reshape(-1, shap_values.shape[-1]), axis=0)
     # Sort the SHAP values and the feature names
     sorted_idx = np.argsort(mean_abs_shap)
-    sorted_idx = sorted_idx[:max_display]
+    if max_display is not None:
+        # Only show the `max_display` most impactful features
+        sorted_idx = sorted_idx[-max_display:]
     sorted_mean_abs_shap = mean_abs_shap[sorted_idx]
     sorted_feature_names = [feature_names[idx] for idx in sorted_idx]
     # Create the figure
@@ -276,7 +281,8 @@ def shap_summary_plot(shap_values, feature_names, max_display=10,
             type='bar',
             x=sorted_mean_abs_shap,
             y=sorted_feature_names,
-            orientation='h'
+            orientation='h',
+            marker=dict(color=marker_color)
         )],
         'layout': dict(
             paper_bgcolor=background_color,
