@@ -68,7 +68,7 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
         How many subprocesses to use for data loading. 0 means that the data
         will be loaded in the main process. Therefore, data loading may block
         computing. On the other hand, with `num_workers` > 0 we can get multiple
-        workers loading the data in the background while my GPU is busy training,
+        workers loading the data in the background while the GPU is busy training,
         which might hide the loading time.
 
     Returns

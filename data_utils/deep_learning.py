@@ -591,7 +591,8 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
 
     # Evaluate the model on the set
     for features, labels in utils.iterations_loop(dataloader,
-                                                  see_progress=see_progress):
+                                                  see_progress=see_progress,
+                                                  desc='Test batches'):
         if dataset is not None:
             # Make sure that the data has the right amount of dimensions
             features, labels = features.squeeze(), labels.squeeze()
@@ -1046,7 +1047,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                 current_datetime = datetime.now().strftime('%d_%m_%Y_%H_%M')
                 # Filename and path where the model will be saved
                 model_filename = f'{model_name}_{val_loss:.4f}valloss_{current_datetime}.pth'
-                print(f'Saving model in {model_filename}')
+                print(f'Saving model as {model_filename}')
                 # Save the best performing model so far, along with additional information to implement it
                 checkpoint = hyper_params
                 checkpoint['state_dict'] = model.state_dict()
@@ -1092,7 +1093,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
     try:
         if model_filename is not None:
             # Load the model with the best validation performance
-            model = load_checkpoint(model_filename, ModelClass)
+            model = load_checkpoint(f'{models_path}{model_filename}', ModelClass)
         if do_test is True:
             # Run inference on the test data
             model_inference(model, dataloader=test_dataloader, dataset=dataset,
