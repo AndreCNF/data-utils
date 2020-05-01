@@ -379,7 +379,7 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
                     is_custom=False, seq_len_dict=None, padding_value=999999,
                     output_rounded=False, experiment=None, set_name='test',
                     seq_final_outputs=False, cols_to_remove=[0, 1],
-                    already_embedded=False):
+                    already_embedded=False, see_progress=True):
     '''Do inference on specified data using a given model.
 
     Parameters
@@ -441,6 +441,9 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
         If set to True, it means that the categorical features are already
         embedded when fetching a batch, i.e. there's no need to run the embedding
         layer(s) during the model's feedforward.
+    see_progress : bool, default True
+        If set to True, a progress bar will show up indicating the execution
+        of each loop.
 
     Returns
     -------
@@ -587,7 +590,8 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
     output = torch.tensor([]).int()
 
     # Evaluate the model on the set
-    for features, labels in dataloader:
+    for features, labels in utils.iterations_loop(dataloader,
+                                                  see_progress=see_progress):
         if dataset is not None:
             # Make sure that the data has the right amount of dimensions
             features, labels = features.squeeze(), labels.squeeze()
@@ -739,7 +743,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
           comet_ml_api_key=None, comet_ml_project_name=None,
           comet_ml_workspace=None, comet_ml_save_model=False,
           experiment=None, features_list=None, get_val_loss_min=False,
-          already_embedded=False):
+          already_embedded=False, see_progress=True):
     '''Trains a given model on the provided data.
 
     Parameters
@@ -845,6 +849,9 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
         If set to True, it means that the categorical features are already
         embedded when fetching a batch, i.e. there's no need to run the embedding
         layer(s) during the model's feedforward.
+    see_progress : bool, default True
+        If set to True, a progress bar will show up indicating the execution
+        of each loop.
 
     Returns
     -------
@@ -890,7 +897,9 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
         for p in model.parameters():
             p.register_hook(lambda grad: torch.clamp(grad, -clip_value, clip_value))
 
-    for epoch in range(1, n_epochs+1):
+    for epoch in utils.iterations_loop(range(1, n_epochs+1),
+                                       see_progress=see_progress,
+                                       desc='Epochs'):
         # Initialize the training metrics
         train_loss = 0
         train_acc = 0
@@ -900,7 +909,10 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
 
         # try:
         # Loop through the training data
-        for features, labels in train_dataloader:
+        for features, labels in utils.iterations_loop(train_dataloader,
+                                                      see_progress=see_progress,
+                                                      desc='Steps',
+                                                      leave=False):
             if dataset is not None:
                 # Make sure that the data has the right amount of dimensions
                 features, labels = features.squeeze(), labels.squeeze()
@@ -960,9 +972,12 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
             val_acc = 0
             val_auc = list()
             if model.n_outputs > 1:
-                val_auc_wgt = 0
+                val_auc_wgt = list()
             # Loop through the validation data
-            for features, labels in val_dataloader:
+            for features, labels in utils.iterations_loop(val_dataloader,
+                                                          see_progress=see_progress,
+                                                          desc='Val batches',
+                                                          leave=False):
                 if dataset is not None:
                     # Make sure that the data has the right amount of dimensions
                     features, labels = features.squeeze(), labels.squeeze()
@@ -1084,7 +1099,8 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                             model_type=model_type, is_custom=is_custom,
                             seq_len_dict=seq_len_dict, padding_value=padding_value,
                             experiment=experiment, cols_to_remove=cols_to_remove,
-                            already_embedded=already_embedded)
+                            already_embedded=already_embedded,
+                            see_progress=see_progress)
     except UnboundLocalError:
         warnings.warn('Inference failed due to non existent saved models. Skipping evaluation on test set.')
     except Exception as e:
