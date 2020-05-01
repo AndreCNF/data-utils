@@ -29,7 +29,8 @@ def one_hot_label(labels, n_outputs=None, dataset=None):
 
 
 def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch_size=32,
-                      get_indeces=True, shuffle_dataset=True, num_workers=0):
+                      get_indeces=True, shuffle_dataset=True, num_workers=0,
+                      train_indices=None, val_indices=None, test_indices=None):
     '''Distributes the data into train, validation and test sets and returns the
     respective data loaders.
 
@@ -45,6 +46,15 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
         Number from 0 to 1 which indicates the percentage of the data
         from the training set which is used for validation purposes.
         A value of 0.0 corresponds to not using validation.
+    train_indices : list of integers, default None
+        Indices of the data which will be used during training.
+    val_indices : list of integers, default None
+        Indices of the data which will be used to evaluate the
+        model's performance on a validation set during training.
+    test_indices : list of integers, default None
+        Indices of the data which will be used to evaluate the
+        model's performance on a test set, after finishing the
+        training process.
     batch_size : int, default 32
         Defines the batch size, i.e. the number of samples used in each
         training iteration to update the model's weights.
@@ -77,36 +87,36 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
 
     If get_indeces is True:
 
-    train_indices : torch.utils.data.DataLoader
+    train_indices : list of integers
         Indices of the data which will be used during training.
-    val_indices : torch.utils.data.DataLoader
+    val_indices : list of integers
         Indices of the data which will be used to evaluate the
         model's performance on a validation set during training.
-    test_indices : torch.utils.data.DataLoader
+    test_indices : list of integers
         Indices of the data which will be used to evaluate the
         model's performance on a test set, after finishing the
         training process.
     '''
-    # Create data indices for training and test splits
-    dataset_size = len(dataset)
-    indices = list(range(dataset_size))
-    test_split = int(np.floor(test_train_ratio * dataset_size))
-    if shuffle_dataset is True:
-        np.random.shuffle(indices)
-    train_indices, test_indices = indices[test_split:], indices[:test_split]
-
-    # Create data indices for training and validation splits
-    train_dataset_size = len(train_indices)
-    val_split = int(np.floor(validation_ratio * train_dataset_size))
-    if shuffle_dataset is True:
-        np.random.shuffle(train_indices)
-    train_indices, val_indices = train_indices[val_split:], train_indices[:val_split]
-
+    if (train_indices is None
+    or val_indices is None
+    or test_indices is None):
+        # Create data indices for training and test splits
+        dataset_size = len(dataset)
+        indices = list(range(dataset_size))
+        test_split = int(np.floor(test_train_ratio * dataset_size))
+        if shuffle_dataset is True:
+            np.random.shuffle(indices)
+        train_indices, test_indices = indices[test_split:], indices[:test_split]
+        # Create data indices for training and validation splits
+        train_dataset_size = len(train_indices)
+        val_split = int(np.floor(validation_ratio * train_dataset_size))
+        if shuffle_dataset is True:
+            np.random.shuffle(train_indices)
+        train_indices, val_indices = train_indices[val_split:], train_indices[:val_split]
     # Create data samplers that randomly sample from the respective indices on each run
     train_sampler = SubsetRandomSampler(train_indices)
     val_sampler = SubsetRandomSampler(val_indices)
     test_sampler = SubsetRandomSampler(test_indices)
-
     # Create dataloaders for each set, which will allow loading batches
     train_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
                                                    sampler=train_sampler,
@@ -117,7 +127,6 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
     test_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
                                                   sampler=test_sampler,
                                                   num_workers=num_workers)
-
     if get_indeces is True:
         # Return the data loaders and the indices of the sets
         return train_dataloader, val_dataloader, test_dataloader, train_indices, val_indices, test_indices
