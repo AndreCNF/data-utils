@@ -46,7 +46,8 @@ def get_sequence_length_dict(df, id_column='subject_id', ts_column='ts'):
 
 
 def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
-                               ts_column='ts', bool_feat=None, data_type='PyTorch',
+                               ts_column='ts', label_column='label',
+                               bool_feat=None, data_type='PyTorch',
                                padding_value=999999, total_length=None,
                                inplace=False):
     '''Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
@@ -138,7 +139,7 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
         # Find the boolean columns in the dataframe
         bool_feat = search_explore.list_boolean_columns(data_df)
         # Make sure that none of the ID columns are considered boolean
-        bool_feat = list(set(bool_feat) - set([id_column, ts_column]))
+        bool_feat = list(set(bool_feat) - set([id_column, ts_column, label_column]))
         # Get the indeces of the boolean features
         bool_feat = [search_explore.find_col_idx(data_df, feature) for feature in bool_feat]
     elif isinstance(bool_feat, str):

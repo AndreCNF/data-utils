@@ -224,7 +224,7 @@ def find_seq_len(labels, padding_value=999999):
 
     Returns
     -------
-    x_lengths : torch.Tensor
+    seq_lengths : torch.Tensor
         List of sequence lengths, relative to the input data.'''
     # Find when in each sequence the padding starts
     padding_start = ((labels == padding_value).cumsum(dim=1) == 1)

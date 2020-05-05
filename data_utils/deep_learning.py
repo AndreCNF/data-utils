@@ -182,7 +182,8 @@ def ts_tensor_to_np_matrix(data, feat_num=None, padding_value=999999):
 def inference_iter_multi_var_rnn(model, features, labels,
                                  padding_value=999999, cols_to_remove=[0, 1],
                                  is_train=False, prob_output=True, optimizer=None,
-                                 is_custom=False, already_embedded=False):
+                                 is_custom=False, already_embedded=False,
+                                 seq_lengths=None):
     '''Run a single inference or training iteration on a Recurrent Neural Network (RNN),
     applied to multivariate data, such as EHR. Performance metrics still need to be
     calculated after executing this method.
@@ -225,6 +226,8 @@ def inference_iter_multi_var_rnn(model, features, labels,
         If set to True, it means that the categorical features are already
         embedded when fetching a batch, i.e. there's no need to run the embedding
         layer(s) during the model's feedforward.
+    seq_lengths : list or numpy.ndarray or torch.Tensor
+        List of sequence lengths, relative to the input data.
 
     Returns
     -------
@@ -251,9 +254,7 @@ def inference_iter_multi_var_rnn(model, features, labels,
     features = remove_tensor_column(features, cols_to_remove, inplace=True)
     # Feedforward the data through the model
     if is_custom is False:
-        # Find the original sequence lengths
-        seq_lengths = search_explore.find_seq_len(labels, padding_value=padding_value)
-        scores = model.forward(features, get_hidden_state=False, x_lengths=seq_lengths,
+        scores = model.forward(features, get_hidden_state=False, seq_lengths=seq_lengths,
                                prob_output=False, already_embedded=already_embedded)
     else:
         scores = model.forward(features, get_hidden_state=False, prob_output=False,
@@ -489,6 +490,11 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
     # Check if the user wants to do inference directly on a PyTorch tensor
     if dataloader is None and data is not None:
         features, labels = data[0], data[1]
+        if is_custom is False or seq_final_outputs is True:
+            # Find the original sequence lengths
+            seq_lengths = search_explore.find_seq_len(labels, padding_value=padding_value)
+        else:
+            seq_lengths = None
         if on_gpu is True:
             # Move data to GPU
             features, labels = features.cuda(), labels.cuda()
@@ -499,7 +505,8 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
                                                                    padding_value=padding_value,
                                                                    cols_to_remove=cols_to_remove, is_train=False,
                                                                    prob_output=True, is_custom=is_custom,
-                                                                   already_embedded=already_embedded))
+                                                                   already_embedded=already_embedded,
+                                                                   seq_lengths=seq_lengths))
         elif model_type.lower() == 'mlp':
             pred, correct_pred, scores, loss = (inference_iter_mlp(model, features, labels,
                                                                    cols_to_remove, is_train=False,
@@ -518,7 +525,7 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
         if seq_final_outputs is True:
             # Only get the outputs retrieved at the sequences' end
             # Cumulative sequence lengths
-            final_seq_idx = np.cumsum(x_lengths) - 1
+            final_seq_idx = np.cumsum(seq_lengths) - 1
             # Get the outputs of the last instances of each sequence
             output = output[final_seq_idx]
         if any(mtrc in metrics for mtrc in ['precision', 'recall', 'F1']):
@@ -598,6 +605,11 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
             features, labels = features.squeeze(), labels.squeeze()
         # Turn off gradients, saves memory and computations
         with torch.no_grad():
+            if is_custom is False or seq_final_outputs is True:
+                # Find the original sequence lengths
+                seq_lengths = search_explore.find_seq_len(labels, padding_value=padding_value)
+            else:
+                seq_lengths = None
             if on_gpu is True:
                 # Move data to GPU
                 features, labels = features.cuda(), labels.cuda()
@@ -608,7 +620,8 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
                                                                            padding_value=padding_value,
                                                                            cols_to_remove=cols_to_remove, is_train=False,
                                                                            prob_output=True, is_custom=is_custom,
-                                                                           already_embedded=already_embedded))
+                                                                           already_embedded=already_embedded,
+                                                                           seq_lengths=seq_lengths))
             elif model_type.lower() == 'mlp':
                 pred, correct_pred, scores, cur_loss = (inference_iter_mlp(model, features, labels,
                                                                            cols_to_remove, is_train=False,
@@ -626,8 +639,9 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
                 output = torch.cat([output.float(), scores])
 
             if seq_final_outputs is True:
-                # Indeces at the end of each sequence
-                final_seq_idx = [n_subject*features.shape[1]+x_lengths[n_subject]-1 for n_subject in range(features.shape[0])]
+                # Only get the outputs retrieved at the sequences' end
+                # Cumulative sequence lengths
+                final_seq_idx = np.cumsum(seq_lengths) - 1
                 # Get the outputs of the last instances of each sequence
                 output = output[final_seq_idx]
 
@@ -917,6 +931,11 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
             if dataset is not None:
                 # Make sure that the data has the right amount of dimensions
                 features, labels = features.squeeze(), labels.squeeze()
+            if is_custom is False or seq_final_outputs is True:
+                # Find the original sequence lengths
+                seq_lengths = search_explore.find_seq_len(labels, padding_value=padding_value)
+            else:
+                seq_lengths = None
             # Activate dropout to train the model
             model.train()
             # Clear the gradients of all optimized variables
@@ -932,7 +951,8 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                                                                        cols_to_remove=cols_to_remove, is_train=True,
                                                                        prob_output=True, optimizer=optimizer,
                                                                        is_custom=is_custom,
-                                                                       already_embedded=already_embedded))
+                                                                       already_embedded=already_embedded,
+                                                                       seq_lengths=seq_lengths))
             elif model_type.lower() == 'mlp':
                 pred, correct_pred, scores, loss = (inference_iter_mlp(model, features, labels,
                                                                        cols_to_remove, is_train=True,
@@ -994,7 +1014,8 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                                                                                padding_value=padding_value,
                                                                                cols_to_remove=cols_to_remove, is_train=False,
                                                                                prob_output=True, is_custom=is_custom,
-                                                                               already_embedded=already_embedded))
+                                                                               already_embedded=already_embedded,
+                                                                               seq_lengths=seq_lengths))
                     elif model_type.lower() == 'mlp':
                         pred, correct_pred, scores, loss = (inference_iter_mlp(model, features, labels,
                                                                                cols_to_remove, is_train=False,

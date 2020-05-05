@@ -149,34 +149,34 @@ def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_bette
     else:
         raise Exception(f'ERROR: Invalid indicator plot type inserted. Expected "bullet" or "gauge", received "{type}".')
     # Create the figure
-    figure={
-        'data': [dict(
-                type='indicator',
-                mode=mode,
-                value=value,
-                number=dict(
-                    font=dict(
-                        family=font_family,
-                        size=font_size,
-                        color=font_color
-                    ),
-                    prefix=prefix,
-                    suffix=suffix
+    figure=dict(
+        data=[dict(
+            type='indicator',
+            mode=mode,
+            value=value,
+            number=dict(
+                font=dict(
+                    family=font_family,
+                    size=font_size,
+                    color=font_color
                 ),
-                gauge=dict(
-                    shape=shape,
-                    bar=dict(
-                        thickness=1,
-                        color=color
-                    ),
-                    axis=dict(
-                        range=[min_val, max_val],
-                        showticklabels=showticklabels
-                    )
+                prefix=prefix,
+                suffix=suffix
+            ),
+            gauge=dict(
+                shape=shape,
+                bar=dict(
+                    thickness=1,
+                    color=color
                 ),
-                delta=dict(reference=ref_value)
+                axis=dict(
+                    range=[min_val, max_val],
+                    showticklabels=showticklabels
+                )
+            ),
+            delta=dict(reference=ref_value)
         )],
-        'layout': dict(
+        layout=dict(
             paper_bgcolor=background_color,
             margin=dict(l=0, r=0, t=0, b=0, pad=0),
             font=dict(
@@ -185,7 +185,7 @@ def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_bette
                 color=font_color
             )
         )
-    }
+    )
     if output_type == 'figure':
         return figure
     elif output_type == 'plotly':
@@ -276,15 +276,15 @@ def shap_summary_plot(shap_values, feature_names, max_display=10,
     sorted_mean_abs_shap = mean_abs_shap[sorted_idx]
     sorted_feature_names = [feature_names[idx] for idx in sorted_idx]
     # Create the figure
-    figure={
-        'data': [dict(
+    figure=dict(
+        data=[dict(
             type='bar',
             x=sorted_mean_abs_shap,
             y=sorted_feature_names,
             orientation='h',
             marker=dict(color=marker_color)
         )],
-        'layout': dict(
+        layout=dict(
             paper_bgcolor=background_color,
             plot_bgcolor=background_color,
             margin=dict(l=0, r=0, t=0, b=0, pad=0),
@@ -296,7 +296,7 @@ def shap_summary_plot(shap_values, feature_names, max_display=10,
                 color=font_color
             )
         )
-    }
+    )
     if output_type == 'figure':
         return figure
     elif output_type == 'plotly':
@@ -418,8 +418,8 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
                      for (feature, val) in zip(sorted_feature_names, sorted_features)]
     # Create the figure
     # [TODO] Fix the xaxis positioning to center on the expected value
-    figure={
-        'data': [dict(
+    figure=dict(
+        data=[dict(
             type='waterfall',
             x=sorted_shap_values,
             y=sorted_feature_names,
@@ -430,7 +430,7 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
             increasing=dict(marker=dict(color=increasing_color)),
             decreasing=dict(marker=dict(color=decreasing_color))
         )],
-        'layout': dict(
+        layout=dict(
             paper_bgcolor=background_color,
             plot_bgcolor=background_color,
             margin=dict(l=0, r=0, t=0, b=0, pad=0),
@@ -514,7 +514,7 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
                 )
             ]
         )
-    }
+    )
     if output_type == 'figure':
         return figure
     elif output_type == 'plotly':
