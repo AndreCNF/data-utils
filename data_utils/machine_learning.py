@@ -29,7 +29,7 @@ def one_hot_label(labels, n_outputs=None, dataset=None):
 
 
 def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch_size=32,
-                      get_indeces=True, shuffle_dataset=True, num_workers=0,
+                      get_indices=True, shuffle_dataset=True, num_workers=0,
                       train_indices=None, val_indices=None, test_indices=None):
     '''Distributes the data into train, validation and test sets and returns the
     respective data loaders.
@@ -58,7 +58,7 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
     batch_size : int, default 32
         Defines the batch size, i.e. the number of samples used in each
         training iteration to update the model's weights.
-    get_indeces : bool, default True
+    get_indices : bool, default True
         If set to True, the function returns the dataloader objects of
         the train, validation and test sets and also the indices of the
         sets' data. Otherwise, it only returns the data loaders.
@@ -85,7 +85,7 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
         evaluate the model's performance on a test set, after
         finishing the training process.
 
-    If get_indeces is True:
+    If get_indices is True:
 
     train_indices : list of integers
         Indices of the data which will be used during training.
@@ -97,6 +97,12 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
         model's performance on a test set, after finishing the
         training process.
     '''
+    print(f'''DEBUG: Now inside the `create_train_sets` method. Relevant inputs:
+              \ntrain_indices is None? {train_indices is None}
+              \nval_indices is None? {val_indices is None}
+              \ntest_indices is None? {test_indices is None}
+              \ntest_train_ratio = {test_train_ratio}
+              \nvalidation_ratio = {validation_ratio}''')
     if (train_indices is None
     or val_indices is None
     or test_indices is None):
@@ -127,7 +133,7 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
     test_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
                                                   sampler=test_sampler,
                                                   num_workers=num_workers)
-    if get_indeces is True:
+    if get_indices is True:
         # Return the data loaders and the indices of the sets
         return train_dataloader, val_dataloader, test_dataloader, train_indices, val_indices, test_indices
     else:
@@ -229,7 +235,7 @@ def optimize_hyperparameters(Model, config_name, comet_ml_api_key,
         Name of the column which corresponds to the instance or timestamp
         identifier.
     id_columns_idx : int or list of ints, default None
-        Index or list of indeces of columns to remove from the features before
+        Index or list of indices of columns to remove from the features before
         feeding to the model. This tend to be the identifier columns, such as
         `subject_id` and `ts` (timestamp).
     n_outputs : int, default 1
@@ -350,7 +356,7 @@ def optimize_hyperparameters(Model, config_name, comet_ml_api_key,
             # Just convert the data into a PyTorch tensor
             data = torch.from_numpy(df.to_numpy())
         if id_columns_idx is None:
-            # Find the column indeces for the ID columns
+            # Find the column indices for the ID columns
             id_columns_idx = [search_explore.find_col_idx(df, col) for col in [id_column, inst_column]]
 
     if dataset is None:
@@ -371,7 +377,7 @@ def optimize_hyperparameters(Model, config_name, comet_ml_api_key,
         # Get the train, validation and test sets data loaders, which will allow loading batches
         train_dataloader, val_dataloader, test_dataloader = create_train_sets(dataset, test_train_ratio=test_train_ratio,
                                                                               validation_ratio=validation_ratio,
-                                                                              batch_size=batch_size, get_indeces=False)
+                                                                              batch_size=batch_size, get_indices=False)
     # Start off with a minimum validation score of infinity
     val_loss_min = np.inf
 

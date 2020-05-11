@@ -719,7 +719,7 @@ def prepare_embed_bag(data, features=None):
     if not isinstance(data, torch.Tensor):
         raise Exception(f'ERROR: The `prepare_embed_bag` method only supports input data of type PyTorch tensor. Received input data of type {type(data)}.')
     if not isinstance(features, list):
-        raise Exception(f'ERROR: The one hot encoded columns must be specified as a list of column indeces. Received input `features` of type {type(features)}.')
+        raise Exception(f'ERROR: The one hot encoded columns must be specified as a list of column indices. Received input `features` of type {type(features)}.')
     if len(data.shape) == 3:
         # Isolate the one hot encoded columns
         ohe_data = data[:, :, features].int()
@@ -850,7 +850,7 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
         PyTorch layer(s) that applies the embedding bag, i.e. calculates the
         average embedding based on multiple encoded values.
     features : int or list of int or str or list of str or list of list of int
-        Index (or indeces) or name(s) of the categorical column(s) that will be
+        Index (or indices) or name(s) of the categorical column(s) that will be
         ran through its (or their) respective embedding layer(s). This feature(s)
         is (are) removed from the data tensor after the embedding columns are
         added. In case the input data is in a dataframe format, the feature(s)
@@ -929,7 +929,7 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
         # Remove the old categorical feature(s)
         feat_to_remove = [feature for feat_list in features for feature in feat_list]
     else:
-        raise Exception(f'ERROR: The user must either a single embedding bag and feature index or lists of embedding bag layers and feature indeces. The input `embedding_layer` has type {type(embedding_layer)} while `feature` has type {type(features)}.')
+        raise Exception(f'ERROR: The user must either a single embedding bag and feature index or lists of embedding bag layers and feature indices. The input `embedding_layer` has type {type(embedding_layer)} while `feature` has type {type(features)}.')
     # [TODO] Implement the case of using dataframe inputs instead of tensors
     # [TODO] Implement the option of using individual encoded features instead of ohe
     if isinstance(data_emb, torch.Tensor):

@@ -916,7 +916,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                     cat_arr = df[categ_columns].to_numpy()
                     if isinstance(categ_columns, list) and len(categ_columns) > 1:
                         # Convert the sets of values into tuples so as to be
-                        # properly readable as dataframe indeces
+                        # properly readable as dataframe indices
                         cat_arr = list(map(tuple, cat_arr))
                     # Get the mean and standard deviation values in the same
                     # order as the original dataframe's row order
@@ -935,11 +935,11 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                 # Dictionaries to retrieve the mean and standard deviation values
                 column_means = dict(means)
                 column_stds = dict(stds)
-                # Dictionary to convert the the tensor's column indeces into the dataframe's column names
+                # Dictionary to convert the the tensor's column indices into the dataframe's column names
                 idx_to_name = dict(enumerate(df.columns))
-                # Dictionary to convert the dataframe's column names into the tensor's column indeces
+                # Dictionary to convert the dataframe's column names into the tensor's column indices
                 name_to_idx = dict([(t[1], t[0]) for t in enumerate(df.columns)])
-                # List of indeces of the tensor's columns which are needing normalization
+                # List of indices of the tensor's columns which are needing normalization
                 tensor_columns_to_normalize = [name_to_idx[name] for name in columns_to_normalize]
                 # Normalize the right columns
                 print(f'z-score normalizing columns {columns_to_normalize}...')
@@ -1028,7 +1028,7 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                     cat_arr = df[categ_columns].to_numpy()
                     if isinstance(categ_columns, list) and len(categ_columns) > 1:
                         # Convert the sets of values into tuples so as to be
-                        # properly readable as dataframe indeces
+                        # properly readable as dataframe indices
                         cat_arr = list(map(tuple, cat_arr))
                     # Get the minimum and maximum values in the same
                     # order as the original dataframe's row order
@@ -1046,11 +1046,11 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                 # Dictionaries to retrieve the min and max values
                 column_mins = dict(mins)
                 column_maxs = dict(maxs)
-                # Dictionary to convert the the tensor's column indeces into the dataframe's column names
+                # Dictionary to convert the the tensor's column indices into the dataframe's column names
                 idx_to_name = dict(enumerate(df.columns))
-                # Dictionary to convert the dataframe's column names into the tensor's column indeces
+                # Dictionary to convert the dataframe's column names into the tensor's column indices
                 name_to_idx = dict([(t[1], t[0]) for t in enumerate(df.columns)])
-                # List of indeces of the tensor's columns which are needing normalization
+                # List of indices of the tensor's columns which are needing normalization
                 tensor_columns_to_normalize = [name_to_idx[name] for name in columns_to_normalize]
                 # Normalize the right columns
                 print(f'min-max normalizing columns {columns_to_normalize}...')
@@ -1216,13 +1216,13 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
         # Otherwise, the tensor is denormalized
         else:
             if columns_to_denormalize is not False:
-                # Dictionary to convert the the tensor's column indeces into the dataframe's column names
+                # Dictionary to convert the the tensor's column indices into the dataframe's column names
                 idx_to_name = dict(enumerate(df.columns))
 
-                # Dictionary to convert the dataframe's column names into the tensor's column indeces
+                # Dictionary to convert the dataframe's column names into the tensor's column indices
                 name_to_idx = dict([(t[1], t[0]) for t in enumerate(df.columns)])
 
-                # List of indeces of the tensor's columns which are needing denormalization
+                # List of indices of the tensor's columns which are needing denormalization
                 tensor_columns_to_denormalize = [name_to_idx[name] for name in columns_to_denormalize]
 
                 # Normalize the right columns
@@ -1285,13 +1285,13 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
         # Otherwise, the tensor is denormalized
         else:
             if columns_to_denormalize is not False:
-                # Dictionary to convert the the tensor's column indeces into the dataframe's column names
+                # Dictionary to convert the the tensor's column indices into the dataframe's column names
                 idx_to_name = dict(enumerate(df.columns))
 
-                # Dictionary to convert the dataframe's column names into the tensor's column indeces
+                # Dictionary to convert the dataframe's column names into the tensor's column indices
                 name_to_idx = dict([(t[1], t[0]) for t in enumerate(df.columns)])
 
-                # List of indeces of the tensor's columns which are needing denormalization
+                # List of indices of the tensor's columns which are needing denormalization
                 tensor_columns_to_denormalize = [name_to_idx[name] for name in columns_to_denormalize]
 
                 # Normalize the right columns

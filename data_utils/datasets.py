@@ -102,7 +102,7 @@ class Time_Series_Dataset(Dataset):
         elif self.data_type == 'dataframe':
             # Get the sequence ID
             seq = self.seq_items[item]
-            # Find the indeces of the dataframes
+            # Find the indices of the dataframes
             idx = self.X.index[self.X[self.id_column_num] == seq]
             # Get the data
             x_t = self.X.iloc[idx]

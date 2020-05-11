@@ -231,7 +231,7 @@ def remove_from_list(data, to_remove, update_idx=False):
     if isinstance(to_remove, int) or isinstance(to_remove, float) or isinstance(to_remove, str):
         # Make sure that the values to remove are in a list format, even if it's just one
         to_remove = [to_remove]
-    # Check if we need to update the values, in case they'll be used as indeces
+    # Check if we need to update the values, in case they'll be used as indices
     update_idx = all([isinstance(val, int) for val in to_remove]) and update_idx is True
     for val in to_remove:
         data.remove(val)

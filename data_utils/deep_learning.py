@@ -205,7 +205,7 @@ def inference_iter_multi_var_rnn(model, features, labels,
         Value to use in the padding, to fill the sequences.
     output_rounded : bool, default False
     cols_to_remove : list of ints, default [0, 1]
-        List of indeces of columns to remove from the features before feeding to
+        List of indices of columns to remove from the features before feeding to
         the model. This tend to be the identifier columns, such as `subject_id`
         and `ts` (timestamp).
     is_train : bool, default True
@@ -308,7 +308,7 @@ def inference_iter_mlp(model, features, labels, cols_to_remove=0,
     labels : torch.Tensor
         Tensor that contains the labels for each row.
     cols_to_remove : int or list of ints, default 0
-        Index or list of indeces of columns to remove from the features before
+        Index or list of indices of columns to remove from the features before
         feeding to the model. This tend to be the identifier columns, such as
         `subject_id` and `ts` (timestamp).
     is_train : bool, default True
@@ -435,7 +435,7 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
         If set to true, the function only returns the ouputs given at each
         sequence's end.
     cols_to_remove : list of ints, default [0, 1]
-        List of indeces of columns to remove from the features before feeding to
+        List of indices of columns to remove from the features before feeding to
         the model. This tend to be the identifier columns, such as `subject_id`
         and `ts` (timestamp).
     already_embedded : bool, default False
@@ -494,6 +494,7 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
             # Find the original sequence lengths
             seq_lengths = search_explore.find_seq_len(labels, padding_value=padding_value)
         else:
+            # No need to find the sequence lengths now
             seq_lengths = None
         if on_gpu is True:
             # Move data to GPU
@@ -609,6 +610,7 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
                 # Find the original sequence lengths
                 seq_lengths = search_explore.find_seq_len(labels, padding_value=padding_value)
             else:
+                # No need to find the sequence lengths now
                 seq_lengths = None
             if on_gpu is True:
                 # Move data to GPU
@@ -784,7 +786,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
         information, when we couldn't have known this for the whole data
         beforehand.
     cols_to_remove : list of ints, default [0, 1]
-        List of indeces of columns to remove from the features before feeding to
+        List of indices of columns to remove from the features before feeding to
         the model. This tend to be the identifier columns, such as `subject_id`
         and `ts` (timestamp).
     model_type : string, default 'multivariate_rnn'
@@ -935,6 +937,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                 # Find the original sequence lengths
                 seq_lengths = search_explore.find_seq_len(labels, padding_value=padding_value)
             else:
+                # No need to find the sequence lengths now
                 seq_lengths = None
             # Activate dropout to train the model
             model.train()
@@ -1004,6 +1007,12 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                     features, labels = features.squeeze(), labels.squeeze()
                 # Turn off gradients for validation, saves memory and computations
                 with torch.no_grad():
+                    if is_custom is False or seq_final_outputs is True:
+                        # Find the original sequence lengths
+                        seq_lengths = search_explore.find_seq_len(labels, padding_value=padding_value)
+                    else:
+                        # No need to find the sequence lengths now
+                        seq_lengths = None
                     if on_gpu is True:
                         # Move data to GPU
                         features, labels = features.cuda(), labels.cuda()

@@ -35,7 +35,7 @@ def get_sequence_length_dict(df, id_column='subject_id', ts_column='ts'):
         the id_column) and the values should be the length of each sequence.
     '''
     if isinstance(id_column, int) and isinstance(ts_column, int):
-        # Convert the column indeces to the column names
+        # Convert the column indices to the column names
         column_names = list(df.columns)
         id_column = column_names[id_column]
         ts_column = column_names[ts_column]
@@ -140,7 +140,7 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column='subject_id',
         bool_feat = search_explore.list_boolean_columns(data_df)
         # Make sure that none of the ID columns are considered boolean
         bool_feat = list(set(bool_feat) - set([id_column, ts_column, label_column]))
-        # Get the indeces of the boolean features
+        # Get the indices of the boolean features
         bool_feat = [search_explore.find_col_idx(data_df, feature) for feature in bool_feat]
     elif isinstance(bool_feat, str):
         # Get the index of the boolean feature
@@ -214,7 +214,7 @@ def sort_by_seq_len(data, seq_len_dict, labels=None, id_column=0):
         sorted_data = data
         sorted_labels = labels
     else:
-        # Sorted indeces to get the data sorted by sequence length
+        # Sorted indices to get the data sorted by sequence length
         data_sorted_idx = list(np.argsort(x_lengths)[::-1])
         # Sort the x_lengths array by descending sequence length
         x_lengths = [x_lengths[idx] for idx in data_sorted_idx]
