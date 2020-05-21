@@ -183,7 +183,7 @@ def inference_iter_multi_var_rnn(model, features, labels,
                                  padding_value=999999, cols_to_remove=[0, 1],
                                  is_train=False, prob_output=True, optimizer=None,
                                  is_custom=False, already_embedded=False,
-                                 seq_lengths=None):
+                                 seq_lengths=None, distributed_train=False):
     '''Run a single inference or training iteration on a Recurrent Neural Network (RNN),
     applied to multivariate data, such as EHR. Performance metrics still need to be
     calculated after executing this method.
@@ -228,6 +228,10 @@ def inference_iter_multi_var_rnn(model, features, labels,
         layer(s) during the model's feedforward.
     seq_lengths : list or numpy.ndarray or torch.Tensor
         List of sequence lengths, relative to the input data.
+    distributed_train : bool, default False
+        Indicates whether the model is wrapped in a DistributedDataParallel 
+        wrapper (i.e. if the model is being trained in a distributed training
+        context).
 
     Returns
     -------
@@ -259,30 +263,37 @@ def inference_iter_multi_var_rnn(model, features, labels,
     else:
         scores = model.forward(features, get_hidden_state=False, prob_output=False,
                                already_embedded=already_embedded)
+    if distributed_train is True:
+        # Get the original model's custom attributes and methods
+        model_loss = model.module.loss
+        model_n_outputs = model.module.n_outputs
+    else:
+        model_loss = model.loss
+        model_n_outputs = model.n_outputs
     # Calculate the negative log likelihood loss
-    loss = model.loss(scores, labels)
+    loss = model_loss(scores, labels)
     if is_train is True:
         # Backpropagate the loss and update the model's weights
         loss.backward()
         optimizer.step()
     # Create a mask by filtering out all labels that are not a padding value
-    mask = (labels <= 1).view_as(scores)
+    mask = (labels != padding_value).view_as(scores)
     # Completely remove the padded values from the labels and the scores using the mask
     unpadded_labels = torch.masked_select(labels.contiguous().view_as(scores), mask)
     unpadded_scores = torch.masked_select(scores, mask)
     if prob_output is True:
         # Get the outputs in the form of probabilities
-        if model.n_outputs == 1:
+        if model_n_outputs == 1:
             unpadded_scores = sigmoid(unpadded_scores)
         else:
             # Normalize outputs on their last dimension
             unpadded_scores = softmax(unpadded_scores, dim=len(unpadded_scores.shape)-1)
     # Get the top class (highest output probability) and find the samples where they are correct
-    if model.n_outputs == 1:
+    if model_n_outputs == 1:
         if prob_output is True:
             pred = torch.round(unpadded_scores)
         else:
-            if model.n_outputs == 1:
+            if model_n_outputs == 1:
                 pred = torch.round(sigmoid(unpadded_scores))
             else:
                 pred = torch.round(softmax(unpadded_scores))
@@ -493,9 +504,12 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
         if is_custom is False or seq_final_outputs is True:
             # Find the original sequence lengths
             seq_lengths = search_explore.find_seq_len(labels, padding_value=padding_value)
+            # [TODO] Dynamically calculate and pad according to the current batch's maximum sequence length
+            # total_length = max(seq_lengths)
         else:
             # No need to find the sequence lengths now
             seq_lengths = None
+            # total_length = None
         if on_gpu is True:
             # Move data to GPU
             features, labels = features.cuda(), labels.cuda()
@@ -609,9 +623,12 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
             if is_custom is False or seq_final_outputs is True:
                 # Find the original sequence lengths
                 seq_lengths = search_explore.find_seq_len(labels, padding_value=padding_value)
+                # [TODO] Dynamically calculate and pad according to the current batch's maximum sequence length
+                # total_length = max(seq_lengths)
             else:
                 # No need to find the sequence lengths now
                 seq_lengths = None
+                # total_length = None
             if on_gpu is True:
                 # Move data to GPU
                 features, labels = features.cuda(), labels.cuda()
@@ -933,12 +950,15 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
             if dataset is not None:
                 # Make sure that the data has the right amount of dimensions
                 features, labels = features.squeeze(), labels.squeeze()
-            if is_custom is False or seq_final_outputs is True:
+            if is_custom is False:
                 # Find the original sequence lengths
                 seq_lengths = search_explore.find_seq_len(labels, padding_value=padding_value)
+                # [TODO] Dynamically calculate and pad according to the current batch's maximum sequence length
+                # total_length = max(seq_lengths)
             else:
                 # No need to find the sequence lengths now
                 seq_lengths = None
+                # total_length = None
             # Activate dropout to train the model
             model.train()
             # Clear the gradients of all optimized variables
@@ -1007,12 +1027,15 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                     features, labels = features.squeeze(), labels.squeeze()
                 # Turn off gradients for validation, saves memory and computations
                 with torch.no_grad():
-                    if is_custom is False or seq_final_outputs is True:
+                    if is_custom is False:
                         # Find the original sequence lengths
                         seq_lengths = search_explore.find_seq_len(labels, padding_value=padding_value)
+                        # [TODO] Dynamically calculate and pad according to the current batch's maximum sequence length
+                        # total_length = max(seq_lengths)
                     else:
                         # No need to find the sequence lengths now
                         seq_lengths = None
+                        # total_length = None
                     if on_gpu is True:
                         # Move data to GPU
                         features, labels = features.cuda(), labels.cuda()

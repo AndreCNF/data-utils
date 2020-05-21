@@ -4,12 +4,15 @@ from comet_ml import Experiment                         # Comet.ml can log train
 import torch                                            # PyTorch to create and apply deep learning models
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 from importlib import reload                            # Allows to reload (import again) modules, which make them rerun their initialization
+import random
 
 # Random seed used in PyTorch and NumPy's random operations (such as weight initialization)
 # Automatic seed
 random_seed = np.random.get_state()
+random.seed(random_seed[1][0])
 np.random.set_state(random_seed)
 torch.manual_seed(random_seed[1][0])
+torch.cuda.manual_seed_all(random_seed[1][0])
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 # Boolean that sets whether to use the original Pandas library or the Modin distributed version
@@ -43,8 +46,10 @@ def set_random_seed(num):
     '''
     global random_seed
     random_seed = num
+    random.seed(random_seed)
     np.random.seed(random_seed)
     torch.manual_seed(random_seed)
+    torch.cuda.manual_seed_all(random_seed)
     return
 
 
