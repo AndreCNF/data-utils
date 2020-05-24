@@ -1,6 +1,7 @@
 import colorlover as cl                                 # Get colors from colorscales
 import plotly.graph_objs as go                          # Plotly for interactive and pretty plots
 import dash_core_components as dcc                      # Dash components to be used in a dashboard
+import dash_bootstrap_components as dbc                 # Dash bootstrap components
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import data_utils as du
 
@@ -532,3 +533,94 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
         )
     else:
         raise Exception(f'ERROR: Invalid output type {output_type}. Only `figure`, `plotly` and `dash` are currently supported.')
+
+
+def shap_salient_features(shap_values, features, feature_names,
+                          max_display=10, background_color='white',
+                          increasing_color='red',
+                          decreasing_color='blue',
+                          dash_id='some_shap_salient_feat_list', dash_height=None,
+                          dash_width=None, font_family='Roboto', font_size=14,
+                          font_color='black'):
+    '''Create a list of the most salient features, and their corresponding 
+    maximum impact values, based on SHAP values. Only works in Dash, with
+    bootstrap components.
+
+    Parameters
+    ----------
+    shap_values : numpy.array
+        Two dimensional array of SHAP values.
+    features : numpy.array
+        Two dimensional array of feature values. This provides the values of all
+        the features, and should be the same shape as the shap_values argument.
+    feature_names : list
+        List of feature names (# features).
+    max_display : str
+        The maximum number of features to show.
+    background_color : str, default 'white'
+        The plot's background color. Can be set in color name (e.g. 'white'),
+        hexadecimal code (e.g. '#555') or RGB (e.g. 'rgb(0,0,255)').
+    line_color : str, default 'gray'
+        The waterfall plot's connector color. Can be set in color name
+        (e.g. 'white'), hexadecimal code (e.g. '#555') or RGB (e.g. 'rgb(0,0,255)').
+    increasing_color : str, default 'red'
+        Color of the waterfall bars that indicate an increasing value.
+    decreasing_color : str, default 'blue'
+        Color of the waterfall bars that indicate a decreasing value.
+    output_type : str, default 'plotly'
+        The format on which the output is presented. Available options are
+        'dash', `plotly` and 'figure'.
+    dash_id : str, default 'some_shap_salient_feat_list'
+        ID to be used in Dash.
+    dash_height : str, default None
+        Height value to be used in the Dash graph.
+    dash_width : str, default None
+        Width value to be used in the Dash graph.
+    font_family : str, default 'Roboto'
+        Text font family to be used in the numbers shown next to the graph.
+    font_size : int, default 14
+        Text font size to be used in the numbers shown next to the graph.
+    font_color : str, default 'black'
+        Text font color to be used in the numbers shown next to the graph. Can
+        be set in color name (e.g. 'white'), hexadecimal code (e.g. '#555') or
+        GB (e.g. 'rgb(0,0,255)').
+
+    Returns
+    -------
+    salient_feat : list of dbc.ListGroupItem
+        List of the most salient features, ready to be used in a dashboard.
+    '''
+    # [TODO] Add support for a single sample (1D) or multiple sequences (3D)
+    if len(shap_values.shape) != 2:
+        raise Exception(f'ERROR: Expected a sequence of data, i.e. a two dimensional array. Received a {shap_values.shape}D input.')
+    # Create a dictionary to match each feature to its biggest absolute value,
+    # the corresponding feature value (found by the data point's index)
+    # and color (according to the SHAP value sign)
+    saliency_dict = dict()
+    # Indices of the maximum absolute SHAP value for each feature
+    abs_shap = abs(shap_values)
+    max_abs_shap_val_idx = np.argmax(abs_shap, axis=-1)
+    for feat_num in range(shap_values.shape[-1]):
+        # Get the feature name, maximum absolute SHAP value and data value
+        feature = feature_names[feat_num]
+        saliency_dict['feature']['max_abs_shap_val'] = shap_values[max_abs_shap_val_idx[feat_num], feat_num]
+        saliency_dict['feature']['data_val'] = features[max_abs_shap_val_idx[feat_num], feat_num]
+        # Set the Dash list item color
+        if saliency_dict['feature']['max_abs_shap_val'] > 0:
+            saliency_dict['feature']['dash_color'] = increasing_color 
+        else:
+            saliency_dict['feature']['dash_color'] = decreasing_color
+    # Sort the features by their maximum SHAP value
+    saliency_dict = sorted(x.items(), key=lambda item: abs(item[1]['max_abs_shap_val']))
+    # Filter to the top `max_display` features
+    if max_display is None or max_display > len(saliency_dict):
+        max_display = len(saliency_dict)
+    # Create the Dash list
+    count = 0
+    salient_feat = list()
+    for feature, vals in saliency_dict.items():
+        list_item = dbc.ListGroupItem(f'{feature} = {saliency_dict[feature]['data_val']}',
+                                      color=saliency_dict[feature]['dash_color'])
+        salient_feat.append(list_item)
+        count += 1
+    return salient_feat
