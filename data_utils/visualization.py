@@ -537,11 +537,11 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
 
 def shap_salient_features(shap_values, features, feature_names,
                           max_display=10, background_color='white',
-                          increasing_color='red',
-                          decreasing_color='blue',
-                          dash_id='some_shap_salient_feat_list', dash_height=None,
-                          dash_width=None, font_family='Roboto', font_size=14,
-                          font_color='black'):
+                          increasing_color='success',
+                          decreasing_color='danger',
+                          font_family='Roboto', font_size=14,
+                          font_color='black',
+                          dash_height=None, dash_width=None):
     '''Create a list of the most salient features, and their corresponding 
     maximum impact values, based on SHAP values. Only works in Dash, with
     bootstrap components.
@@ -570,8 +570,6 @@ def shap_salient_features(shap_values, features, feature_names,
     output_type : str, default 'plotly'
         The format on which the output is presented. Available options are
         'dash', `plotly` and 'figure'.
-    dash_id : str, default 'some_shap_salient_feat_list'
-        ID to be used in Dash.
     dash_height : str, default None
         Height value to be used in the Dash graph.
     dash_width : str, default None
@@ -599,19 +597,22 @@ def shap_salient_features(shap_values, features, feature_names,
     saliency_dict = dict()
     # Indices of the maximum absolute SHAP value for each feature
     abs_shap = abs(shap_values)
-    max_abs_shap_val_idx = np.argmax(abs_shap, axis=-1)
+    max_abs_shap_val_idx = np.argmax(abs_shap, axis=0)
     for feat_num in range(shap_values.shape[-1]):
         # Get the feature name, maximum absolute SHAP value and data value
         feature = feature_names[feat_num]
-        saliency_dict['feature']['max_abs_shap_val'] = shap_values[max_abs_shap_val_idx[feat_num], feat_num]
-        saliency_dict['feature']['data_val'] = features[max_abs_shap_val_idx[feat_num], feat_num]
+        saliency_dict[feature] = dict()
+        saliency_dict[feature]['max_abs_shap_val'] = shap_values[max_abs_shap_val_idx[feat_num], feat_num]
+        saliency_dict[feature]['data_val'] = features[max_abs_shap_val_idx[feat_num], feat_num]
         # Set the Dash list item color
-        if saliency_dict['feature']['max_abs_shap_val'] > 0:
-            saliency_dict['feature']['dash_color'] = increasing_color 
+        if saliency_dict[feature]['max_abs_shap_val'] > 0:
+            saliency_dict[feature]['dash_color'] = increasing_color 
         else:
-            saliency_dict['feature']['dash_color'] = decreasing_color
-    # Sort the features by their maximum SHAP value
-    saliency_dict = sorted(x.items(), key=lambda item: abs(item[1]['max_abs_shap_val']))
+            saliency_dict[feature]['dash_color'] = decreasing_color
+    # Sort the features by their maximum SHAP value, in a descending order
+    saliency_dict = sorted(saliency_dict.items(), key=lambda item: abs(item[1]['max_abs_shap_val']))
+    saliency_dict.reverse()
+    saliency_dict = dict(saliency_dict)
     # Filter to the top `max_display` features
     if max_display is None or max_display > len(saliency_dict):
         max_display = len(saliency_dict)
@@ -619,8 +620,11 @@ def shap_salient_features(shap_values, features, feature_names,
     count = 0
     salient_feat = list()
     for feature, vals in saliency_dict.items():
-        list_item = dbc.ListGroupItem(f'{feature} = {saliency_dict[feature]['data_val']}',
+        list_item = dbc.ListGroupItem(f'{feature} = {saliency_dict[feature]["data_val"]}',
                                       color=saliency_dict[feature]['dash_color'])
         salient_feat.append(list_item)
         count += 1
+        if count == max_display:
+            # Stop displaying more feature values if the specified limit has been reached
+            break
     return salient_feat
