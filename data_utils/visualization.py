@@ -322,8 +322,9 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
                         line_color='gray', increasing_color='red',
                         decreasing_color='blue', output_type='plotly',
                         dash_id='some_shap_summary_plot', dash_height=None,
-                        dash_width=None, font_family='Roboto', font_size=14,
-                        font_color='black'):
+                        dash_width=None, expected_value_ind_height=0,
+                        output_ind_height=10, font_family='Roboto', 
+                        font_size=14, font_color='black'):
     '''Do a waterfall plot on a single sample, based on SHAP values, showing
     each feature's contribution to the corresponding output.
 
@@ -360,6 +361,10 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
         Height value to be used in the Dash graph.
     dash_width : str, default None
         Width value to be used in the Dash graph.
+    expected_value_ind_height : int, default 0
+        Height of the expected value indicator.
+    output_ind_height : int, default 10
+        Height of the output indicator.
     font_family : str, default 'Roboto'
         Text font family to be used in the numbers shown next to the graph.
     font_size : int, default 14
@@ -418,7 +423,6 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
         hovertext = [f'{feature}={val}' if du.utils.is_integer(val) else f'{feature}={val:.2e}'
                      for (feature, val) in zip(sorted_feature_names, sorted_features)]
     # Create the figure
-    # [TODO] Fix the xaxis positioning to center on the expected value
     figure=dict(
         data=[dict(
             type='waterfall',
@@ -455,7 +459,7 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
                     showarrow=True,
                     arrowhead=0,
                     ax=0,
-                    ay=30
+                    ay=expected_value_ind_height
                 ),
                 # Output value indicator
                 dict(
@@ -469,7 +473,7 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
                     showarrow=True,
                     arrowhead=0,
                     ax=0,
-                    ay=10
+                    ay=output_ind_height
                 )
             ],
             shapes=[
