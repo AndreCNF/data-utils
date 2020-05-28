@@ -133,7 +133,7 @@ def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_bette
     if higher_is_better:
         color = perf_colors[int(max((value/max_val)*len(perf_colors)-1, 0))]
     else:
-        perf_colors[len(perf_colors)-1-int(max((value/max_val)*len(perf_colors)-1, 0))]
+        color = perf_colors[len(perf_colors)-1-int(max((value/max_val)*len(perf_colors)-1, 0))]
     # Define if the value and the delta is shown next to the plot
     if show_number and show_delta:
         mode='number+gauge+delta'

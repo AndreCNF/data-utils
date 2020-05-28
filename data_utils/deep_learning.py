@@ -1107,7 +1107,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                 torch.save(checkpoint, f'{models_path}{model_filename}')
                 if log_comet_ml is True and comet_ml_save_model is True:
                     # Upload the model to Comet.ml
-                    experiment.log_asset(file_data=model_filename, overwrite=True)
+                    experiment.log_model(name=model_filename, file_or_folder=f'{models_path}{model_filename}', overwrite=True)
         # except Exception as e:
         #     warnings.warn(f'There was a problem doing training epoch {epoch}. Ending current epoch. Original exception message: "{str(e)}"')
         # try:
