@@ -162,11 +162,11 @@ description = "Supercharging Machine Learning"
 name = "comet-ml"
 optional = false
 python-versions = "*"
-version = "3.1.2"
+version = "3.1.10"
 
 [package.dependencies]
 comet-git-pure = ">=0.19.11"
-jsonschema = ">=2.6.0,<3.1.0"
+jsonschema = ">=2.6.0,<3.1.0 || >3.1.0"
 netifaces = ">=0.10.7"
 nvidia-ml-py3 = ">=7.352.0"
 requests = ">=2.18.4"
@@ -929,29 +929,35 @@ description = "A system for parallel and distributed Python that unifies the ML 
 name = "ray"
 optional = false
 python-versions = "*"
-version = "0.8.4"
+version = "0.9.0.dev0"
 
 [package.dependencies]
 aiohttp = "*"
-click = "*"
+click = ">=7.0"
 colorama = "*"
 filelock = "*"
 google = "*"
 grpcio = "*"
 jsonschema = "*"
+msgpack = ">=0.6.0,<2.0.0"
 numpy = ">=1.16"
 protobuf = ">=3.8.0"
 py-spy = ">=0.2.0"
 pyyaml = "*"
-redis = ">=3.3.2"
+redis = ">=3.3.2,<3.5.0"
 
 [package.extras]
-all = ["dm-tree", "atari-py", "opencv-python-headless", "flask", "pygments", "msgpack (>=0.6.2)", "werkzeug", "tensorboardx", "scipy", "uvicorn", "blist", "lz4", "pyyaml", "gym", "requests", "pandas", "tabulate"]
-dashboard = ["requests"]
+all = ["gym", "blist", "uvicorn", "lz4", "opencv-python-headless", "gpustat", "flask", "tabulate", "tensorboardx", "msgpack (>=0.6.2)", "scipy", "dm-tree", "pandas", "requests", "atari-py", "pyyaml"]
+dashboard = ["requests", "gpustat"]
 rllib = ["tabulate", "tensorboardx", "pandas", "atari-py", "dm-tree", "gym", "lz4", "opencv-python-headless", "pyyaml", "scipy"]
-serve = ["uvicorn", "pygments", "werkzeug", "flask", "pandas", "blist"]
+serve = ["uvicorn", "flask", "blist"]
 streaming = ["msgpack (>=0.6.2)"]
 tune = ["tabulate", "tensorboardx", "pandas"]
+
+[package.source]
+reference = ""
+type = "url"
+url = "https://ray-wheels.s3-us-west-2.amazonaws.com/master/ddb9368f2c57bf18536f72bcd636ed876fe2c0db/ray-0.9.0.dev0-cp37-cp37m-macosx_10_13_intel.whl"
 
 [[package]]
 category = "main"
@@ -1317,7 +1323,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools"]
 
 [metadata]
-content-hash = "0d9c3a23398d477b5fa1d77fb7113152b6eda455d02e3e11583f7ed7431f881c"
+content-hash = "ef55f2c02d36fafef1337b9012206fba9541e826d49a4b35ff82a5716d57f43e"
 python-versions = "^3.6.1"
 
 [metadata.files]
@@ -1389,8 +1395,8 @@ comet-git-pure = [
     {file = "comet_git_pure-0.19.14-py3-none-any.whl", hash = "sha256:82d292a1253e7a022155ed7688542cb4155b49d580880aaf4359f3c2d7f694fd"},
 ]
 comet-ml = [
-    {file = "comet_ml-3.1.2-py2.py3-none-any.whl", hash = "sha256:db631859242432b38228b0f35bc2860925df3ebf087999769ae67f1a14374221"},
-    {file = "comet_ml-3.1.2.tar.gz", hash = "sha256:8485669cbe3e71d3f031fe4790a6563bca38c35f17fa1d251827547d005fcefe"},
+    {file = "comet_ml-3.1.10-py2.py3-none-any.whl", hash = "sha256:6750ddb7ee974230fd71a788eecc7c7e2ba2fe2b924866bbc50812a1f6a1d0c9"},
+    {file = "comet_ml-3.1.10.tar.gz", hash = "sha256:f12026bb4fd10da0101af9f7dbebff55b93b66bfe37754fd0c3711a14159eefd"},
 ]
 dash = [
     {file = "dash-1.12.0.tar.gz", hash = "sha256:aa9bed7b7d85b9bdf4ac1669d206a86024098d1b2b3a88b0bce12012979939a5"},
@@ -1856,16 +1862,7 @@ pyyaml = [
     {file = "PyYAML-5.3-cp38-cp38-win_amd64.whl", hash = "sha256:cb1f2f5e426dc9f07a7681419fe39cee823bb74f723f36f70399123f439e9b20"},
     {file = "PyYAML-5.3.tar.gz", hash = "sha256:e9f45bd5b92c7974e59bcd2dcc8631a6b6cc380a904725fce7bc08872e691615"},
 ]
-ray = [
-    {file = "ray-0.8.4-cp35-cp35m-macosx_10_13_intel.whl", hash = "sha256:a8a5ee91c3675942710d191ec4a8ec006242ed812a28e24ab49e8a8d8f14d2e2"},
-    {file = "ray-0.8.4-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:d7329cf856d81c59b0dcffe3ac8b5c244c64bf59652c2bfc8301feca39e4da5e"},
-    {file = "ray-0.8.4-cp36-cp36m-macosx_10_13_intel.whl", hash = "sha256:c894c681b221e337ace0b3f4a157fc0fb639bf653f5d4f4a9902b9c95af0a0f5"},
-    {file = "ray-0.8.4-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:347e0282fc7c83fd1e2e0c1c0b2c9c486335f11a31154ed4c659ad9ee9b27548"},
-    {file = "ray-0.8.4-cp37-cp37m-macosx_10_13_intel.whl", hash = "sha256:8f8e8326db699d6adca971541bd76b57c642e804fd8432a1f009f7c6725f41fa"},
-    {file = "ray-0.8.4-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:f2cca186a9f8a18f9d58eadcd8ea126addc3192e922f36a7ced46b8b8904ac65"},
-    {file = "ray-0.8.4-cp38-cp38-macosx_10_13_x86_64.whl", hash = "sha256:a63cb71dd69bf5c70ffca06d244f1450e6eb9d2f84685c412a4a9184999e531a"},
-    {file = "ray-0.8.4-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:d9686f0f8c68cccb5d21d4ec3fb0741042f0681cd6ea2d2b950355c207285c4d"},
-]
+ray = []
 redis = [
     {file = "redis-3.4.1-py2.py3-none-any.whl", hash = "sha256:b205cffd05ebfd0a468db74f0eedbff8df1a7bfc47521516ade4692991bb0833"},
     {file = "redis-3.4.1.tar.gz", hash = "sha256:0dcfb335921b88a850d461dc255ff4708294943322bd55de6cfd68972490ca1f"},
