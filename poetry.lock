@@ -947,7 +947,7 @@ pyyaml = "*"
 redis = ">=3.3.2,<3.5.0"
 
 [package.extras]
-all = ["gym", "blist", "uvicorn", "lz4", "opencv-python-headless", "gpustat", "flask", "tabulate", "tensorboardx", "msgpack (>=0.6.2)", "scipy", "dm-tree", "pandas", "requests", "atari-py", "pyyaml"]
+all = ["opencv-python-headless", "pyyaml", "atari-py", "tabulate", "lz4", "flask", "pandas", "requests", "gpustat", "tensorboardx", "uvicorn", "gym", "msgpack (>=0.6.2)", "blist", "scipy", "dm-tree"]
 dashboard = ["requests", "gpustat"]
 rllib = ["tabulate", "tensorboardx", "pandas", "atari-py", "dm-tree", "gym", "lz4", "opencv-python-headless", "pyyaml", "scipy"]
 serve = ["uvicorn", "flask", "blist"]
@@ -957,8 +957,7 @@ tune = ["tabulate", "tensorboardx", "pandas"]
 [package.source]
 reference = ""
 type = "url"
-url = "https://ray-wheels.s3-us-west-2.amazonaws.com/master/ddb9368f2c57bf18536f72bcd636ed876fe2c0db/ray-0.9.0.dev0-cp37-cp37m-macosx_10_13_intel.whl"
-
+url = "https://ray-wheels.s3-us-west-2.amazonaws.com/master/ddb9368f2c57bf18536f72bcd636ed876fe2c0db/ray-0.9.0.dev0-cp37-cp37m-manylinux1_x86_64.whl"
 [[package]]
 category = "main"
 description = "Python client for Redis key-value store"
@@ -1323,7 +1322,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools"]
 
 [metadata]
-content-hash = "ef55f2c02d36fafef1337b9012206fba9541e826d49a4b35ff82a5716d57f43e"
+content-hash = "06079798844ed9b9247c1eab1fa6d818804c5bf12c80b90239f74ddb7d55f5a7"
 python-versions = "^3.6.1"
 
 [metadata.files]
