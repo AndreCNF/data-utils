@@ -54,6 +54,7 @@ def set_bar_color(values, ids, seq_len, threshold=0,
         return [pos_color if val > 0 else neg_color for val in values[ids, :seq_len]]
 
 
+# [TODO] Add the "animate" parameter to the indicator_plot method
 def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_better=True,
                    background_color='white', output_type='plotly', dash_id='some_indicator',
                    dash_height=None, dash_width=None, show_number=True, show_delta=False,
@@ -92,7 +93,7 @@ def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_bette
     show_delta : bool, default False
         If set to True, the value's variation, based on a reference value, will
         be plotted.
-    ref_value : int, default None
+    ref_value : int or float, default None
         Reference value to use in the delta visualization.
     font_family : str, default 'Roboto'
         Text font family to be used in the numbers shown next to the graph.
