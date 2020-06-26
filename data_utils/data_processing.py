@@ -339,13 +339,13 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_value
         # Check if the column exists
         if col not in data_df.columns:
             raise Exception('ERROR: Column name not found in the dataframe.')
-        if has_nan is True:
-            # Fill NaN with "missing_value" name
-            data_df[col] = data_df[col].fillna(value='missing_value')
         if clean_name is True:
             # Clean the column's string values to have the same, standard format
             data_df = clean_categories_naming(data_df, col, clean_missing_values,
                                               specific_nan_strings, lower_case)
+        if has_nan is True:
+            # Fill NaN with "missing_value" name
+            data_df[col] = data_df[col].fillna(value='missing_value')
         # Cast the variable into the built in pandas Categorical data type
         if isinstance(data_df, pd.DataFrame):
             data_df[col] = pd.Categorical(data_df[col])
