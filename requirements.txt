@@ -10,11 +10,12 @@ cloudpickle==1.2.2
 colorama==0.4.3
 comet-git-pure==0.19.14
 comet-ml==3.1.12
-dash==1.12.0
-dash-core-components==1.10.0
+dash==1.13.4
+dash-bootstrap-components==0.10.2
+dash-core-components==1.10.1
 dash-html-components==1.0.3
-dash-renderer==1.4.1
-dash-table==4.7.0
+dash-renderer==1.5.1
+dash-table==4.8.1
 dask==2.10.1
 distributed==2.10.0
 docutils==0.16

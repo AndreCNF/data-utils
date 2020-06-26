@@ -240,7 +240,7 @@ def clean_categories_naming(df, column, clean_missing_values=True,
     specific_nan_strings : list of strings, default []
         Parameter where the user can specify additional strings that
         should correspond to missing values.
-    lower_case : bool, default True
+    lower_case : bool, default False
         If set to True, all strings will be converted to lower case.
 
     Returns
@@ -263,7 +263,8 @@ def clean_categories_naming(df, column, clean_missing_values=True,
 
 
 def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_values=True,
-                               specific_nan_strings=[], has_nan=False, join_rows=False,
+                               specific_nan_strings=[], lower_case=False,
+                               has_nan=False, join_rows=False,
                                join_by=['patientunitstayid', 'ts'],
                                get_new_column_names=False,
                                search_by_dtypes=False, inplace=False):
@@ -285,6 +286,8 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_value
     specific_nan_strings : list of strings, default []
         Parameter where the user can specify additional strings that
         should correspond to missing values.
+    lower_case : bool, default False
+        If set to True, all strings will be converted to lower case.
     has_nan : bool, default False
         If set to true, will first fill the missing values (NaN) with the string
         f'{column}_missing_value'.
@@ -341,7 +344,8 @@ def one_hot_encoding_dataframe(df, columns, clean_name=True, clean_missing_value
             data_df[col] = data_df[col].fillna(value='missing_value')
         if clean_name is True:
             # Clean the column's string values to have the same, standard format
-            data_df = clean_categories_naming(data_df, col, clean_missing_values, specific_nan_strings)
+            data_df = clean_categories_naming(data_df, col, clean_missing_values,
+                                              specific_nan_strings, lower_case)
         # Cast the variable into the built in pandas Categorical data type
         if isinstance(data_df, pd.DataFrame):
             data_df[col] = pd.Categorical(data_df[col])
