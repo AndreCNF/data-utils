@@ -777,7 +777,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
           comet_ml_api_key=None, comet_ml_project_name=None,
           comet_ml_workspace=None, comet_ml_save_model=False,
           experiment=None, features_list=None, get_val_loss_min=False,
-          already_embedded=False, see_progress=True):
+          already_embedded=False, verbose=False, see_progress=True):
     '''Trains a given model on the provided data.
 
     Parameters
@@ -883,6 +883,9 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
         If set to True, it means that the categorical features are already
         embedded when fetching a batch, i.e. there's no need to run the embedding
         layer(s) during the model's feedforward.
+    verbose : bool, default False
+        If set to True, a set of metrics and status indicators will be printed
+        throughout training.
     see_progress : bool, default True
         If set to True, a progress bar will show up indicating the execution
         of each loop.
@@ -1089,18 +1092,20 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                 val_auc_wgt = np.mean(val_auc_wgt)
 
             # Display validation loss
-            if step % print_every == 0:
+            if step % print_every == 0 and verbose is True:
                 print(f'Epoch {epoch} step {step}: Validation loss: {val_loss}; Validation Accuracy: {val_acc}; Validation AUC: {val_auc}')
             # Check if the performance obtained in the validation set is the best so far (lowest loss value)
             if val_loss < val_loss_min:
-                print(f'New minimum validation loss: {val_loss_min} -> {val_loss}.')
+                if verbose is True:
+                    print(f'New minimum validation loss: {val_loss_min} -> {val_loss}.')
                 # Update the minimum validation loss
                 val_loss_min = val_loss
                 # Get the current day and time to attach to the saved model's name
                 current_datetime = datetime.now().strftime('%d_%m_%Y_%H_%M')
                 # Filename and path where the model will be saved
                 model_filename = f'{model_name}_{val_loss:.4f}valloss_{current_datetime}.pth'
-                print(f'Saving model as {model_filename}')
+                if verbose is True:
+                    print(f'Saving model as {model_filename}')
                 # Save the best performing model so far, along with additional information to implement it
                 checkpoint = hyper_params
                 checkpoint['state_dict'] = model.state_dict()
@@ -1137,9 +1142,10 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                 experiment.log_metric('train_auc_wgt', train_auc_wgt, step=epoch)
                 experiment.log_metric('val_auc_wgt', val_auc_wgt, step=epoch)
         # Print a report of the epoch
-        print(f'Epoch {epoch}: Training loss: {train_loss}; Training Accuracy: {train_acc}; Training AUC: {train_auc}; \
-                Validation loss: {val_loss}; Validation Accuracy: {val_acc}; Validation AUC: {val_auc}')
-        print('----------------------')
+        if verbose is True:
+            print(f'Epoch {epoch}: Training loss: {train_loss}; Training Accuracy: {train_acc}; Training AUC: {train_auc}; \
+                    Validation loss: {val_loss}; Validation Accuracy: {val_acc}; Validation AUC: {val_auc}')
+            print('----------------------')
         # except Exception as e:
         #     warnings.warn(f'There was a problem printing metrics from epoch {epoch}. Original exception message: "{str(e)}"')
 

@@ -97,12 +97,6 @@ def create_train_sets(dataset, test_train_ratio=0.2, validation_ratio=0.1, batch
         model's performance on a test set, after finishing the
         training process.
     '''
-    print(f'''DEBUG: Now inside the `create_train_sets` method. Relevant inputs:
-              \ntrain_indices is None? {train_indices is None}
-              \nval_indices is None? {val_indices is None}
-              \ntest_indices is None? {test_indices is None}
-              \ntest_train_ratio = {test_train_ratio}
-              \nvalidation_ratio = {validation_ratio}''')
     if (train_indices is None
     or val_indices is None
     or test_indices is None):
