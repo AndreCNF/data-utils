@@ -173,7 +173,8 @@ def optimize_hyperparameters(Model, config_name, comet_ml_api_key,
                              padding_value=999999, batch_size=32,
                              n_epochs=10, lr=0.001, test_train_ratio=0.2,
                              validation_ratio=0.1, comet_ml_save_model=True,
-                             already_embedded=False, **kwargs):
+                             already_embedded=False, verbose=False,
+                             show_progress=True, **kwargs):
     '''Optimize a machine learning model's hyperparameters, by training it
     several times while exploring different hyperparameters values, returning
     the best performing ones.
@@ -291,6 +292,12 @@ def optimize_hyperparameters(Model, config_name, comet_ml_api_key,
         If set to True, it means that the categorical features are already
         embedded when fetching a batch, i.e. there's no need to run the embedding
         layer(s) during the model's feedforward.
+    verbose : bool, default False
+        If set to True, a set of metrics and status indicators will be printed
+        throughout training.
+    see_progress : bool, default True
+        If set to True, a progress bar will show up indicating the execution
+        of each loop.
     kwargs : dict
         Optional additional parameters, specific to the machine learning model
         being used.
@@ -418,13 +425,16 @@ def optimize_hyperparameters(Model, config_name, comet_ml_api_key,
                                               comet_ml_save_model=comet_ml_save_model,
                                               experiment=experiment, features_list=None,
                                               get_val_loss_min=True,
-                                              already_embedded=already_embedded)
+                                              already_embedded=already_embedded,
+                                              verbose=verbose,
+                                              show_progress=show_progress)
         if val_loss < val_loss_min:
             # Update optimization minimum validation loss and the corresponding
             # experiment name
             val_loss_min = val_loss
             exp_name_min = experiment.get_key()
-            print(f'Achieved a new minimum validation loss of {val_loss_min} on experiment {exp_name_min}')
+            if verbose is True:
+                print(f'Achieved a new minimum validation loss of {val_loss_min} on experiment {exp_name_min}')
         # Log optimization parameters
         experiment.log_parameter('n_inputs', n_inputs)
         experiment.log_parameter('n_outputs', n_outputs)
@@ -435,9 +445,10 @@ def optimize_hyperparameters(Model, config_name, comet_ml_api_key,
         experiment.log_parameter('lr', lr)
         experiment.log_parameter('test_train_ratio', test_train_ratio)
         experiment.log_parameter('validation_ratio', validation_ratio)
-        experiment.log_asset(f'{config_path}config_name', config_name)
+        experiment.log_asset(f'{config_path}{config_name}', config_name)
         experiment.log_other('param_optimizer_status', param_optimizer.status())
-    print(f'Finished the hyperparameter optimization! The best performing experiment was {exp_name_min}, with a minimum validation loss of {val_loss_min}')
+    if verbose is True:
+        print(f'Finished the hyperparameter optimization! The best performing experiment was {exp_name_min}, with a minimum validation loss of {val_loss_min}')
     return val_loss_min, exp_name_min
 
 
