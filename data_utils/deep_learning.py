@@ -932,7 +932,12 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
     if clip_value is not None:
         # Set gradient clipping to avoid exploding gradients
         for p in model.parameters():
-            p.register_hook(lambda grad: torch.clamp(grad, -clip_value, clip_value))
+            try:
+                p.register_hook(lambda grad: torch.clamp(grad, -clip_value, clip_value))
+            except RuntimeError:
+                if verbose is True:
+                    warnings.warn('Currently skipping applying a gradient clamping on some of the model\'s parameters. This is only useful if some of the parameters are purposefully frozen. Otherwise, there might be some issues with how the model is configured.')
+                pass
 
     for epoch in utils.iterations_loop(range(1, n_epochs+1),
                                        see_progress=see_progress,

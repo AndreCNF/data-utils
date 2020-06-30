@@ -174,7 +174,7 @@ def optimize_hyperparameters(Model, config_name, comet_ml_api_key,
                              n_epochs=10, lr=0.001, test_train_ratio=0.2,
                              validation_ratio=0.1, comet_ml_save_model=True,
                              already_embedded=False, verbose=False,
-                             show_progress=True, **kwargs):
+                             see_progress=True, **kwargs):
     '''Optimize a machine learning model's hyperparameters, by training it
     several times while exploring different hyperparameters values, returning
     the best performing ones.
@@ -427,7 +427,7 @@ def optimize_hyperparameters(Model, config_name, comet_ml_api_key,
                                               get_val_loss_min=True,
                                               already_embedded=already_embedded,
                                               verbose=verbose,
-                                              show_progress=show_progress)
+                                              see_progress=see_progress)
         if val_loss < val_loss_min:
             # Update optimization minimum validation loss and the corresponding
             # experiment name
