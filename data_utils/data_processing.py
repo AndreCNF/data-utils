@@ -1075,16 +1075,18 @@ def normalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                          are "z-score" and "min-max".')
 
 
-def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
+def denormalize_data(df=None, data=None, id_columns=['patientunitstayid', 'ts'],
                      denormalization_method='z-score', columns_to_denormalize=None,
-                     columns_to_denormalize_cat=None, categ_columns=None,
-                     see_progress=True, search_by_dtypes=False, inplace=False):
+                     columns_to_denormalize_categ=None, categ_columns=None,
+                     see_progress=True, search_by_dtypes=False, inplace=False,
+                     means=None, stds=None, mins=None, maxs=None, 
+                     feature_columns=None):
     '''Performs data denormalization to a continuous valued tensor or dataframe,
        changing the scale of the data.
 
     Parameters
     ----------
-    df : pandas.DataFrame or dask.DataFrame
+    df : pandas.DataFrame or dask.DataFrame, default None
         Original Pandas or Dask dataframe which is used to correctly calculate the
         necessary statistical values used in the denormalization. These values
         can't be calculated from the tensor as it might have been padded. If
@@ -1094,32 +1096,33 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
         PyTorch tensor corresponding to the data which will be denormalized
         by the specified denormalization method. If the data tensor isn't
         specified, the denormalization is applied directly on the dataframe.
-    id_columns : list of strings, default ['subject_id', 'ts']
+    id_columns : string or list of strings, default ['subject_id', 'ts']
         List of columns names which represent identifier columns. These are not
         supposed to be denormalized.
     denormalization_method : string, default 'z-score'
         Specifies the denormalization method used. It can be a z-score
-        denormalization, where the data is subtracted of it's mean and divided
+        denormalization, where the data is subtracted of its mean and divided
         by the standard deviation, which makes it have zero average and unit
         variance, much like a standard normal distribution; it can be a
         min-max denormalization, where the data is subtracted by its minimum
         value and then divided by the difference between the minimum and the
         maximum value, getting to a fixed range from 0 to 1.
-    columns_to_denormalize : list of strings, default None
+    columns_to_denormalize : string or list of strings, default None
         If specified, the columns provided in the list are the only ones that
-        will be denormalized. If set to False, no column will denormalized directly,
+        will be denormalized. If set to False, no column will be denormalized directly,
         although columns can still be denormalized in groups of categories, if
-        specified in the `columns_to_denormalize_cat` parameter. Otherwise, all
+        specified in the `columns_to_denormalize_categ` parameter. Otherwise, all
         continuous columns will be denormalized.
-    columns_to_denormalize_cat : list of tuples of strings, default None
+    columns_to_denormalize_categ : tuple or list of tuples of tuples, default None
         If specified, the columns provided in the list are going to be
         denormalized on their categories. That is, the values (column 2 in the
         tuple) are denormalized with stats of their respective categories (column
         1 of the tuple). Otherwise, no column will be denormalized on their
         categories.
-    categ_columns : list of strings, default None
-        If specified, the columns in the list, which represent features that
-        will be embedded, aren't going to be denormalized.
+    categ_columns : string or list of strings, default None
+        If specified, the columns in the list, which represent categorical
+        features, which either are a label or will be embedded, aren't
+        going to be denormalized.
     see_progress : bool, default True
         If set to True, a progress bar will show up indicating the execution
         of the denormalization calculations.
@@ -1135,42 +1138,73 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
     Returns
     -------
     data : pandas.DataFrame or dask.DataFrame or torch.Tensor
-        Normalized Pandas or Dask dataframe or PyTorch tensor.
+        Denormalized Pandas or Dask dataframe or PyTorch tensor.
     '''
-    # Check if specific columns have been specified for denormalization
-    if columns_to_denormalize is None:
+    # [TODO] Add the option in denormalize_data to denormalize a data tensor 
+    # using a norm_stats dictionary instead of fetching the denormalization 
+    # stats from the original dataframe
+    if feature_columns is None and df is not None:
         # List of all columns in the dataframe
         feature_columns = list(df.columns)
-        # Normalize all non identifier continuous columns, ignore one hot encoded ones
-        columns_to_denormalize = feature_columns
-
-        # List of all columns in the dataframe, except the ID columns
-        [columns_to_denormalize.remove(col) for col in id_columns]
-
+    # Check if specific columns have been specified for denormalization
+    if columns_to_denormalize is None:
+        # Denormalize all non identifier continuous columns, ignore one hot encoded ones
+        columns_to_denormalize = feature_columns.copy()
+        if id_columns is not None:
+            # Make sure that the id_columns is a list
+            if isinstance(id_columns, str):
+                id_columns = [id_columns]
+            if not isinstance(id_columns, list):
+                raise Exception(f'ERROR: The `id_columns` argument must be specified as either a single string or a list of strings. Received input with type {type(id_columns)}.')
+            # List of all columns in the dataframe, except the ID columns
+            [columns_to_denormalize.remove(col) for col in id_columns]
         if categ_columns is not None:
+            # Make sure that the categ_columns is a list
+            if isinstance(categ_columns, str):
+                categ_columns = [categ_columns]
+            if not isinstance(categ_columns, list):
+                raise Exception(f'ERROR: The `categ_columns` argument must be specified as either a single string or a list of strings. Received input with type {type(categ_columns)}.')
             # Prevent all features that will be embedded from being denormalized
             [columns_to_denormalize.remove(col) for col in categ_columns]
-
         # List of boolean or one hot encoded columns
-        boolean_cols = search_explore.list_boolean_columns(df[columns_to_denormalize])
-
+        boolean_cols = search_explore.list_boolean_columns(df[columns_to_denormalize], search_by_dtypes=search_by_dtypes)
         if boolean_cols is not None:
             # Prevent boolean features from being denormalized
             [columns_to_denormalize.remove(col) for col in boolean_cols]
-
+        # Remove all non numeric columns that could be left
+        columns_to_denormalize = [col for col in columns_to_denormalize
+                                if df[col].dtype == int or df[col].dtype == float]
         if columns_to_denormalize is None:
             print('No columns to denormalize, returning the original dataframe.')
             return df
 
+    # Make sure that the columns_to_denormalize is a list
+    if isinstance(columns_to_denormalize, str):
+        columns_to_denormalize = [columns_to_denormalize]
+    if not isinstance(columns_to_denormalize, list) and not isinstance(columns_to_denormalize, bool):
+        raise Exception(f'ERROR: The `columns_to_denormalize` argument must be specified as either a single string, a list of strings or a boolean. Received input with type {type(columns_to_denormalize)}.')
+
     if type(denormalization_method) is not str:
-        raise ValueError('Argument denormalization_method should be a string. Available options \
-                         are "z-score" and "min-max".')
+        raise ValueError('Argument denormalization_method should be a string. Available options are "z-score" and "min-max".')
 
     if denormalization_method.lower() == 'z-score':
         if columns_to_denormalize is not False:
             # Calculate the means and standard deviations
-            means = df[columns_to_denormalize].mean()
-            stds = df[columns_to_denormalize].std()
+            if means is None:
+                means = df[columns_to_denormalize].mean()
+            if stds is None:
+                stds = df[columns_to_denormalize].std()
+            # Check if there are constant features
+            if isinstance(stds, pd.Series):
+                const_feat = list(stds[stds == 0].index)
+            elif isinstance(stds, dict):
+                const_feat = [feat for feat in stds.keys() if stds[feat] == 0]
+            if len(const_feat) > 0:
+                # Prevent constant features from being denormalized
+                [columns_to_denormalize.remove(col) for col in const_feat]
+                means = means.drop(const_feat)
+                stds = stds.drop(const_feat)
+                warnings.warn(f'Found columns {const_feat} to be constant throughout all the data. They should be removed as no insight will be extracted from them.')
 
             if isinstance(df, dd.DataFrame):
                 # Make sure that the values are computed, in case we're using Dask
@@ -1186,59 +1220,85 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                 # Use the original dataframe
                 data = df
 
-            # Normalize the right columns
+            # Denormalize the right columns
             if columns_to_denormalize is not False:
-                print(f'z-score normalizing columns {columns_to_denormalize}...')
-                for col in utils.iterations_loop(columns_to_denormalize, see_progress=see_progress):
-                    data[col] = data[col] * column_stds[col] + column_means[col]
+                print(f'z-score denormalizing columns {columns_to_denormalize}...')
+                data[columns_to_denormalize] = data[columns_to_denormalize] * stds + means
 
-            if columns_to_denormalize_cat is not None:
-                print(f'z-score normalizing columns {columns_to_denormalize_cat} by their associated categories...')
-                for col_tuple in utils.iterations_loop(columns_to_denormalize_cat, see_progress=see_progress):
+            if columns_to_denormalize_categ is not None:
+                # Make sure that the columns_to_denormalize_categ is a list
+                if isinstance(columns_to_denormalize_categ, tuple):
+                    columns_to_denormalize_categ = [columns_to_denormalize_categ]
+                if not isinstance(columns_to_denormalize_categ, list):
+                    raise Exception(f'ERROR: The `columns_to_denormalize_categ` argument must be specified as either a single tuple or a list of tuples. Received input with type {type(columns_to_denormalize_categ)}.')
+                print(f'z-score denormalizing columns {columns_to_denormalize_categ} by their associated categories...')
+                for col_tuple in utils.iterations_loop(columns_to_denormalize_categ, see_progress=see_progress):
+                    categ_columns = col_tuple[0]
+                    column_to_denormalize = col_tuple[1]
                     # Calculate the means and standard deviations
-                    means = df.groupby(col_tuple[0])[col_tuple[1]].mean()
-                    stds = df.groupby(col_tuple[0])[col_tuple[1]].std()
-
+                    means_grpb = df.groupby(categ_columns)[
+                        column_to_denormalize].mean()
+                    stds_grpb = df.groupby(categ_columns)[
+                        column_to_denormalize].std()
                     if isinstance(df, dd.DataFrame):
                         # Make sure that the values are computed, in case we're using Dask
-                        means = means.compute()
-                        stds = stds.compute()
-
-                    categories_means = dict(means)
-                    categories_stds = dict(stds)
-
-                    # Normalize the right categories
-                    if isinstance(df, dd.DataFrame):
-                        data[col_tuple[1]] = data.apply(lambda df: apply_zscore_denorm(value=df[col_tuple[1]], df=df, categories_means=categories_means,
-                                                                                       categories_stds=categories_stds, groupby_columns=col_tuple[0]),
-                                                        axis=1, meta=('df', float))
-                    else:
-                        data[col_tuple[1]] = data.apply(lambda df: apply_zscore_denorm(value=df[col_tuple[1]], df=df, categories_means=categories_means,
-                                                                                       categories_stds=categories_stds, groupby_columns=col_tuple[0]),
-                                                        axis=1)
-
+                        means_grpb = means.compute()
+                        stds_grpb = stds.compute()
+                    # Get the categories columns as a numpy array, so as to
+                    # index the groupby-resulting dataframes of mean and standard
+                    # deviation values
+                    cat_arr = df[categ_columns].to_numpy()
+                    if isinstance(categ_columns, list) and len(categ_columns) > 1:
+                        # Convert the sets of values into tuples so as to be
+                        # properly readable as dataframe indices
+                        cat_arr = list(map(tuple, cat_arr))
+                    # Get the mean and standard deviation values in the same
+                    # order as the original dataframe's row order
+                    means_cat = means_grpb.loc[cat_arr].to_numpy()
+                    stds_cat = stds_grpb.loc[cat_arr].to_numpy()
+                    # Denormalize the right categories
+                    data[column_to_denormalize] = data[column_to_denormalize] * stds_cat + means_cat
         # Otherwise, the tensor is denormalized
         else:
+            if not inplace:
+                # Make a copy of the data to avoid potentially unwanted changes to the original tensor
+                data = data.clone()
+            else:
+                # Use the original tensor
+                data = data
             if columns_to_denormalize is not False:
+                # Dictionaries to retrieve the mean and standard deviation values
+                if not isinstance(means, dict):
+                    means = dict(means)
+                if not isinstance(stds, dict):
+                    stds = dict(stds)
                 # Dictionary to convert the the tensor's column indices into the dataframe's column names
-                idx_to_name = dict(enumerate(df.columns))
-
+                idx_to_name = dict(enumerate(feature_columns))
                 # Dictionary to convert the dataframe's column names into the tensor's column indices
-                name_to_idx = dict([(t[1], t[0]) for t in enumerate(df.columns)])
-
+                name_to_idx = dict([(t[1], t[0])
+                                    for t in enumerate(feature_columns)])
                 # List of indices of the tensor's columns which are needing denormalization
-                tensor_columns_to_denormalize = [name_to_idx[name] for name in columns_to_denormalize]
-
-                # Normalize the right columns
-                print(f'z-score normalizing columns {columns_to_denormalize}...')
+                tensor_columns_to_denormalize = [name_to_idx[name]
+                                                 for name in columns_to_denormalize]
+                # Denormalize the right columns
+                print(f'z-score denormalizing columns {columns_to_denormalize}...')
                 for col in utils.iterations_loop(tensor_columns_to_denormalize, see_progress=see_progress):
-                    data[:, :, col] = (data[:, :, col] * column_stds[idx_to_name[col]]
-                                       + column_means[idx_to_name[col]])
+                    data[:, :, col] = data[:, :, col] * stds[idx_to_name[col]] + means[idx_to_name[col]]
+
+        return data
 
     elif denormalization_method.lower() == 'min-max':
         if columns_to_denormalize is not False:
             mins = df[columns_to_denormalize].min()
             maxs = df[columns_to_denormalize].max()
+            # Check if there are constant features
+            const_feat = list(mins[mins == maxs].index)
+            if len(const_feat) > 0:
+                # Prevent constant features from being denormalized
+                [columns_to_denormalize.remove(col) for col in const_feat]
+                mins = mins.drop(const_feat)
+                maxs = maxs.drop(const_feat)
+                warnings.warn(f'Found columns {const_feat} to be constant throughout all the data. They should be removed as no insight will be extracted from them.')
 
             if isinstance(df, dd.DataFrame):
                 # Make sure that the values are computed, in case we're using Dask
@@ -1255,60 +1315,71 @@ def denormalize_data(df, data=None, id_columns=['patientunitstayid', 'ts'],
                 data = df
 
             if columns_to_denormalize is not False:
-                # Normalize the right columns
-                print(f'min-max normalizing columns {columns_to_denormalize}...')
-                for col in utils.iterations_loop(columns_to_denormalize, see_progress=see_progress):
-                    data[col] = (data[col] * (column_maxs[col] - column_mins[col])
-                                 + column_mins[col])
+                # Denormalize the right columns
+                print(f'min-max denormalizing columns {columns_to_denormalize}...')
+                data[columns_to_denormalize] = data[columns_to_denormalize] * (maxs - mins) + mins
 
-            if columns_to_denormalize_cat is not None:
-                print(f'min-max normalizing columns {columns_to_denormalize_cat} by their associated categories...')
-                for col_tuple in columns_to_denormalize_cat:
-                    # Calculate the means and standard deviations
-                    mins = df.groupby(col_tuple[0])[col_tuple[1]].min()
-                    maxs = df.groupby(col_tuple[0])[col_tuple[1]].max()
-
+            if columns_to_denormalize_categ is not None:
+                # Make sure that the columns_to_denormalize_categ is a list
+                if isinstance(columns_to_denormalize_categ, tuple):
+                    columns_to_denormalize_categ = [columns_to_denormalize_categ]
+                if not isinstance(columns_to_denormalize_categ, list):
+                    raise Exception(f'ERROR: The `columns_to_denormalize_categ` argument must be specified as either a single tuple or a list of tuples. Received input with type {type(columns_to_denormalize_categ)}.')
+                print(f'min-max denormalizing columns {columns_to_denormalize_categ} by their associated categories...')
+                for col_tuple in columns_to_denormalize_categ:
+                    categ_columns = col_tuple[0]
+                    column_to_denormalize = col_tuple[1]
+                    # Calculate the minimum and maximum values
+                    mins_grpb = df.groupby(col_tuple[0])[col_tuple[1]].min()
+                    maxs_grpb = df.groupby(col_tuple[0])[col_tuple[1]].max()
                     if isinstance(df, dd.DataFrame):
                         # Make sure that the values are computed, in case we're using Dask
-                        mins = mins.compute()
-                        maxs = maxs.compute()
-
-                    categories_mins = dict(mins)
-                    categories_maxs = dict(maxs)
-
-                    # Normalize the right categories
-                    if isinstance(df, dd.DataFrame):
-                        data[col_tuple[1]] = data.apply(lambda df: apply_minmax_denorm(value=df[col_tuple[1]], df=df, categories_mins=categories_mins,
-                                                                                       categories_maxs=categories_maxs, groupby_columns=col_tuple[0]),
-                                                        axis=1, meta=('df', float))
-                    else:
-                        data[col_tuple[1]] = data.apply(lambda df: apply_minmax_denorm(value=df[col_tuple[1]], df=df, categories_mins=categories_mins,
-                                                                                       categories_maxs=categories_maxs, groupby_columns=col_tuple[0]),
-                                                        axis=1)
-
+                        mins_grpb = mins_grpb.compute()
+                        maxs_grpb = maxs_grpb.compute()
+                    # Get the categories columns as a numpy array, so as to
+                    # index the groupby-resulting dataframes of minimum and
+                    # maximum values
+                    cat_arr = df[categ_columns].to_numpy()
+                    if isinstance(categ_columns, list) and len(categ_columns) > 1:
+                        # Convert the sets of values into tuples so as to be
+                        # properly readable as dataframe indices
+                        cat_arr = list(map(tuple, cat_arr))
+                    # Get the minimum and maximum values in the same
+                    # order as the original dataframe's row order
+                    mins_cat = mins_grpb.loc[cat_arr].to_numpy()
+                    maxs_cat = maxs_grpb.loc[cat_arr].to_numpy()
+                    # Denormalize the right categories
+                    data[column_to_denormalize] = data[column_to_denormalize] * (maxs_cat - mins_cat) + mins_cat
         # Otherwise, the tensor is denormalized
         else:
+            if not inplace:
+                # Make a copy of the data to avoid potentially unwanted changes to the original tensor
+                data = data.clone()
+            else:
+                # Use the original tensor
+                data = data
             if columns_to_denormalize is not False:
+                # Dictionaries to retrieve the min and max values
+                column_mins = dict(mins)
+                column_maxs = dict(maxs)
                 # Dictionary to convert the the tensor's column indices into the dataframe's column names
-                idx_to_name = dict(enumerate(df.columns))
-
+                idx_to_name = dict(enumerate(feature_columns))
                 # Dictionary to convert the dataframe's column names into the tensor's column indices
-                name_to_idx = dict([(t[1], t[0]) for t in enumerate(df.columns)])
-
+                name_to_idx = dict([(t[1], t[0])
+                                    for t in enumerate(feature_columns)])
                 # List of indices of the tensor's columns which are needing denormalization
-                tensor_columns_to_denormalize = [name_to_idx[name] for name in columns_to_denormalize]
-
-                # Normalize the right columns
-                print(f'min-max normalizing columns {columns_to_denormalize}...')
+                tensor_columns_to_denormalize = [
+                    name_to_idx[name] for name in columns_to_denormalize]
+                # Denormalize the right columns
+                print(f'min-max denormalizing columns {columns_to_denormalize}...')
                 for col in utils.iterations_loop(tensor_columns_to_denormalize, see_progress=see_progress):
                     data[:, :, col] = (data[:, :, col] * (column_maxs[idx_to_name[col]] - column_mins[idx_to_name[col]])
-                                       + column_mins[idx_to_name[col]])
+                                      + column_mins[idx_to_name[col]])
 
+        return data
     else:
         raise ValueError(f'{denormalization_method} isn\'t a valid denormalization method. Available options \
                          are "z-score" and "min-max".')
-
-    return data
 
 
 def transpose_dataframe(df, column_to_transpose=None, inplace=False):
