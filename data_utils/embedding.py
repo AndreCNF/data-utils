@@ -747,7 +747,7 @@ def prepare_embed_bag(data, features=None):
     # Find which values are not zero
     non_zero_val = (encod_tnsr != 0)
     # Get the encoding list by filtering for all non-zero encodings,
-    # setting a zero in rows where there's non
+    # setting a zero in rows where there's none
     encod_list = encod_tnsr[all_zero_row | non_zero_val]
     # Set the offsets to distinguish each row's encodings
     offset_list = (all_zero_row | non_zero_val).sum(axis=len(encod_tnsr.shape)-1).view(-1).cumsum(0)
@@ -886,7 +886,6 @@ def embedding_bag_pipeline(data, embedding_layer, features, model_forward=False,
         Data tensor or dataframe with the new embedding features added and the
         old categorical features removed.
     '''
-    # [TODO] Adapt to the new, one hot encoding embedding approach
     if not inplace:
         # Make a copy of the data to avoid potentially unwanted changes to the original object
         if isinstance(data, torch.Tensor):

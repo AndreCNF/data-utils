@@ -1092,9 +1092,9 @@ def denormalize_data(df=None, data=None, id_columns=['patientunitstayid', 'ts'],
         can't be calculated from the tensor as it might have been padded. If
         the data tensor isn't specified, the denormalization is applied directly
         on the dataframe.
-    data : torch.Tensor, default None
-        PyTorch tensor corresponding to the data which will be denormalized
-        by the specified denormalization method. If the data tensor isn't
+    data : torch.Tensor or numpy.Array, default None
+        PyTorch tensor or NumPy array corresponding to the data which will be 
+        denormalized by the specified denormalization method. If the data isn't
         specified, the denormalization is applied directly on the dataframe.
     id_columns : string or list of strings, default ['subject_id', 'ts']
         List of columns names which represent identifier columns. These are not
@@ -1258,13 +1258,16 @@ def denormalize_data(df=None, data=None, id_columns=['patientunitstayid', 'ts'],
                     stds_cat = stds_grpb.loc[cat_arr].to_numpy()
                     # Denormalize the right categories
                     data[column_to_denormalize] = data[column_to_denormalize] * stds_cat + means_cat
-        # Otherwise, the tensor is denormalized
+        # Otherwise, the array is denormalized
         else:
             if not inplace:
-                # Make a copy of the data to avoid potentially unwanted changes to the original tensor
-                data = data.clone()
+                # Make a copy of the data to avoid potentially unwanted changes to the original array
+                if isinstance(data, torch.Tensor):
+                    data = data.clone()
+                else:
+                    data = data.copy()
             else:
-                # Use the original tensor
+                # Use the original array
                 data = data
             if columns_to_denormalize is not False:
                 # Dictionaries to retrieve the mean and standard deviation values
@@ -1272,18 +1275,23 @@ def denormalize_data(df=None, data=None, id_columns=['patientunitstayid', 'ts'],
                     means = dict(means)
                 if not isinstance(stds, dict):
                     stds = dict(stds)
-                # Dictionary to convert the the tensor's column indices into the dataframe's column names
+                # Dictionary to convert the the array's column indices into the dataframe's column names
                 idx_to_name = dict(enumerate(feature_columns))
-                # Dictionary to convert the dataframe's column names into the tensor's column indices
+                # Dictionary to convert the dataframe's column names into the array's column indices
                 name_to_idx = dict([(t[1], t[0])
                                     for t in enumerate(feature_columns)])
-                # List of indices of the tensor's columns which are needing denormalization
-                tensor_columns_to_denormalize = [name_to_idx[name]
-                                                 for name in columns_to_denormalize]
+                # List of indices of the array's columns which are needing denormalization
+                array_columns_to_denormalize = [name_to_idx[name]
+                                                for name in columns_to_denormalize]
                 # Denormalize the right columns
                 print(f'z-score denormalizing columns {columns_to_denormalize}...')
-                for col in utils.iterations_loop(tensor_columns_to_denormalize, see_progress=see_progress):
-                    data[:, :, col] = data[:, :, col] * stds[idx_to_name[col]] + means[idx_to_name[col]]
+                for col in utils.iterations_loop(array_columns_to_denormalize, see_progress=see_progress):
+                    if len(data.shape) == 3:
+                        data[:, :, col] = data[:, :, col] * stds[idx_to_name[col]] + means[idx_to_name[col]]
+                    elif len(data.shape) == 2:
+                        data[:, col] = data[:, col] * stds[idx_to_name[col]] + means[idx_to_name[col]]
+                    else:
+                        raise Exception(f'ERROR: The data array or tensor must be either two or three-dimensional. The provided data has {len(data.shape)} dimensions.')
 
         return data
 
@@ -1309,7 +1317,10 @@ def denormalize_data(df=None, data=None, id_columns=['patientunitstayid', 'ts'],
         if data is None:
             if not inplace:
                 # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
-                data = df.copy()
+                if isinstance(data, torch.Tensor):
+                    data = data.clone()
+                else:
+                    data = data.copy()
             else:
                 # Use the original dataframe
                 data = df
@@ -1350,31 +1361,36 @@ def denormalize_data(df=None, data=None, id_columns=['patientunitstayid', 'ts'],
                     maxs_cat = maxs_grpb.loc[cat_arr].to_numpy()
                     # Denormalize the right categories
                     data[column_to_denormalize] = data[column_to_denormalize] * (maxs_cat - mins_cat) + mins_cat
-        # Otherwise, the tensor is denormalized
+        # Otherwise, the array is denormalized
         else:
             if not inplace:
-                # Make a copy of the data to avoid potentially unwanted changes to the original tensor
+                # Make a copy of the data to avoid potentially unwanted changes to the original array
                 data = data.clone()
             else:
-                # Use the original tensor
+                # Use the original array
                 data = data
             if columns_to_denormalize is not False:
                 # Dictionaries to retrieve the min and max values
                 column_mins = dict(mins)
                 column_maxs = dict(maxs)
-                # Dictionary to convert the the tensor's column indices into the dataframe's column names
+                # Dictionary to convert the the array's column indices into the dataframe's column names
                 idx_to_name = dict(enumerate(feature_columns))
-                # Dictionary to convert the dataframe's column names into the tensor's column indices
+                # Dictionary to convert the dataframe's column names into the array's column indices
                 name_to_idx = dict([(t[1], t[0])
                                     for t in enumerate(feature_columns)])
-                # List of indices of the tensor's columns which are needing denormalization
-                tensor_columns_to_denormalize = [
-                    name_to_idx[name] for name in columns_to_denormalize]
+                # List of indices of the array's columns which are needing denormalization
+                array_columns_to_denormalize = [name_to_idx[name] for name in columns_to_denormalize]
                 # Denormalize the right columns
                 print(f'min-max denormalizing columns {columns_to_denormalize}...')
-                for col in utils.iterations_loop(tensor_columns_to_denormalize, see_progress=see_progress):
-                    data[:, :, col] = (data[:, :, col] * (column_maxs[idx_to_name[col]] - column_mins[idx_to_name[col]])
-                                      + column_mins[idx_to_name[col]])
+                for col in utils.iterations_loop(array_columns_to_denormalize, see_progress=see_progress):
+                    if len(data.shape) == 3:
+                        data[:, :, col] = (data[:, :, col] * (column_maxs[idx_to_name[col]] - column_mins[idx_to_name[col]])
+                                           + column_mins[idx_to_name[col]])
+                    elif len(data.shape) == 2:
+                        data[:, col] = (data[:, col] * (column_maxs[idx_to_name[col]] - column_mins[idx_to_name[col]])
+                                        + column_mins[idx_to_name[col]])
+                    else:
+                        raise Exception(f'ERROR: The data array or tensor must be either two or three-dimensional. The provided data has {len(data.shape)} dimensions.')
 
         return data
     else:
