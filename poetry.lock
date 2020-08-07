@@ -93,6 +93,14 @@ version = "0.4.3"
 
 [[package]]
 category = "main"
+description = "Color scales for IPython notebook"
+name = "colorlover"
+optional = false
+python-versions = "*"
+version = "0.3.0"
+
+[[package]]
+category = "main"
 description = "Python Git Library"
 name = "comet-git-pure"
 optional = false
@@ -1143,7 +1151,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools"]
 
 [metadata]
-content-hash = "a0d3c0c26ece87652cb212976dc2ceedf56cb53388c8e00fb53706663bfe29b5"
+content-hash = "d377031d86894522e46f4550f8edf9d60aa701c6a9a6146ca0d4b24d3e52d0d0"
 python-versions = "^3.6.1"
 
 [metadata.files]
@@ -1185,6 +1193,10 @@ cloudpickle = [
 colorama = [
     {file = "colorama-0.4.3-py2.py3-none-any.whl", hash = "sha256:7d73d2a99753107a36ac6b455ee49046802e59d9d076ef8e47b61499fa29afff"},
     {file = "colorama-0.4.3.tar.gz", hash = "sha256:e96da0d330793e2cb9485e9ddfd918d456036c7149416295932478192f4436a1"},
+]
+colorlover = [
+    {file = "colorlover-0.3.0-py3-none-any.whl", hash = "sha256:58705cdd1f1c3903b5cbc15ac5ad816779363400a74e5f407563b0b3627902e5"},
+    {file = "colorlover-0.3.0.tar.gz", hash = "sha256:b8fb7246ab46e1f5e6715649453c1762e245a515de5ff2d2b4aab7a6e67fa4e2"},
 ]
 comet-git-pure = [
     {file = "comet-git-pure-0.19.14.tar.gz", hash = "sha256:f4d419157103703fc52fb3b1e6a1ef12b7ca6520a510d7585f712fe949cf1bba"},

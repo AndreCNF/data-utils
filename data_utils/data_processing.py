@@ -7,6 +7,7 @@ import numbers                                          # numbers allows to chec
 import warnings                                         # Print warnings for bad practices
 from functools import partial                           # Enables using functions with some fixed parameters
 from tqdm.auto import tqdm                              # tqdm allows to track code execution progress
+from glob import glob                                   # Find files by name
 from . import utils                                     # Generic and useful methods
 from . import search_explore                            # Methods to search and explore data
 import data_utils as du
@@ -1079,7 +1080,7 @@ def denormalize_data(df=None, data=None, id_columns=['patientunitstayid', 'ts'],
                      denormalization_method='z-score', columns_to_denormalize=None,
                      columns_to_denormalize_categ=None, categ_columns=None,
                      see_progress=True, search_by_dtypes=False, inplace=False,
-                     means=None, stds=None, mins=None, maxs=None, 
+                     means=None, stds=None, mins=None, maxs=None,
                      feature_columns=None):
     '''Performs data denormalization to a continuous valued tensor or dataframe,
        changing the scale of the data.
@@ -1093,7 +1094,7 @@ def denormalize_data(df=None, data=None, id_columns=['patientunitstayid', 'ts'],
         the data tensor isn't specified, the denormalization is applied directly
         on the dataframe.
     data : torch.Tensor or numpy.Array, default None
-        PyTorch tensor or NumPy array corresponding to the data which will be 
+        PyTorch tensor or NumPy array corresponding to the data which will be
         denormalized by the specified denormalization method. If the data isn't
         specified, the denormalization is applied directly on the dataframe.
     id_columns : string or list of strings, default ['subject_id', 'ts']
@@ -1140,8 +1141,8 @@ def denormalize_data(df=None, data=None, id_columns=['patientunitstayid', 'ts'],
     data : pandas.DataFrame or dask.DataFrame or torch.Tensor
         Denormalized Pandas or Dask dataframe or PyTorch tensor.
     '''
-    # [TODO] Add the option in denormalize_data to denormalize a data tensor 
-    # using a norm_stats dictionary instead of fetching the denormalization 
+    # [TODO] Add the option in denormalize_data to denormalize a data tensor
+    # using a norm_stats dictionary instead of fetching the denormalization
     # stats from the original dataframe
     if feature_columns is None and df is not None:
         # List of all columns in the dataframe
@@ -2211,8 +2212,8 @@ def save_chunked_data(df, file_name, n_chunks=None, batch_size=32,
         raise Exception(f'ERROR: Invalid set of input parameters. The user must either specify a number of chunks (`n_chunks`) to save the data or a batch size (`batch_size`) and an ID column (`id_column`) on which to fetch sequences.')
 
 
-def load_chunked_data(file_name, n_chunks, data_path='', format='feather',
-                      dtypes=None):
+def load_chunked_data(file_name, n_chunks=None, data_path='', format='feather',
+                      dtypes=None, ordered_naming=True):
     '''Load a dataframe in chunks, i.e. in separate files, so as to prevent
     memory issues and other problems when loading.
 
@@ -2220,8 +2221,10 @@ def load_chunked_data(file_name, n_chunks, data_path='', format='feather',
     ----------
     file_name : str
         Name of the file where the dataframe is saved.
-    n_chunks : int
+    n_chunks : int, default None
         Number of chunks, i.e. number of files, needed to load the dataframe.
+        If left unspecified, all the files that match the naming and format will
+        be loaded.
     data_path : str, default ''
         Directory path where the file is stored.
     format : str, default 'feather'
@@ -2230,27 +2233,44 @@ def load_chunked_data(file_name, n_chunks, data_path='', format='feather',
     dtypes : dict, default None
         Dictionary that indicates the desired dtype for each column.
         e.g. {'Var1': 'float64', 'Var2': 'UInt8', 'Var3': str}
+    ordered_naming : bool, default True
+        If set to True, the method will load data considering an ordered naming,
+        staring in 0 until n_chunks. Otherwise, it will search for all files
+        that have the specified naming and format, even if it uses a different
+        or irregular numbering.
 
     Returns
     -------
     df : pandas.DataFrame or dask.DataFrame
         Loaded dataframe.
     '''
+    # Validate the file format
     format = str(format).lower()
     if format == 'feather':
         file_ext = '.ftr'
     else:
         raise Exception(f'ERROR: Invalid data format "{format}". Please choose one of the currently supported formats "feather".')
+    if n_chunks is None or ordered_naming is False:
+        # Get a list with the names of the files that can be loaded
+        data_files = glob(f'{data_path}{file_name}_*{file_ext}')
+        if n_chunks is None:
+            # Load all the files, if no limit is specified
+            n_chunks = len(data_files)
     for i in du.utils.iterations_loop(range(n_chunks)):
         if i == 0:
             # Load the first file
-            df = pd.read_feather(f'{data_path}{file_name}_{i}{file_ext}')
+            if ordered_naming is True:
+                df = pd.read_feather(f'{data_path}{file_name}_{i}{file_ext}')
+            else:
+                df = pd.read_feather(data_files[i])
             if dtypes is not None:
                 df = du.utils.convert_dtypes(df, dtypes=dtypes, inplace=True)
-            continue
         else:
             # Load another file and join it with the already loaded ones
-            tmp_df = pd.read_feather(f'{data_path}{file_name}_{i}{file_ext}')
+            if ordered_naming is True:
+                tmp_df = pd.read_feather(f'{data_path}{file_name}_{i}{file_ext}')
+            else:
+                tmp_df = pd.read_feather(data_files[i])
             if dtypes is not None:
                 tmp_df = du.utils.convert_dtypes(tmp_df, dtypes=dtypes, inplace=True)
             df = pd.concat((df, tmp_df))
