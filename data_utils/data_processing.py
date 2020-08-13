@@ -2137,7 +2137,7 @@ def slopes_outlier_detect(s, max_thrs=4, bidir_sens=0.5, threshold_type='std',
     return outlier_s
 
 
-def save_chunked_data(df, file_name, n_chunks=None, batch_size=32,
+def save_chunked_data(df, file_name, n_chunks=None, batch_size=1,
                       id_column=None, data_path='', format='feather'):
     '''Save a dataframe in chunks, i.e. in separate files, so as to prevent
     memory issues and other problems when loading it back again.
@@ -2151,7 +2151,7 @@ def save_chunked_data(df, file_name, n_chunks=None, batch_size=32,
     n_chunks : int, default None
         Number of chunks, i.e. number of files, on which to split and save the
         dataframe.
-    batch_size : int, default 32
+    batch_size : int, default 1
         Defines the batch size, i.e. the number of samples used in each
         training iteration to update the model's weights.
     id_column : string, default None
