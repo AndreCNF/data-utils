@@ -229,7 +229,7 @@ def inference_iter_multi_var_rnn(model, features, labels,
     seq_lengths : list or numpy.ndarray or torch.Tensor
         List of sequence lengths, relative to the input data.
     distributed_train : bool, default False
-        Indicates whether the model is wrapped in a DistributedDataParallel 
+        Indicates whether the model is wrapped in a DistributedDataParallel
         wrapper (i.e. if the model is being trained in a distributed training
         context).
 
@@ -475,28 +475,29 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
         # Move the model to GPU
         model = model.cuda()
     # Create an empty dictionary with all the possible metrics
-    metrics_vals = {'loss': None,
-                    'accuracy': None,
-                    'AUC': None,
-                    'AUC_weighted': None,
-                    'precision': None,
-                    'recall': None,
-                    'F1': None}
+    metrics_vals = dict()
     # Initialize the metrics
     if 'loss' in metrics:
         loss = 0
+        metrics_vals['loss'] = loss
     if 'accuracy' in metrics:
         acc = 0
+        metrics_vals['accuracy'] = acc
     if 'AUC' in metrics:
         auc = list()
+        metrics_vals['AUC'] = auc
     if 'AUC_weighted' in metrics:
         auc_wgt = list()
+        metrics_vals['AUC_weighted'] = auc_wgt
     if 'precision' in metrics:
         prec = 0
+        metrics_vals['precision'] = prec
     if 'recall' in metrics:
         rcl = 0
+        metrics_vals['recall'] = rcl
     if 'F1' in metrics:
         f1_score = 0
+        metrics_vals['F1'] = f1_score
 
     # Check if the user wants to do inference directly on a PyTorch tensor
     if dataloader is None and data is not None:
@@ -553,6 +554,8 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
         if 'loss' in metrics:
             # Add the loss of the current batch
             metrics_vals['loss'] = loss
+            # Get just the value, not a tensor
+            metrics_vals['loss'] = metrics_vals['loss'].item()
         if 'accuracy' in metrics:
             # Add the accuracy of the current batch, ignoring all padding values
             metrics_vals['accuracy'] = torch.mean(correct_pred.type(torch.FloatTensor)).item()
@@ -572,6 +575,8 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
                                                         multi_class='ovr', average='macro', labels=labels_in_batch.numpy())
                 except Exception as e:
                     warnings.warn(f'Couldn\'t calculate the AUC metric. Received exception "{str(e)}".')
+            # Get just the value, not an object
+            metrics_vals['AUC'] = metrics_vals['AUC'].item()
         if 'AUC_weighted' in metrics:
             # Calculate a weighted version of the AUC; important for imbalanced datasets
             if model.n_outputs == 1:
@@ -585,6 +590,8 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
                                                                  multi_class='ovr', average='weighted', labels=labels_in_batch.numpy())
                 except Exception as e:
                     warnings.warn(f'Couldn\'t calculate the weighted AUC metric. Received exception "{str(e)}".')
+            # Get just the value, not an object
+            metrics_vals['AUC_weighted'] = metrics_vals['AUC_weighted'].item()
         if 'precision' in metrics:
             # Add the precision of the current batch
             curr_prec = true_pos / (true_pos + false_pos)
