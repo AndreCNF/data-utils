@@ -54,12 +54,11 @@ def set_bar_color(values, ids, seq_len, threshold=0,
         return [pos_color if val > 0 else neg_color for val in values[ids, :seq_len]]
 
 
-# [TODO] Add the "animate" parameter to the indicator_plot method
 def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_better=True,
                    background_color='white', output_type='plotly', dash_id='some_indicator',
                    dash_height=None, dash_width=None, show_number=True, show_delta=False,
-                   ref_value=None, font_family='Roboto', font_size=14,
-                   font_color='black', prefix='', suffix='', showticklabels=False):
+                   ref_value=None, font_family='Roboto', font_size=14, font_color='black', 
+                   prefix='', suffix='', showticklabels=False, animate=False):
     '''Generate an indicator plot, which can help visualize performance. Can
     either be of type bullet or gauge.
 
@@ -111,6 +110,8 @@ def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_bette
         indicator graph. e.g. '%', '€', 'km', 'g'
     showticklabels : bool, default False
         Determines whether or not the tick labels are drawn.
+    animate : bool, default False
+        If true, animate between updates using plotly.js's `animate` function.
 
     Returns
     -------
@@ -202,7 +203,8 @@ def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_bette
             id=dash_id,
             figure=figure,
             style=style,
-            config=dict(displayModeBar=False)
+            config=dict(displayModeBar=False),
+            animate=animate
         )
     else:
         raise Exception(f'ERROR: Invalid output type {output_type}. Only `figure`, `plotly` and `dash` are currently supported.')

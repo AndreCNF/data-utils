@@ -594,19 +594,31 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
             metrics_vals['AUC_weighted'] = metrics_vals['AUC_weighted'].item()
         if 'precision' in metrics:
             # Add the precision of the current batch
-            curr_prec = true_pos / (true_pos + false_pos)
+            try:
+                curr_prec = true_pos / (true_pos + false_pos)
+            except ZeroDivisionError:
+                curr_prec = 1
             metrics_vals['precision'] = curr_prec
         if 'recall' in metrics:
             # Add the recall of the current batch
-            curr_rcl = true_pos / (true_pos + false_neg)
+            try:
+                curr_rcl = true_pos / (true_pos + false_neg)
+            except ZeroDivisionError:
+                curr_rcl = 1
             metrics_vals['recall'] = curr_rcl
         if 'F1' in metrics:
             # Check if precision has not yet been calculated
             if 'curr_prec' not in locals():
-                curr_prec = true_pos / (true_pos + false_pos)
+                try:
+                    curr_prec = true_pos / (true_pos + false_pos)
+                except ZeroDivisionError:
+                    curr_prec = 1
             # Check if recall has not yet been calculated
             if 'curr_rcl' not in locals():
-                curr_rcl = true_pos / (true_pos + false_neg)
+                try:
+                    curr_rcl = true_pos / (true_pos + false_neg)
+                except ZeroDivisionError:
+                    curr_rcl = 1
             # Add the F1 score of the current batch
             metrics_vals['F1'] = 2 * curr_prec * curr_rcl / (curr_prec + curr_rcl)
         # Remove the current features and labels from memory
@@ -716,11 +728,17 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
                         warnings.warn(f'Couldn\'t calculate the AUC metric. Received exception "{str(e)}".')
             if 'precision' in metrics:
                 # Add the precision of the current batch
-                curr_prec = true_pos / (true_pos + false_pos)
+                try:
+                    curr_prec = true_pos / (true_pos + false_pos)
+                except ZeroDivisionError:
+                    curr_prec = 1
                 prec += curr_prec
             if 'recall' in metrics:
                 # Add the recall of the current batch
-                curr_rcl = true_pos / (true_pos + false_neg)
+                try:
+                    curr_rcl = true_pos / (true_pos + false_neg)
+                except ZeroDivisionError:
+                    curr_rcl = 1
                 rcl += curr_rcl
             if 'F1' in metrics:
                 # Check if precision has not yet been calculated
@@ -728,7 +746,10 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
                     curr_prec = true_pos / (true_pos + false_pos)
                 # Check if recall has not yet been calculated
                 if 'curr_rcl' not in locals():
-                    curr_rcl = true_pos / (true_pos + false_neg)
+                    try:
+                        curr_rcl = true_pos / (true_pos + false_neg)
+                    except ZeroDivisionError:
+                        curr_rcl = 1
                 # Add the F1 score of the current batch
                 f1_score += 2 * curr_prec * curr_rcl / (curr_prec + curr_rcl)
             # Remove the current features and labels from memory
