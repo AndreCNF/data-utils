@@ -78,8 +78,8 @@ def is_boolean_column(df, column, n_unique_values=None):
         if isinstance(df, dd.DataFrame):
             # Make sure that the number of unique values are computed, in case we're using Dask
             n_unique_values = n_unique_values.compute()
-    # Check if it only has 2 possible values
-    if n_unique_values == 2:
+    # Check if it only has, at most, 2 possible values
+    if n_unique_values <= 2:
         unique_values = df[column].unique()
         if isinstance(df, dd.DataFrame):
             # Make sure that the unique values are computed, in case we're using Dask
@@ -93,7 +93,9 @@ def is_boolean_column(df, column, n_unique_values=None):
             unique_values = list(set(np.nan_to_num(unique_values)))
             unique_values.sort()
             unique_values = [val for val in unique_values if str(val).lower() != 'nan' ]
-            if unique_values == [0, 1]:
+            if ((n_unique_values == 2 and unique_values == [0, 1])
+            or (n_unique_values == 1 and unique_values == [0])
+            or (n_unique_values == 1 and unique_values == [1])):
                 return True
     return False
 
