@@ -56,9 +56,11 @@ def set_bar_color(values, ids, seq_len, threshold=0,
 
 def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_better=True,
                    background_color='white', output_type='plotly', dash_id='some_indicator',
-                   dash_height=None, dash_width=None, show_number=True, show_delta=False,
-                   ref_value=None, font_family='Roboto', font_size=14, font_color='black', 
-                   prefix='', suffix='', showticklabels=False, animate=False):
+                   dash_height=None, dash_width=None, show_number=True, show_graph=True, 
+                   show_delta=False, ref_value=None, font_family='Roboto', font_size=14, 
+                   font_color='black', prefix='', suffix='', showticklabels=False, 
+                   animate=False, margin_left=0, margin_right=0, margin_top=0, 
+                   margin_bottom=0, padding=0):
     '''Generate an indicator plot, which can help visualize performance. Can
     either be of type bullet or gauge.
 
@@ -88,7 +90,10 @@ def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_bette
     dash_width : str, default None
         Width value to be used in the Dash graph.
     show_number : bool, default True
-        If set to True, the number will be shown next to the plot.
+        If set to True, the number will be shown, whether next to the plot or
+        on its own.
+    show_graph : bool, default True
+        If set to True, the graph, whether bullet or gauge, will be displayed.
     show_delta : bool, default False
         If set to True, the value's variation, based on a reference value, will
         be plotted.
@@ -112,6 +117,17 @@ def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_bette
         Determines whether or not the tick labels are drawn.
     animate : bool, default False
         If true, animate between updates using plotly.js's `animate` function.
+    margin_left : int, default 0
+        Sets the left margin (in px).
+    margin_right : int, default 0
+        Sets the right margin (in px).
+    margin_top : int, default 0
+        Sets the top margin (in px).
+    margin_bottom : int, default 0
+        Sets the bottom margin (in px).
+    padding : int, default 0
+        Sets the amount of padding (in px) between the plotting area and 
+        the axis lines.
 
     Returns
     -------
@@ -131,20 +147,25 @@ def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_bette
         Figure in a Dash graph format, ready to be used in a dashboard.
     '''
     global perf_colors
-    # Define the bar color
-    if higher_is_better:
-        color = perf_colors[int(max((value/max_val)*len(perf_colors)-1, 0))]
-    else:
-        color = perf_colors[len(perf_colors)-1-int(max((value/max_val)*len(perf_colors)-1, 0))]
+    if show_graph:
+        # Define the bar color
+        if higher_is_better:
+            color = perf_colors[int(max((value/max_val)*len(perf_colors)-1, 0))]
+        else:
+            color = perf_colors[len(perf_colors)-1-int(max((value/max_val)*len(perf_colors)-1, 0))]
     # Define if the value and the delta is shown next to the plot
-    if show_number and show_delta:
-        mode='number+gauge+delta'
-    elif show_number and not show_delta:
-        mode='number+gauge'
-    elif not show_number and show_delta:
-        mode='gauge+delta'
-    else:
-        mode='gauge'
+    if show_number and show_graph and show_delta:
+        mode = 'number+gauge+delta'
+    elif show_number and show_graph and not show_delta:
+        mode = 'number+gauge'
+    elif show_number and not show_graph and show_delta:
+        mode = 'number+delta'
+    elif show_number and not show_graph and not show_delta:
+        mode = 'number'
+    elif not show_number and show_graph and show_delta:
+        mode = 'gauge+delta'
+    elif not show_number and show_graph and not show_delta:
+        mode = 'gauge'
     if type.lower() == 'bullet':
         shape = 'bullet'
     elif type.lower() == 'gauge':
@@ -166,22 +187,11 @@ def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_bette
                 prefix=prefix,
                 suffix=suffix
             ),
-            gauge=dict(
-                shape=shape,
-                bar=dict(
-                    thickness=1,
-                    color=color
-                ),
-                axis=dict(
-                    range=[min_val, max_val],
-                    showticklabels=showticklabels
-                )
-            ),
             delta=dict(reference=ref_value)
         )],
         layout=dict(
             paper_bgcolor=background_color,
-            margin=dict(l=0, r=0, t=0, b=0, pad=0),
+            margin=dict(l=margin_left, r=margin_right, t=margin_top, b=margin_bottom, pad=padding),
             font=dict(
                 family=font_family,
                 size=font_size,
@@ -189,6 +199,19 @@ def indicator_plot(value, min_val=0, max_val=100, type='bullet', higher_is_bette
             )
         )
     )
+    if show_graph:
+        # Add the graph
+        figure['data'][0]['gauge'] = dict(
+            shape=shape,
+            bar=dict(
+                thickness=1,
+                color=color
+            ),
+            axis=dict(
+                range=[min_val, max_val],
+                showticklabels=showticklabels
+            )
+        )
     if output_type == 'figure':
         return figure
     elif output_type == 'plotly':
@@ -215,7 +238,8 @@ def shap_summary_plot(shap_values, feature_names, max_display=10,
                       output_type='plotly', dash_id='some_shap_summary_plot',
                       dash_height=None, dash_width=None, font_family='Roboto',
                       font_size=14, font_color='black',
-                      xaxis_title='mean(|SHAP value|) (average impact on model output magnitude)'):
+                      xaxis_title='mean(|SHAP value|) (average impact on model output magnitude)',
+                      margin_left=0, margin_right=0, margin_top=0, margin_bottom=0, padding=0):
     '''Plot the overall feature importance, based on SHAP values, through an
     horizontal bar plot.
 
@@ -252,6 +276,17 @@ def shap_summary_plot(shap_values, feature_names, max_display=10,
         GB (e.g. 'rgb(0,0,255)').
     xaxis_title : str, default 'mean(|SHAP value|) (average impact on model output magnitude)'
         Phrase that appears bellow the X axis.
+    margin_left : int, default 0
+        Sets the left margin (in px).
+    margin_right : int, default 0
+        Sets the right margin (in px).
+    margin_top : int, default 0
+        Sets the top margin (in px).
+    margin_bottom : int, default 0
+        Sets the bottom margin (in px).
+    padding : int, default 0
+        Sets the amount of padding (in px) between the plotting area and 
+        the axis lines.
 
     Returns
     -------
@@ -291,7 +326,7 @@ def shap_summary_plot(shap_values, feature_names, max_display=10,
         layout=dict(
             paper_bgcolor=background_color,
             plot_bgcolor=background_color,
-            margin=dict(l=0, r=0, t=0, b=0, pad=0),
+            margin=dict(l=margin_left, r=margin_right, t=margin_top, b=margin_bottom, pad=padding),
             xaxis_title=xaxis_title,
             xaxis=dict(showgrid=False),
             font=dict(
@@ -327,7 +362,9 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
                         dash_id='some_shap_summary_plot', dash_height=None,
                         dash_width=None, expected_value_ind_height=0,
                         output_ind_height=10, font_family='Roboto', 
-                        font_size=14, font_color='black'):
+                        font_size=14, font_color='black',
+                        margin_left=0, margin_right=0, margin_top=0, 
+                        margin_bottom=0, padding=0):
     '''Do a waterfall plot on a single sample, based on SHAP values, showing
     each feature's contribution to the corresponding output.
 
@@ -376,6 +413,17 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
         Text font color to be used in the numbers shown next to the graph. Can
         be set in color name (e.g. 'white'), hexadecimal code (e.g. '#555') or
         GB (e.g. 'rgb(0,0,255)').
+    margin_left : int, default 0
+        Sets the left margin (in px).
+    margin_right : int, default 0
+        Sets the right margin (in px).
+    margin_top : int, default 0
+        Sets the top margin (in px).
+    margin_bottom : int, default 0
+        Sets the bottom margin (in px).
+    padding : int, default 0
+        Sets the amount of padding (in px) between the plotting area and 
+        the axis lines.
 
     Returns
     -------
@@ -441,7 +489,7 @@ def shap_waterfall_plot(expected_value, shap_values, features, feature_names,
         layout=dict(
             paper_bgcolor=background_color,
             plot_bgcolor=background_color,
-            margin=dict(l=0, r=0, t=0, b=0, pad=0),
+            margin=dict(l=margin_left, r=margin_right, t=margin_top, b=margin_bottom, pad=padding),
             xaxis_title='Output value',
             xaxis=dict(showgrid=False, autorange=True, rangemode='normal'),
             font=dict(
