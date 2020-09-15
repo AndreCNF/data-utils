@@ -55,11 +55,11 @@ The training and inference pipelines have a modular structure, so that we can ad
 
 ## Handling large data
 
-![SavingLoadingMethods](https://raw.githubusercontent.com/AndreCNF/data-utils/master/docs/images/)
+![SavingLoadingMethods](https://raw.githubusercontent.com/AndreCNF/data-utils/master/docs/images/SavingLoadingMethods.png)
 
 When we have data that is too big to process as a whole, a solution that might come to mind right away is to use it in smaller chunks. By treating the data bits by bits, we can reduce the minimum requirements and speed up the operations. So, Data Utils has methods for saving and loading the data in multiple [feather](https://arrow.apache.org/docs/python/feather.html) files, so as to facilitate these processes on large datasets.
 
-![LargeDatasetClass](https://raw.githubusercontent.com/AndreCNF/data-utils/master/docs/images/)
+![LargeDatasetClass](https://raw.githubusercontent.com/AndreCNF/data-utils/master/docs/images/LargeDatasetClass.png)
 
 Furthermore, in the Datasets component, I have developed a generic `Large_Dataset` class. It inherits from PyTorch's `Dataset` class but it is designed to dynamically load the files from disk, instead of from RAM as my other dataset classes do. Beyond this definition, `Large_Dataset` makes no assumptions about the data and lets the user define a preprocessing pipeline, which runs before returning each batch's features and labels, and an initial analysis method, which is an optional procedure where it can collect more information on the data. If needed, the user can also add more arguments when creating the dataset object, which are then integrated as attributes and can be accessed within the analysis and preprocessing steps.
 
