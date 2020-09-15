@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.7.2" />
+<meta name="generator" content="pdoc 0.9.1" />
 <title>data_utils.padding API documentation</title>
 <meta name="description" content="" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -26,9 +28,11 @@
 </summary>
 <pre><code class="python">from comet_ml import Experiment                         # Comet.ml can log training metrics, parameters, do version control and parameter optimization
 import torch                                            # PyTorch to create and apply deep learning models
+import dask.dataframe as dd                             # Dask to handle big data in dataframes
 import numpy as np                                      # NumPy to handle numeric and NaN operations
 import warnings                                         # Print warnings for bad practices
 from . import utils                                     # Generic and useful methods
+from . import search_explore                            # Methods to search and explore data
 from . import embedding                                 # Embeddings and other categorical features handling methods
 
 # Ignore Dask&#39;s &#39;meta&#39; warning
@@ -44,10 +48,10 @@ def get_sequence_length_dict(df, id_column=&#39;subject_id&#39;, ts_column=&#39;
     df : pandas.DataFrame or dask.DataFrame
         Data in a Pandas dataframe format which will be padded and converted
         to the requested data type.
-    id_column : string, default &#39;subject_id&#39;
+    id_column : string or int, default &#39;subject_id&#39;
         Name of the column which corresponds to the subject identifier in the
         dataframe.
-    ts_column : string, default &#39;ts&#39;
+    ts_column : string or int, default &#39;ts&#39;
         Name of the column which corresponds to the timestamp in the
         dataframe.
 
@@ -58,15 +62,21 @@ def get_sequence_length_dict(df, id_column=&#39;subject_id&#39;, ts_column=&#39;
         The keys should be the sequence identifiers (the numbers obtained from
         the id_column) and the values should be the length of each sequence.
     &#39;&#39;&#39;
+    if isinstance(id_column, int) and isinstance(ts_column, int):
+        # Convert the column indices to the column names
+        column_names = list(df.columns)
+        id_column = column_names[id_column]
+        ts_column = column_names[ts_column]
     # Dictionary containing the sequence length (number of temporal events) of each sequence (patient)
-    seq_len_df = df.groupby(id_column)[ts_column].count().to_frame().sort_values(by=ts_column, ascending=False)
-    seq_len_dict = dict([(idx, val[0]) for idx, val in list(zip(seq_len_df.index, seq_len_df.values))])
+    seq_len_df = df.groupby(id_column)[ts_column].count()
+    seq_len_dict = dict([(idx, val) for idx, val in list(zip(seq_len_df.index, seq_len_df.to_numpy()))])
     return seq_len_dict
 
 
-def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column=&#39;subject_id&#39;, 
-                               ts_column=&#39;ts&#39;, data_type=&#39;PyTorch&#39;, 
-                               padding_value=999999, cat_feat=None, 
+def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column=&#39;subject_id&#39;,
+                               ts_column=&#39;ts&#39;, label_column=&#39;label&#39;,
+                               bool_feat=None, data_type=&#39;PyTorch&#39;,
+                               padding_value=999999, total_length=None,
                                inplace=False):
     &#39;&#39;&#39;Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
 
@@ -85,17 +95,22 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column=&#39;subject_id&
     ts_column : string, default &#39;ts&#39;
         Name of the column which corresponds to the timestamp in the
         dataframe.
+    bool_feat : string or list of strings, default None
+        Name(s) of the boolean feature(s) of the dataframe. In order to prevent
+        confounding padding values with encodings, these features must have
+        their padding values replaced with 0. If not specified, the method
+        will automatically look for boolean columns in the dataframe. If you
+        don&#39;t want any feature to be treated as a boolean dtype, set `bool_feat=[]`
     data_type : string, default &#39;PyTorch&#39;
         Indication of what kind of output data type is desired. In case it&#39;s
         set as &#39;NumPy&#39;, the function outputs a NumPy array. If it&#39;s &#39;PyTorch&#39;,
         the function outputs a PyTorch tensor.
     padding_value : numeric
         Value to use in the padding, to fill the sequences.
-    cat_feat : string or list of strings, default None
-        Name(s) of the categorical encoded feature(s) which will have their
-        semicolon separators converted into its binary ASCII code. If not
-        specified, the method will look through all columns, processing
-        the ones that might have semicolons.
+    total_length : int, default None
+        If not None, the output will be padded to have length total_length.
+        This method will throw ValueError if total_length is less than the
+        max sequence length in sequence.
     inplace : bool, default False
         If set to True, the original dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -108,8 +123,12 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column=&#39;subject_id&
         padded with the specified padding value to have a fixed sequence
         length.
     &#39;&#39;&#39;
-    # Make sure that all possible categorical encoded columns are in numeric format
-    data_df = embedding.string_encod_to_numeric(df, cat_feat=cat_feat, inplace=inplace)
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
+    else:
+        # Use the original dataframe
+        data_df = df
     if seq_len_dict is None:
         # Find the sequence lengths and store them in a dictionary
         seq_len_dict = get_sequence_length_dict(data_df, id_column, ts_column)
@@ -120,19 +139,61 @@ def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column=&#39;subject_id&
         n_ids = n_ids.compute()
     # Get the number of columns in the dataframe
     n_inputs = len(data_df.columns)
-    # Max sequence length (e.g. patient with the most temporal events)
-    max_seq_len = seq_len_dict[max(seq_len_dict, key=seq_len_dict.get)]
-    # Making a padded numpy array version of the dataframe (all index has the same sequence length as the one with the max)
-    arr = np.ones((n_ids, max_seq_len, n_inputs)) * padding_value
-    # Iterator that outputs each unique identifier (e.g. each patient in the dataset)
-    id_iter = iter(data_df[id_column].unique())
-    # Count the iterations of ids
-    count = 0
-    # Assign each value from the dataframe to the numpy array
-    for idt in id_iter:
-        arr[count, :seq_len_dict[idt], :] = data_df[data_df[id_column] == idt].to_numpy()
-        arr[count, seq_len_dict[idt]:, :] = padding_value
-        count += 1
+    if total_length is None:
+        # Max sequence length in the current data
+        total_length = seq_len_dict[max(seq_len_dict, key=seq_len_dict.get)]
+    if n_ids &gt; 1:
+        # Making a padded numpy array version of the dataframe (all index has the same sequence length as the one with the max)
+        arr = np.ones((n_ids, total_length, n_inputs)) * padding_value
+        # Fetch a list with all the unique identifiers (e.g. each patient in the dataset)
+        unique_ids = data_df[id_column].unique()
+        # Iterator that outputs each unique identifier
+        id_iter = iter(unique_ids)
+        # Count the iterations of ids
+        count = 0
+        # Assign each value from the dataframe to the numpy array
+        for idt in id_iter:
+            arr[count, :seq_len_dict[idt], :] = data_df[data_df[id_column] == idt].to_numpy()
+            arr[count, seq_len_dict[idt]:, :] = padding_value
+            count += 1
+    else:
+        # Making a padded numpy array version of the dataframe (all index has the same sequence length as the one with the max)
+        arr = np.ones((total_length, n_inputs)) * padding_value
+        # Assign each value from the dataframe to the numpy array
+        idt = data_df[id_column].iloc[0]
+        arr[:seq_len_dict[idt], :] = data_df.to_numpy()
+        arr[seq_len_dict[idt]:, :] = padding_value
+    if bool_feat is None:
+        # Find the boolean columns in the dataframe
+        bool_feat = search_explore.list_boolean_columns(data_df)
+        # Make sure that none of the ID columns are considered boolean
+        bool_feat = list(set(bool_feat) - set([id_column, ts_column, label_column]))
+        # Get the indices of the boolean features
+        bool_feat = [search_explore.find_col_idx(data_df, feature) for feature in bool_feat]
+    elif isinstance(bool_feat, str):
+        # Get the index of the boolean feature
+        bool_feat = search_explore.find_col_idx(data_df, bool_feat)
+        # Make sure that the boolean feature names are in a list format
+        bool_feat = [bool_feat]
+    elif not isinstance(bool_feat, list):
+        raise Exception(f&#39;ERROR: The `bool_feat` argument must be specified as either a single string or a list of strings. Received input with type {type(bool_feat)}.&#39;)
+    elif all(isinstance(feat, str) for feat in bool_feat):
+        # Convert from the feature&#39;s name to its index
+        bool_feat = [search_explore.find_col_idx(data_df, feat) for feat in bool_feat]
+    if len(bool_feat) &gt; 0:
+        if n_ids &gt; 1:
+            # Iterator that outputs each unique identifier
+            id_iter = iter(unique_ids)
+            # Count the iterations of ids
+            count = 0
+            # Replace each padding value in the boolean features with zero
+            for idt in id_iter:
+                arr[count, seq_len_dict[idt]:, bool_feat] = 0
+                count += 1
+        else:
+            # Replace each padding value in the boolean features with zero
+            idt = data_df[id_column].iloc[0]
+            arr[seq_len_dict[idt]:, bool_feat] = 0
     # Make sure that the data type asked for is a string
     if not isinstance(data_type, str):
         raise Exception(&#39;ERROR: Please provide the desirable data type in a string format.&#39;)
@@ -181,7 +242,7 @@ def sort_by_seq_len(data, seq_len_dict, labels=None, id_column=0):
         sorted_data = data
         sorted_labels = labels
     else:
-        # Sorted indeces to get the data sorted by sequence length
+        # Sorted indices to get the data sorted by sequence length
         data_sorted_idx = list(np.argsort(x_lengths)[::-1])
         # Sort the x_lengths array by descending sequence length
         x_lengths = [x_lengths[idx] for idx in data_sorted_idx]
@@ -224,10 +285,10 @@ def pad_list(x_list, length, padding_value=999999):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="data_utils.padding.dataframe_to_padded_tensor"><code class="name flex">
-<span>def <span class="ident">dataframe_to_padded_tensor</span></span>(<span>df, seq_len_dict=None, id_column='subject_id', ts_column='ts', data_type='PyTorch', padding_value=999999, cat_feat=None, inplace=False)</span>
+<span>def <span class="ident">dataframe_to_padded_tensor</span></span>(<span>df, seq_len_dict=None, id_column='subject_id', ts_column='ts', label_column='label', bool_feat=None, data_type='PyTorch', padding_value=999999, total_length=None, inplace=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.</p>
+<div class="desc"><p>Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
@@ -243,17 +304,22 @@ dataframe.</dd>
 <dt><strong><code>ts_column</code></strong> :&ensp;<code>string</code>, default <code>'ts'</code></dt>
 <dd>Name of the column which corresponds to the timestamp in the
 dataframe.</dd>
+<dt><strong><code>bool_feat</code></strong> :&ensp;<code>string</code> or <code>list</code> of <code>strings</code>, default <code>None</code></dt>
+<dd>Name(s) of the boolean feature(s) of the dataframe. In order to prevent
+confounding padding values with encodings, these features must have
+their padding values replaced with 0. If not specified, the method
+will automatically look for boolean columns in the dataframe. If you
+don't want any feature to be treated as a boolean dtype, set <code>bool_feat=[]</code></dd>
 <dt><strong><code>data_type</code></strong> :&ensp;<code>string</code>, default <code>'PyTorch'</code></dt>
 <dd>Indication of what kind of output data type is desired. In case it's
 set as 'NumPy', the function outputs a NumPy array. If it's 'PyTorch',
 the function outputs a PyTorch tensor.</dd>
 <dt><strong><code>padding_value</code></strong> :&ensp;<code>numeric</code></dt>
 <dd>Value to use in the padding, to fill the sequences.</dd>
-<dt><strong><code>cat_feat</code></strong> :&ensp;<code>string</code> or <code>list</code> of <code>strings</code>, default <code>None</code></dt>
-<dd>Name(s) of the categorical encoded feature(s) which will have their
-semicolon separators converted into its binary ASCII code. If not
-specified, the method will look through all columns, processing
-the ones that might have semicolons.</dd>
+<dt><strong><code>total_length</code></strong> :&ensp;<code>int</code>, default <code>None</code></dt>
+<dd>If not None, the output will be padded to have length total_length.
+This method will throw ValueError if total_length is less than the
+max sequence length in sequence.</dd>
 <dt><strong><code>inplace</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
 <dd>If set to True, the original dataframe will be used and modified
 directly. Otherwise, a copy will be created and returned, without
@@ -265,14 +331,15 @@ changing the original dataframe.</dd>
 <dd>PyTorch tensor or NumPy array version of the dataframe, after being
 padded with the specified padding value to have a fixed sequence
 length.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column=&#39;subject_id&#39;, 
-                               ts_column=&#39;ts&#39;, data_type=&#39;PyTorch&#39;, 
-                               padding_value=999999, cat_feat=None, 
+<pre><code class="python">def dataframe_to_padded_tensor(df, seq_len_dict=None, id_column=&#39;subject_id&#39;,
+                               ts_column=&#39;ts&#39;, label_column=&#39;label&#39;,
+                               bool_feat=None, data_type=&#39;PyTorch&#39;,
+                               padding_value=999999, total_length=None,
                                inplace=False):
     &#39;&#39;&#39;Converts a Pandas dataframe into a padded NumPy array or PyTorch Tensor.
 
@@ -291,17 +358,22 @@ length.</dd>
     ts_column : string, default &#39;ts&#39;
         Name of the column which corresponds to the timestamp in the
         dataframe.
+    bool_feat : string or list of strings, default None
+        Name(s) of the boolean feature(s) of the dataframe. In order to prevent
+        confounding padding values with encodings, these features must have
+        their padding values replaced with 0. If not specified, the method
+        will automatically look for boolean columns in the dataframe. If you
+        don&#39;t want any feature to be treated as a boolean dtype, set `bool_feat=[]`
     data_type : string, default &#39;PyTorch&#39;
         Indication of what kind of output data type is desired. In case it&#39;s
         set as &#39;NumPy&#39;, the function outputs a NumPy array. If it&#39;s &#39;PyTorch&#39;,
         the function outputs a PyTorch tensor.
     padding_value : numeric
         Value to use in the padding, to fill the sequences.
-    cat_feat : string or list of strings, default None
-        Name(s) of the categorical encoded feature(s) which will have their
-        semicolon separators converted into its binary ASCII code. If not
-        specified, the method will look through all columns, processing
-        the ones that might have semicolons.
+    total_length : int, default None
+        If not None, the output will be padded to have length total_length.
+        This method will throw ValueError if total_length is less than the
+        max sequence length in sequence.
     inplace : bool, default False
         If set to True, the original dataframe will be used and modified
         directly. Otherwise, a copy will be created and returned, without
@@ -314,8 +386,12 @@ length.</dd>
         padded with the specified padding value to have a fixed sequence
         length.
     &#39;&#39;&#39;
-    # Make sure that all possible categorical encoded columns are in numeric format
-    data_df = embedding.string_encod_to_numeric(df, cat_feat=cat_feat, inplace=inplace)
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
+    else:
+        # Use the original dataframe
+        data_df = df
     if seq_len_dict is None:
         # Find the sequence lengths and store them in a dictionary
         seq_len_dict = get_sequence_length_dict(data_df, id_column, ts_column)
@@ -326,19 +402,61 @@ length.</dd>
         n_ids = n_ids.compute()
     # Get the number of columns in the dataframe
     n_inputs = len(data_df.columns)
-    # Max sequence length (e.g. patient with the most temporal events)
-    max_seq_len = seq_len_dict[max(seq_len_dict, key=seq_len_dict.get)]
-    # Making a padded numpy array version of the dataframe (all index has the same sequence length as the one with the max)
-    arr = np.ones((n_ids, max_seq_len, n_inputs)) * padding_value
-    # Iterator that outputs each unique identifier (e.g. each patient in the dataset)
-    id_iter = iter(data_df[id_column].unique())
-    # Count the iterations of ids
-    count = 0
-    # Assign each value from the dataframe to the numpy array
-    for idt in id_iter:
-        arr[count, :seq_len_dict[idt], :] = data_df[data_df[id_column] == idt].to_numpy()
-        arr[count, seq_len_dict[idt]:, :] = padding_value
-        count += 1
+    if total_length is None:
+        # Max sequence length in the current data
+        total_length = seq_len_dict[max(seq_len_dict, key=seq_len_dict.get)]
+    if n_ids &gt; 1:
+        # Making a padded numpy array version of the dataframe (all index has the same sequence length as the one with the max)
+        arr = np.ones((n_ids, total_length, n_inputs)) * padding_value
+        # Fetch a list with all the unique identifiers (e.g. each patient in the dataset)
+        unique_ids = data_df[id_column].unique()
+        # Iterator that outputs each unique identifier
+        id_iter = iter(unique_ids)
+        # Count the iterations of ids
+        count = 0
+        # Assign each value from the dataframe to the numpy array
+        for idt in id_iter:
+            arr[count, :seq_len_dict[idt], :] = data_df[data_df[id_column] == idt].to_numpy()
+            arr[count, seq_len_dict[idt]:, :] = padding_value
+            count += 1
+    else:
+        # Making a padded numpy array version of the dataframe (all index has the same sequence length as the one with the max)
+        arr = np.ones((total_length, n_inputs)) * padding_value
+        # Assign each value from the dataframe to the numpy array
+        idt = data_df[id_column].iloc[0]
+        arr[:seq_len_dict[idt], :] = data_df.to_numpy()
+        arr[seq_len_dict[idt]:, :] = padding_value
+    if bool_feat is None:
+        # Find the boolean columns in the dataframe
+        bool_feat = search_explore.list_boolean_columns(data_df)
+        # Make sure that none of the ID columns are considered boolean
+        bool_feat = list(set(bool_feat) - set([id_column, ts_column, label_column]))
+        # Get the indices of the boolean features
+        bool_feat = [search_explore.find_col_idx(data_df, feature) for feature in bool_feat]
+    elif isinstance(bool_feat, str):
+        # Get the index of the boolean feature
+        bool_feat = search_explore.find_col_idx(data_df, bool_feat)
+        # Make sure that the boolean feature names are in a list format
+        bool_feat = [bool_feat]
+    elif not isinstance(bool_feat, list):
+        raise Exception(f&#39;ERROR: The `bool_feat` argument must be specified as either a single string or a list of strings. Received input with type {type(bool_feat)}.&#39;)
+    elif all(isinstance(feat, str) for feat in bool_feat):
+        # Convert from the feature&#39;s name to its index
+        bool_feat = [search_explore.find_col_idx(data_df, feat) for feat in bool_feat]
+    if len(bool_feat) &gt; 0:
+        if n_ids &gt; 1:
+            # Iterator that outputs each unique identifier
+            id_iter = iter(unique_ids)
+            # Count the iterations of ids
+            count = 0
+            # Replace each padding value in the boolean features with zero
+            for idt in id_iter:
+                arr[count, seq_len_dict[idt]:, bool_feat] = 0
+                count += 1
+        else:
+            # Replace each padding value in the boolean features with zero
+            idt = data_df[id_column].iloc[0]
+            arr[seq_len_dict[idt]:, bool_feat] = 0
     # Make sure that the data type asked for is a string
     if not isinstance(data_type, str):
         raise Exception(&#39;ERROR: Please provide the desirable data type in a string format.&#39;)
@@ -354,16 +472,16 @@ length.</dd>
 <span>def <span class="ident">get_sequence_length_dict</span></span>(<span>df, id_column='subject_id', ts_column='ts')</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Creates a dictionary with the original sequence lengths of a dataframe.</p>
+<div class="desc"><p>Creates a dictionary with the original sequence lengths of a dataframe.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
 <dd>Data in a Pandas dataframe format which will be padded and converted
 to the requested data type.</dd>
-<dt><strong><code>id_column</code></strong> :&ensp;<code>string</code>, default <code>'subject_id'</code></dt>
+<dt><strong><code>id_column</code></strong> :&ensp;<code>string</code> or <code>int</code>, default <code>'subject_id'</code></dt>
 <dd>Name of the column which corresponds to the subject identifier in the
 dataframe.</dd>
-<dt><strong><code>ts_column</code></strong> :&ensp;<code>string</code>, default <code>'ts'</code></dt>
+<dt><strong><code>ts_column</code></strong> :&ensp;<code>string</code> or <code>int</code>, default <code>'ts'</code></dt>
 <dd>Name of the column which corresponds to the timestamp in the
 dataframe.</dd>
 </dl>
@@ -373,7 +491,7 @@ dataframe.</dd>
 <dd>Dictionary containing the original sequence lengths of the dataframe.
 The keys should be the sequence identifiers (the numbers obtained from
 the id_column) and the values should be the length of each sequence.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -386,10 +504,10 @@ the id_column) and the values should be the length of each sequence.</dd>
     df : pandas.DataFrame or dask.DataFrame
         Data in a Pandas dataframe format which will be padded and converted
         to the requested data type.
-    id_column : string, default &#39;subject_id&#39;
+    id_column : string or int, default &#39;subject_id&#39;
         Name of the column which corresponds to the subject identifier in the
         dataframe.
-    ts_column : string, default &#39;ts&#39;
+    ts_column : string or int, default &#39;ts&#39;
         Name of the column which corresponds to the timestamp in the
         dataframe.
 
@@ -400,9 +518,14 @@ the id_column) and the values should be the length of each sequence.</dd>
         The keys should be the sequence identifiers (the numbers obtained from
         the id_column) and the values should be the length of each sequence.
     &#39;&#39;&#39;
+    if isinstance(id_column, int) and isinstance(ts_column, int):
+        # Convert the column indices to the column names
+        column_names = list(df.columns)
+        id_column = column_names[id_column]
+        ts_column = column_names[ts_column]
     # Dictionary containing the sequence length (number of temporal events) of each sequence (patient)
-    seq_len_df = df.groupby(id_column)[ts_column].count().to_frame().sort_values(by=ts_column, ascending=False)
-    seq_len_dict = dict([(idx, val[0]) for idx, val in list(zip(seq_len_df.index, seq_len_df.values))])
+    seq_len_df = df.groupby(id_column)[ts_column].count()
+    seq_len_dict = dict([(idx, val) for idx, val in list(zip(seq_len_df.index, seq_len_df.to_numpy()))])
     return seq_len_dict</code></pre>
 </details>
 </dd>
@@ -410,7 +533,7 @@ the id_column) and the values should be the length of each sequence.</dd>
 <span>def <span class="ident">pad_list</span></span>(<span>x_list, length, padding_value=999999)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Pad a list with a specific padding value until the desired length is
+<div class="desc"><p>Pad a list with a specific padding value until the desired length is
 met.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -425,7 +548,7 @@ met.</p>
 <dl>
 <dt><strong><code>x_list</code></strong> :&ensp;<code>list</code></dt>
 <dd>Resulting padded list</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -454,7 +577,7 @@ met.</p>
 <span>def <span class="ident">sort_by_seq_len</span></span>(<span>data, seq_len_dict, labels=None, id_column=0)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Sort the data by sequence length in order to correctly apply it to a
+<div class="desc"><p>Sort the data by sequence length in order to correctly apply it to a
 PyTorch neural network.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -480,7 +603,7 @@ the data tensor.</dd>
 labels data is specified in the input.</dd>
 <dt><strong><code>x_lengths</code></strong> :&ensp;<code>list</code> of <code>int</code></dt>
 <dd>Sorted list of sequence lengths, relative to the input data.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -522,7 +645,7 @@ labels data is specified in the input.</dd>
         sorted_data = data
         sorted_labels = labels
     else:
-        # Sorted indeces to get the data sorted by sequence length
+        # Sorted indices to get the data sorted by sequence length
         data_sorted_idx = list(np.argsort(x_lengths)[::-1])
         # Sort the x_lengths array by descending sequence length
         x_lengths = [x_lengths[idx] for idx in data_sorted_idx]
@@ -565,9 +688,7 @@ labels data is specified in the input.</dd>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.7.2" />
+<meta name="generator" content="pdoc 0.9.1" />
 <title>data_utils.datasets API documentation</title>
 <meta name="description" content="" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -25,21 +27,46 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">from torch.utils.data import Dataset                    # Pytorch base dataset class
+import inspect                                          # Inspect methods and their arguments
+from glob import glob                                   # List files that follow certain path and name rules
 from . import padding                                   # Padding and variable sequence length related methods
+from .embedding import embedding_bag_pipeline           # Categorical embedding method
+import data_utils as du
+
+# Pandas to handle the data in dataframes
+if du.use_modin is True:
+    import modin.pandas as pd
+else:
+    import pandas as pd
 
 class Tabular_Dataset(Dataset):
-    def __init__(self, arr, df, label_name=None):
+    &#39;&#39;&#39;A dataset object for tabular data, which separates features from
+    labels, and allows to iteratively load data.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe used to search for the label column.
+    arr : torch.Tensor or numpy.ndarray
+        The data itself which will be separated into features and labels,
+        to the be loaded in this dataset or following dataloader objects.
+    label_name : string, default None
+        Name of the label column.
+    &#39;&#39;&#39;
+    def __init__(self, df, arr, label_name=None):
         # Counter that indicates in which column we&#39;re in when searching for the label column
         col_num = 0
         for col in df.columns:
             if &#39;label&#39; in col or col == label_name:
+                # Column name corresponding to the label
+                self.label_column_name = col
                 # Column number corresponding to the label
-                self.label_column = col_num
+                self.label_column_num = col_num
                 break
             col_num += 1
         # Column numbers corresponding to the features
-        self.features_columns = (list(range(self.label_column)) 
-                                 + list(range(self.label_column + 1, arr.shape[1])))
+        self.features_columns = (list(range(self.label_column_num))
+                                 + list(range(self.label_column_num + 1, arr.shape[1])))
         # Features
         self.X = arr[:, self.features_columns]
         # Labels
@@ -53,39 +80,181 @@ class Tabular_Dataset(Dataset):
     def __len__(self):
         return len(self.X)
 
-        from torch.utils.data import Dataset
-
 
 class Time_Series_Dataset(Dataset):
-    def __init__(self, arr, df, label_name=None, id_column=&#39;subject_id&#39;,
-                 ts_column=&#39;ts&#39;, seq_len_dict=None):
+    &#39;&#39;&#39;A dataset object for time series data, which separates features from
+    labels, and allows to iteratively load data.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe used to search for the label column.
+    arr : torch.Tensor or numpy.ndarray, default None
+        The data itself which will be separated into features and labels,
+        to the be loaded in this dataset or following dataloader objects.
+        If it is not specified, the data will be used directly from the
+        dataframe `df`.
+    label_name : string, default None
+        Name of the label column.
+    id_column : string, default None
+        Name of the sequence ID column.
+    ts_column : string, default None
+        Name of the timestamp column.
+
+    If arr is None:
+
+    seq_len_dict : dictionary, default None
+        Dictionary containing the original sequence lengths of the dataframe.
+        The keys should be the sequence identifiers (the numbers obtained from
+        the id_column) and the values should be the length of each sequence.
+    embedding_layer : torch.nn.EmbeddingBag or torch.nn.ModuleList or torch.nn.ModuleDict
+        PyTorch layer(s) that applies the embedding bag, i.e. calculates the
+        average embedding based on multiple encoded values.
+    embed_features : int or list of int or str or list of str or list of list of int
+        Index (or indices) or name(s) of the categorical column(s) that will be
+        ran through its (or their) respective embedding layer(s). This feature(s)
+        is (are) removed from the data tensor after the embedding columns are
+        added. In case the input data is in a dataframe format, the feature(s)
+        can be specified by name.
+    padding_value : numeric, default 999999
+        Value to use in the padding, to fill the sequences.
+    &#39;&#39;&#39;
+    def __init__(self, df, arr=None, label_name=None, id_column=&#39;subject_id&#39;,
+                 ts_column=&#39;ts&#39;, seq_len_dict=None, embedding_layer=None,
+                 embed_features=None, padding_value=999999):
+        if arr is None:
+            self.data_type = &#39;dataframe&#39;
+            self.id_column_name = id_column
+            self.ts_column_name = ts_column
+            self.padding_value = padding_value
+            if embedding_layer is not None and embed_features is not None:
+                self.embedding_layer = embedding_layer
+                self.embed_features = embed_features
+        else:
+            self.data_type = &#39;tensor&#39;
         # Counter that indicates in which column we&#39;re in when searching for the label column
         col_num = 0
         for col in df.columns:
             if &#39;label&#39; in col or col == label_name:
+                # Column name corresponding to the label
+                self.label_column_name = col
                 # Column number corresponding to the label
-                self.label_column = col_num
+                self.label_column_num = col_num
                 break
             col_num += 1
-        # Column numbers corresponding to the features
-        self.features_columns = (list(range(self.label_column))
-                                 + list(range(self.label_column + 1, arr.shape[2])))
-        # Features
-        self.X = arr[:, :, self.features_columns]
-        # Labels
-        self.y = arr[:, :, self.label_column]
-        # Sequence length dictionary
-        if seq_len_dict is None:
-            seq_len_dict = padding.get_sequence_length_dict(df, id_column=&#39;subject_id&#39;, ts_column=&#39;ts&#39;)
-        self.seq_len_dict = seq_len_dict
+        if self.data_type == &#39;tensor&#39;:
+            # Column numbers corresponding to the features
+            self.features_columns_num = (list(range(self.label_column_num))
+                                         + list(range(self.label_column_num + 1, arr.shape[2])))
+            # Features
+            self.X = arr[:, :, self.features_columns_num]
+            # Labels
+            self.y = arr[:, :, self.label_column_num]
+        elif self.data_type == &#39;dataframe&#39;:
+            # Column names corresponding to the features
+            self.features_columns = list(df.columns)
+            self.features_columns.remove(self.label_column_name)
+            # Column numbers corresponding to the features
+            self.features_columns_num = (list(range(self.label_column_num))
+                                         + list(range(self.label_column_num + 1, len(df.columns))))
+            # Features
+            self.X = df[self.features_columns]
+            # Labels
+            self.y = df[self.label_column_name]
+            # List of items (sequences)
+            self.seq_items = df[id_column].unique()
+            # Sequence length dictionary
+            if seq_len_dict is None:
+                self.seq_len_dict = padding.get_sequence_length_dict(df, id_column=id_column,
+                                                                     ts_column=ts_column)
+            else:
+                self.seq_len_dict = seq_len_dict
 
     def __getitem__(self, item):
-        x_t = self.X[item]
-        y_t = self.y[item]
+        if self.data_type == &#39;tensor&#39;:
+            # Get the data
+            x_t = self.X[item]
+            y_t = self.y[item]
+        elif self.data_type == &#39;dataframe&#39;:
+            # Get the sequence ID
+            seq = self.seq_items[item]
+            # Find the indices of the dataframes
+            idx = self.X.index[self.X[self.id_column_num] == seq]
+            # Get the data
+            x_t = self.X.iloc[idx]
+            y_t = self.y.iloc[idx]
+            if self.embed_features is not None:
+                # Run each embedding layer on each respective feature, adding the
+                # resulting embedding values to the tensor and removing the original,
+                # categorical encoded columns
+                x_t = embedding_bag_pipeline(x_t, self.embedding_layer, self.embed_features,
+                                             inplace=True)
+            # Pad the data (both X and y)
+            df = pd.concat([x_t, y_t], axis=1)
+            df = padding.dataframe_to_padded_tensor(df, seq_len_dict=self.seq_len_dict,
+                                                    id_column=self.id_column_name,
+                                                    ts_column=self.ts_column_name,
+                                                    padding_value=self.padding_value,
+                                                    inplace=True)
+            # Features
+            x_t = df[:, :-1]
+            # Labels
+            y_t = df[:, -1]
         return x_t, y_t
 
     def __len__(self):
-        return len(self.X)</code></pre>
+        if self.data_type == &#39;tensor&#39;:
+            return len(self.X)
+        elif self.data_type == &#39;dataframe&#39;:
+            return len(self.seq_items)
+
+
+class Large_Dataset(Dataset):
+    &#39;&#39;&#39;A generic dataset object for any data type, including large datasets,
+    which allows to iteratively load data from individual data files, in a
+    lazy loading way.
+
+    Parameters
+    ----------
+    files_name : string, default None
+        Core name that is shared by the data files.
+    process_pipeline : function
+        Python function that preprocesses data in each data loading
+        iteration.
+    id_column : string, default None
+        Name of the sequence or sample ID column.
+    initial_analysis : function
+        Python function that runs in the dataset initialization, which can
+        be used to retrieve additional parameters.
+    files_path : string
+        Name of the directory where the data files are stored.
+    &#39;&#39;&#39;
+    def __init__(self, files_name, process_pipeline, id_column,
+                 initial_analysis=None, files_path=&#39;&#39;, **kwargs):
+        # Load the file names
+        self.files = glob(f&#39;{files_path}{files_name}_*.ftr&#39;)
+        # Data preprocessing pipeline function
+        self.process_pipeline = process_pipeline
+        # Other basic data information
+        self.id_column_name = id_column
+        # Add aditional data that the user might have specified
+        self.__dict__.update(kwargs)
+        # Initial analysis pipeline to fetch important, context specific information
+        self.initial_analysis = initial_analysis
+        if self.initial_analysis is not None:
+            # Run the initial analysis
+            self.initial_analysis(self)
+
+    def __getitem__(self, item):
+        # Load a data file
+        df = pd.read_feather(self.files[item])
+        # Run the data preprocessing pipeline, which should return the features
+        # and label tensors
+        features, labels = self.process_pipeline(self, df)
+        return features, labels
+
+    def __len__(self):
+        return len(self.files)</code></pre>
 </details>
 </section>
 <section>
@@ -97,42 +266,134 @@ class Time_Series_Dataset(Dataset):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="data_utils.datasets.Tabular_Dataset"><code class="flex name class">
-<span>class <span class="ident">Tabular_Dataset</span></span>
-<span>(</span><span>arr, df, label_name=None)</span>
+<dt id="data_utils.datasets.Large_Dataset"><code class="flex name class">
+<span>class <span class="ident">Large_Dataset</span></span>
+<span>(</span><span>files_name, process_pipeline, id_column, initial_analysis=None, files_path='', **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>An abstract class representing a :class:<code>Dataset</code>.</p>
-<p>All datasets that represent a map from keys to data samples should subclass
-it. All subclasses should overrite :meth:<code>__getitem__</code>, supporting fetching a
-data sample for a given key. Subclasses could also optionally overwrite
-:meth:<code>__len__</code>, which is expected to return the size of the dataset by many
-:class:<code>~torch.utils.data.Sampler</code> implementations and the default options
-of :class:<code>~torch.utils.data.DataLoader</code>.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>:class:<code>~torch.utils.data.DataLoader</code> by default constructs a index
-sampler that yields integral indices.
-To make it work with a map-style
-dataset with non-integral indices/keys, a custom sampler must be provided.</p>
-</div></section>
+<div class="desc"><p>A generic dataset object for any data type, including large datasets,
+which allows to iteratively load data from individual data files, in a
+lazy loading way.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>files_name</code></strong> :&ensp;<code>string</code>, default <code>None</code></dt>
+<dd>Core name that is shared by the data files.</dd>
+<dt><strong><code>process_pipeline</code></strong> :&ensp;<code>function</code></dt>
+<dd>Python function that preprocesses data in each data loading
+iteration.</dd>
+<dt><strong><code>id_column</code></strong> :&ensp;<code>string</code>, default <code>None</code></dt>
+<dd>Name of the sequence or sample ID column.</dd>
+<dt><strong><code>initial_analysis</code></strong> :&ensp;<code>function</code></dt>
+<dd>Python function that runs in the dataset initialization, which can
+be used to retrieve additional parameters.</dd>
+<dt><strong><code>files_path</code></strong> :&ensp;<code>string</code></dt>
+<dd>Name of the directory where the data files are stored.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Large_Dataset(Dataset):
+    &#39;&#39;&#39;A generic dataset object for any data type, including large datasets,
+    which allows to iteratively load data from individual data files, in a
+    lazy loading way.
+
+    Parameters
+    ----------
+    files_name : string, default None
+        Core name that is shared by the data files.
+    process_pipeline : function
+        Python function that preprocesses data in each data loading
+        iteration.
+    id_column : string, default None
+        Name of the sequence or sample ID column.
+    initial_analysis : function
+        Python function that runs in the dataset initialization, which can
+        be used to retrieve additional parameters.
+    files_path : string
+        Name of the directory where the data files are stored.
+    &#39;&#39;&#39;
+    def __init__(self, files_name, process_pipeline, id_column,
+                 initial_analysis=None, files_path=&#39;&#39;, **kwargs):
+        # Load the file names
+        self.files = glob(f&#39;{files_path}{files_name}_*.ftr&#39;)
+        # Data preprocessing pipeline function
+        self.process_pipeline = process_pipeline
+        # Other basic data information
+        self.id_column_name = id_column
+        # Add aditional data that the user might have specified
+        self.__dict__.update(kwargs)
+        # Initial analysis pipeline to fetch important, context specific information
+        self.initial_analysis = initial_analysis
+        if self.initial_analysis is not None:
+            # Run the initial analysis
+            self.initial_analysis(self)
+
+    def __getitem__(self, item):
+        # Load a data file
+        df = pd.read_feather(self.files[item])
+        # Run the data preprocessing pipeline, which should return the features
+        # and label tensors
+        features, labels = self.process_pipeline(self, df)
+        return features, labels
+
+    def __len__(self):
+        return len(self.files)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>torch.utils.data.dataset.Dataset</li>
+</ul>
+</dd>
+<dt id="data_utils.datasets.Tabular_Dataset"><code class="flex name class">
+<span>class <span class="ident">Tabular_Dataset</span></span>
+<span>(</span><span>df, arr, label_name=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A dataset object for tabular data, which separates features from
+labels, and allows to iteratively load data.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
+<dd>Dataframe used to search for the label column.</dd>
+<dt><strong><code>arr</code></strong> :&ensp;<code>torch.Tensor</code> or <code>numpy.ndarray</code></dt>
+<dd>The data itself which will be separated into features and labels,
+to the be loaded in this dataset or following dataloader objects.</dd>
+<dt><strong><code>label_name</code></strong> :&ensp;<code>string</code>, default <code>None</code></dt>
+<dd>Name of the label column.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Tabular_Dataset(Dataset):
-    def __init__(self, arr, df, label_name=None):
+    &#39;&#39;&#39;A dataset object for tabular data, which separates features from
+    labels, and allows to iteratively load data.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe used to search for the label column.
+    arr : torch.Tensor or numpy.ndarray
+        The data itself which will be separated into features and labels,
+        to the be loaded in this dataset or following dataloader objects.
+    label_name : string, default None
+        Name of the label column.
+    &#39;&#39;&#39;
+    def __init__(self, df, arr, label_name=None):
         # Counter that indicates in which column we&#39;re in when searching for the label column
         col_num = 0
         for col in df.columns:
             if &#39;label&#39; in col or col == label_name:
+                # Column name corresponding to the label
+                self.label_column_name = col
                 # Column number corresponding to the label
-                self.label_column = col_num
+                self.label_column_num = col_num
                 break
             col_num += 1
         # Column numbers corresponding to the features
-        self.features_columns = (list(range(self.label_column)) 
-                                 + list(range(self.label_column + 1, arr.shape[1])))
+        self.features_columns = (list(range(self.label_column_num))
+                                 + list(range(self.label_column_num + 1, arr.shape[1])))
         # Features
         self.X = arr[:, self.features_columns]
         # Labels
@@ -144,9 +405,7 @@ dataset with non-integral indices/keys, a custom sampler must be provided.</p>
         return x_i, y_i
 
     def __len__(self):
-        return len(self.X)
-
-        from torch.utils.data import Dataset</code></pre>
+        return len(self.X)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -155,57 +414,175 @@ dataset with non-integral indices/keys, a custom sampler must be provided.</p>
 </dd>
 <dt id="data_utils.datasets.Time_Series_Dataset"><code class="flex name class">
 <span>class <span class="ident">Time_Series_Dataset</span></span>
-<span>(</span><span>arr, df, label_name=None, id_column='subject_id', ts_column='ts', seq_len_dict=None)</span>
+<span>(</span><span>df, arr=None, label_name=None, id_column='subject_id', ts_column='ts', seq_len_dict=None, embedding_layer=None, embed_features=None, padding_value=999999)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>An abstract class representing a :class:<code>Dataset</code>.</p>
-<p>All datasets that represent a map from keys to data samples should subclass
-it. All subclasses should overrite :meth:<code>__getitem__</code>, supporting fetching a
-data sample for a given key. Subclasses could also optionally overwrite
-:meth:<code>__len__</code>, which is expected to return the size of the dataset by many
-:class:<code>~torch.utils.data.Sampler</code> implementations and the default options
-of :class:<code>~torch.utils.data.DataLoader</code>.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>:class:<code>~torch.utils.data.DataLoader</code> by default constructs a index
-sampler that yields integral indices.
-To make it work with a map-style
-dataset with non-integral indices/keys, a custom sampler must be provided.</p>
-</div></section>
+<div class="desc"><p>A dataset object for time series data, which separates features from
+labels, and allows to iteratively load data.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
+<dd>Dataframe used to search for the label column.</dd>
+<dt><strong><code>arr</code></strong> :&ensp;<code>torch.Tensor</code> or <code>numpy.ndarray</code>, default <code>None</code></dt>
+<dd>The data itself which will be separated into features and labels,
+to the be loaded in this dataset or following dataloader objects.
+If it is not specified, the data will be used directly from the
+dataframe <code>df</code>.</dd>
+<dt><strong><code>label_name</code></strong> :&ensp;<code>string</code>, default <code>None</code></dt>
+<dd>Name of the label column.</dd>
+<dt><strong><code>id_column</code></strong> :&ensp;<code>string</code>, default <code>None</code></dt>
+<dd>Name of the sequence ID column.</dd>
+<dt><strong><code>ts_column</code></strong> :&ensp;<code>string</code>, default <code>None</code></dt>
+<dd>Name of the timestamp column.</dd>
+</dl>
+<p>If arr is None:</p>
+<dl>
+<dt><strong><code>seq_len_dict</code></strong> :&ensp;<code>dictionary</code>, default <code>None</code></dt>
+<dd>Dictionary containing the original sequence lengths of the dataframe.
+The keys should be the sequence identifiers (the numbers obtained from
+the id_column) and the values should be the length of each sequence.</dd>
+<dt><strong><code>embedding_layer</code></strong> :&ensp;<code>torch.nn.EmbeddingBag</code> or <code>torch.nn.ModuleList</code> or <code>torch.nn.ModuleDict</code></dt>
+<dd>PyTorch layer(s) that applies the embedding bag, i.e. calculates the
+average embedding based on multiple encoded values.</dd>
+<dt><strong><code>embed_features</code></strong> :&ensp;<code>int</code> or <code>list</code> of <code>int</code> or <code>str</code> or <code>list</code> of <code>str</code> or <code>list</code> of <code>list</code> of <code>int</code></dt>
+<dd>Index (or indices) or name(s) of the categorical column(s) that will be
+ran through its (or their) respective embedding layer(s). This feature(s)
+is (are) removed from the data tensor after the embedding columns are
+added. In case the input data is in a dataframe format, the feature(s)
+can be specified by name.</dd>
+<dt><strong><code>padding_value</code></strong> :&ensp;<code>numeric</code>, default <code>999999</code></dt>
+<dd>Value to use in the padding, to fill the sequences.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Time_Series_Dataset(Dataset):
-    def __init__(self, arr, df, label_name=None, id_column=&#39;subject_id&#39;,
-                 ts_column=&#39;ts&#39;, seq_len_dict=None):
+    &#39;&#39;&#39;A dataset object for time series data, which separates features from
+    labels, and allows to iteratively load data.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe used to search for the label column.
+    arr : torch.Tensor or numpy.ndarray, default None
+        The data itself which will be separated into features and labels,
+        to the be loaded in this dataset or following dataloader objects.
+        If it is not specified, the data will be used directly from the
+        dataframe `df`.
+    label_name : string, default None
+        Name of the label column.
+    id_column : string, default None
+        Name of the sequence ID column.
+    ts_column : string, default None
+        Name of the timestamp column.
+
+    If arr is None:
+
+    seq_len_dict : dictionary, default None
+        Dictionary containing the original sequence lengths of the dataframe.
+        The keys should be the sequence identifiers (the numbers obtained from
+        the id_column) and the values should be the length of each sequence.
+    embedding_layer : torch.nn.EmbeddingBag or torch.nn.ModuleList or torch.nn.ModuleDict
+        PyTorch layer(s) that applies the embedding bag, i.e. calculates the
+        average embedding based on multiple encoded values.
+    embed_features : int or list of int or str or list of str or list of list of int
+        Index (or indices) or name(s) of the categorical column(s) that will be
+        ran through its (or their) respective embedding layer(s). This feature(s)
+        is (are) removed from the data tensor after the embedding columns are
+        added. In case the input data is in a dataframe format, the feature(s)
+        can be specified by name.
+    padding_value : numeric, default 999999
+        Value to use in the padding, to fill the sequences.
+    &#39;&#39;&#39;
+    def __init__(self, df, arr=None, label_name=None, id_column=&#39;subject_id&#39;,
+                 ts_column=&#39;ts&#39;, seq_len_dict=None, embedding_layer=None,
+                 embed_features=None, padding_value=999999):
+        if arr is None:
+            self.data_type = &#39;dataframe&#39;
+            self.id_column_name = id_column
+            self.ts_column_name = ts_column
+            self.padding_value = padding_value
+            if embedding_layer is not None and embed_features is not None:
+                self.embedding_layer = embedding_layer
+                self.embed_features = embed_features
+        else:
+            self.data_type = &#39;tensor&#39;
         # Counter that indicates in which column we&#39;re in when searching for the label column
         col_num = 0
         for col in df.columns:
             if &#39;label&#39; in col or col == label_name:
+                # Column name corresponding to the label
+                self.label_column_name = col
                 # Column number corresponding to the label
-                self.label_column = col_num
+                self.label_column_num = col_num
                 break
             col_num += 1
-        # Column numbers corresponding to the features
-        self.features_columns = (list(range(self.label_column))
-                                 + list(range(self.label_column + 1, arr.shape[2])))
-        # Features
-        self.X = arr[:, :, self.features_columns]
-        # Labels
-        self.y = arr[:, :, self.label_column]
-        # Sequence length dictionary
-        if seq_len_dict is None:
-            seq_len_dict = padding.get_sequence_length_dict(df, id_column=&#39;subject_id&#39;, ts_column=&#39;ts&#39;)
-        self.seq_len_dict = seq_len_dict
+        if self.data_type == &#39;tensor&#39;:
+            # Column numbers corresponding to the features
+            self.features_columns_num = (list(range(self.label_column_num))
+                                         + list(range(self.label_column_num + 1, arr.shape[2])))
+            # Features
+            self.X = arr[:, :, self.features_columns_num]
+            # Labels
+            self.y = arr[:, :, self.label_column_num]
+        elif self.data_type == &#39;dataframe&#39;:
+            # Column names corresponding to the features
+            self.features_columns = list(df.columns)
+            self.features_columns.remove(self.label_column_name)
+            # Column numbers corresponding to the features
+            self.features_columns_num = (list(range(self.label_column_num))
+                                         + list(range(self.label_column_num + 1, len(df.columns))))
+            # Features
+            self.X = df[self.features_columns]
+            # Labels
+            self.y = df[self.label_column_name]
+            # List of items (sequences)
+            self.seq_items = df[id_column].unique()
+            # Sequence length dictionary
+            if seq_len_dict is None:
+                self.seq_len_dict = padding.get_sequence_length_dict(df, id_column=id_column,
+                                                                     ts_column=ts_column)
+            else:
+                self.seq_len_dict = seq_len_dict
 
     def __getitem__(self, item):
-        x_t = self.X[item]
-        y_t = self.y[item]
+        if self.data_type == &#39;tensor&#39;:
+            # Get the data
+            x_t = self.X[item]
+            y_t = self.y[item]
+        elif self.data_type == &#39;dataframe&#39;:
+            # Get the sequence ID
+            seq = self.seq_items[item]
+            # Find the indices of the dataframes
+            idx = self.X.index[self.X[self.id_column_num] == seq]
+            # Get the data
+            x_t = self.X.iloc[idx]
+            y_t = self.y.iloc[idx]
+            if self.embed_features is not None:
+                # Run each embedding layer on each respective feature, adding the
+                # resulting embedding values to the tensor and removing the original,
+                # categorical encoded columns
+                x_t = embedding_bag_pipeline(x_t, self.embedding_layer, self.embed_features,
+                                             inplace=True)
+            # Pad the data (both X and y)
+            df = pd.concat([x_t, y_t], axis=1)
+            df = padding.dataframe_to_padded_tensor(df, seq_len_dict=self.seq_len_dict,
+                                                    id_column=self.id_column_name,
+                                                    ts_column=self.ts_column_name,
+                                                    padding_value=self.padding_value,
+                                                    inplace=True)
+            # Features
+            x_t = df[:, :-1]
+            # Labels
+            y_t = df[:, -1]
         return x_t, y_t
 
     def __len__(self):
-        return len(self.X)</code></pre>
+        if self.data_type == &#39;tensor&#39;:
+            return len(self.X)
+        elif self.data_type == &#39;dataframe&#39;:
+            return len(self.seq_items)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -229,6 +606,9 @@ dataset with non-integral indices/keys, a custom sampler must be provided.</p>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="data_utils.datasets.Large_Dataset" href="#data_utils.datasets.Large_Dataset">Large_Dataset</a></code></h4>
+</li>
+<li>
 <h4><code><a title="data_utils.datasets.Tabular_Dataset" href="#data_utils.datasets.Tabular_Dataset">Tabular_Dataset</a></code></h4>
 </li>
 <li>
@@ -240,9 +620,7 @@ dataset with non-integral indices/keys, a custom sampler must be provided.</p>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

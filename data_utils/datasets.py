@@ -12,8 +12,20 @@ else:
     import pandas as pd
 
 class Tabular_Dataset(Dataset):
+    '''A dataset object for tabular data, which separates features from
+    labels, and allows to iteratively load data.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe used to search for the label column.
+    arr : torch.Tensor or numpy.ndarray
+        The data itself which will be separated into features and labels,
+        to the be loaded in this dataset or following dataloader objects.
+    label_name : string, default None
+        Name of the label column.
+    '''
     def __init__(self, df, arr, label_name=None):
-        # [TODO] Add documentation
         # Counter that indicates in which column we're in when searching for the label column
         col_num = 0
         for col in df.columns:
@@ -42,17 +54,53 @@ class Tabular_Dataset(Dataset):
 
 
 class Time_Series_Dataset(Dataset):
+    '''A dataset object for time series data, which separates features from
+    labels, and allows to iteratively load data.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame
+        Dataframe used to search for the label column.
+    arr : torch.Tensor or numpy.ndarray, default None
+        The data itself which will be separated into features and labels,
+        to the be loaded in this dataset or following dataloader objects.
+        If it is not specified, the data will be used directly from the
+        dataframe `df`.
+    label_name : string, default None
+        Name of the label column.
+    id_column : string, default None
+        Name of the sequence ID column.
+    ts_column : string, default None
+        Name of the timestamp column.
+
+    If arr is None:
+
+    seq_len_dict : dictionary, default None
+        Dictionary containing the original sequence lengths of the dataframe.
+        The keys should be the sequence identifiers (the numbers obtained from
+        the id_column) and the values should be the length of each sequence.
+    embedding_layer : torch.nn.EmbeddingBag or torch.nn.ModuleList or torch.nn.ModuleDict
+        PyTorch layer(s) that applies the embedding bag, i.e. calculates the
+        average embedding based on multiple encoded values.
+    embed_features : int or list of int or str or list of str or list of list of int
+        Index (or indices) or name(s) of the categorical column(s) that will be
+        ran through its (or their) respective embedding layer(s). This feature(s)
+        is (are) removed from the data tensor after the embedding columns are
+        added. In case the input data is in a dataframe format, the feature(s)
+        can be specified by name.
+    padding_value : numeric, default 999999
+        Value to use in the padding, to fill the sequences.
+    '''
     def __init__(self, df, arr=None, label_name=None, id_column='subject_id',
-                 ts_column='ts', seq_len_dict=None, embed_layers=None,
+                 ts_column='ts', seq_len_dict=None, embedding_layer=None,
                  embed_features=None, padding_value=999999):
-        # [TODO] Add documentation
         if arr is None:
             self.data_type = 'dataframe'
             self.id_column_name = id_column
             self.ts_column_name = ts_column
             self.padding_value = padding_value
-            if embed_layers is not None and embed_features is not None:
-                self.embed_layers = embed_layers
+            if embedding_layer is not None and embed_features is not None:
+                self.embedding_layer = embedding_layer
                 self.embed_features = embed_features
         else:
             self.data_type = 'tensor'
@@ -111,7 +159,7 @@ class Time_Series_Dataset(Dataset):
                 # Run each embedding layer on each respective feature, adding the
                 # resulting embedding values to the tensor and removing the original,
                 # categorical encoded columns
-                x_t = embedding_bag_pipeline(x_t, self.embed_layers, self.embed_features,
+                x_t = embedding_bag_pipeline(x_t, self.embedding_layer, self.embed_features,
                                              inplace=True)
             # Pad the data (both X and y)
             df = pd.concat([x_t, y_t], axis=1)
@@ -134,9 +182,27 @@ class Time_Series_Dataset(Dataset):
 
 
 class Large_Dataset(Dataset):
+    '''A generic dataset object for any data type, including large datasets,
+    which allows to iteratively load data from individual data files, in a
+    lazy loading way.
+
+    Parameters
+    ----------
+    files_name : string, default None
+        Core name that is shared by the data files.
+    process_pipeline : function
+        Python function that preprocesses data in each data loading
+        iteration.
+    id_column : string, default None
+        Name of the sequence or sample ID column.
+    initial_analysis : function
+        Python function that runs in the dataset initialization, which can
+        be used to retrieve additional parameters.
+    files_path : string
+        Name of the directory where the data files are stored.
+    '''
     def __init__(self, files_name, process_pipeline, id_column,
                  initial_analysis=None, files_path='', **kwargs):
-        # [TODO] Add documentation
         # Load the file names
         self.files = glob(f'{files_path}{files_name}_*.ftr')
         # Data preprocessing pipeline function

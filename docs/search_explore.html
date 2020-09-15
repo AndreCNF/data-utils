@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.7.2" />
+<meta name="generator" content="pdoc 0.9.1" />
 <title>data_utils.search_explore API documentation</title>
 <meta name="description" content="" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -77,7 +79,7 @@ def dataframe_missing_values(df, column=None):
         return col_percent_missing
 
 
-def is_one_hot_encoded_column(df, column, n_unique_values=None):
+def is_boolean_column(df, column, n_unique_values=None):
     &#39;&#39;&#39;Checks if a given column is one hot encoded.
 
     Parameters
@@ -85,7 +87,7 @@ def is_one_hot_encoded_column(df, column, n_unique_values=None):
     df : pandas.DataFrame or dask.DataFrame
         Dataframe that will be used, which contains the specified column.
     column : string
-        Name of the column that will be checked for one hot encoding.
+        Name of the column that will be checked for boolean format.
     n_unique_values : int, default None
         Number of the column&#39;s unique values. If not specified, it will
         be automatically calculated.
@@ -93,56 +95,73 @@ def is_one_hot_encoded_column(df, column, n_unique_values=None):
     Returns
     -------
     bool
-        Returns true if the column is in one hot encoding format.
+        Returns true if the column is in boolean format.
         Otherwise, returns false.
     &#39;&#39;&#39;
+    if str(df[column].dtype) == &#39;boolean&#39;:
+        return True
     if n_unique_values is None:
         # Calculate the number of unique values
         n_unique_values = df[column].nunique()
         if isinstance(df, dd.DataFrame):
             # Make sure that the number of unique values are computed, in case we&#39;re using Dask
             n_unique_values = n_unique_values.compute()
-    # Check if it only has 2 possible values
-    if n_unique_values == 2:
+    # Check if it only has, at most, 2 possible values
+    if n_unique_values &lt;= 2:
         unique_values = df[column].unique()
         if isinstance(df, dd.DataFrame):
             # Make sure that the unique values are computed, in case we&#39;re using Dask
             unique_values = unique_values.compute()
+        # Remove NaNs from the list of unique values
+        unique_values = [val for val in unique_values if not utils.is_num_nan(val)]
         # Check if the possible values are all numeric
-        if all([isinstance(x, numbers.Number) for x in unique_values]):
+        if (all([isinstance(x, numbers.Number) for x in unique_values])
+        or all([isinstance(x, bool) or isinstance(x, np.bool_) for x in unique_values])):
             # Check if the only possible values are 0 and 1 (and ignore NaN&#39;s)
-            if (np.sort(list(set(np.nan_to_num(unique_values)))) == [0, 1]).all():
+            unique_values = list(set(np.nan_to_num(unique_values)))
+            unique_values.sort()
+            unique_values = [val for val in unique_values if str(val).lower() != &#39;nan&#39; ]
+            if ((n_unique_values == 2 and unique_values == [0, 1])
+            or (n_unique_values == 1 and unique_values == [0])
+            or (n_unique_values == 1 and unique_values == [1])):
                 return True
     return False
 
 
-def list_one_hot_encoded_columns(df):
-    &#39;&#39;&#39;Lists the columns in a dataframe which are in a one hot encoding format.
+def list_boolean_columns(df, search_by_dtypes=False):
+    &#39;&#39;&#39;Lists the columns in a dataframe which are in a boolean format.
 
     Parameters
     ----------
     df : pandas.DataFrame or dask.DataFrame
         Dataframe that will be used checked for one hot encoded columns.
+    search_by_dtypes : bool, default False
+        If set to True, the method will only look for boolean columns based on
+        their data type. This is only reliable if all the columns&#39; data types
+        have been properly set.
 
     Returns
     -------
     list of strings
         Returns a list of the column names which correspond to one hot encoded columns.
     &#39;&#39;&#39;
-    # Calculate the columns&#39; number of unique values
-    n_unique_values = df.nunique()
-    if isinstance(df, dd.DataFrame):
-        # Make sure that the number of unique values are computed, in case we&#39;re using Dask
-        n_unique_values = n_unique_values.compute()
-    if n_unique_values.min() &gt; 2:
-        # If there are no columns with just 2 unique values, then there are no binary columns
-        return []
+    if search_by_dtypes is True:
+        return [col for col in df.columns if str(df[col].dtype) == &#39;boolean&#39; or df[col].dtype == &#39;UInt8&#39;]
     else:
-        return [col for col in df.columns if is_one_hot_encoded_column(df, col, n_unique_values[col])]
+        # Calculate the columns&#39; number of unique values
+        n_unique_values = df.nunique()
+        if isinstance(df, dd.DataFrame):
+            # Make sure that the number of unique values are computed, in case we&#39;re using Dask
+            n_unique_values = n_unique_values.compute()
+        if n_unique_values.min() &gt; 2:
+            # If there are no columns with just 2 unique values, then there are no binary columns
+            return []
+        else:
+            return [col for col in df.columns if is_boolean_column(df, col, n_unique_values[col])]
 
 
 def find_col_idx(df, feature):
-    &#39;&#39;&#39;Find the index that corresponds to a given feature&#39;s column number on 
+    &#39;&#39;&#39;Find the index that corresponds to a given feature&#39;s column number on
     a dataframe.
 
     Parameters
@@ -176,17 +195,27 @@ def find_val_idx(data, value, column=None):
     -------
     idx : int
         Index where the specified value appears in the data tensor.&#39;&#39;&#39;
-    if len(data.size()) == 1:
-        return (data == value).nonzero().item()
+    if len(data.shape) == 1:
+        val = (data == value).nonzero().squeeze()
     elif column is not None:
-        if len(data.size()) == 2:
-            return (data[:, column] == value).nonzero().item()
-        elif len(data.size()) == 3:
-            return (data[:, :, column] == value).nonzero().item()
+        if len(data.shape) == 2:
+            val = (data[:, column] == value).nonzero().squeeze()
+        elif len(data.shape) == 3:
+            val = (data[:, :, column] == value).nonzero().squeeze()
         else:
-            raise Exception(f&#39;ERROR: Currently this method only supports up to tree-dimensional data. User submitted data with {len(data.size())} dimensions.&#39;)
+            raise Exception(f&#39;ERROR: Currently this method only supports up to tree-dimensional data. User submitted data with {len(data.shape)} dimensions.&#39;)
     else:
         raise Exception(&#39;ERROR: If multidimensional data is being used, the column to search for must be specified in the `column` parameter.&#39;)
+    if len(val.shape) &gt; 1 or len(val) &gt; 1:
+        # Convert to a NumPy array
+        return val.numpy()
+    else:
+        if val.shape[0] == 0:
+            # No results found
+            return None
+        else:
+            # Convert to a Python scalar
+            return val.item()
 
 
 def find_subject_idx(data, subject_id, subject_id_col=0):
@@ -209,6 +238,34 @@ def find_subject_idx(data, subject_id, subject_id_col=0):
     idx : int
         Index where the specified subject appears in the data tensor.&#39;&#39;&#39;
     return (data[:, 0, subject_id_col] == subject_id).nonzero().item()
+
+
+def find_seq_len(labels, padding_value=999999):
+    &#39;&#39;&#39;Find the lengths of the sequences based on the padding values present in
+    a labels tensor.
+
+    Parameters
+    ----------
+    labels : torch.Tensor
+        PyTorch tensor containing the data on which the subject&#39;s index will be
+        searched for.
+    padding_value : numeric, default 999999
+        Value to use in the padding, to fill the sequences.
+
+    Returns
+    -------
+    seq_lengths : torch.Tensor
+        List of sequence lengths, relative to the input data.&#39;&#39;&#39;
+    # Find when in each sequence the padding starts
+    padding_start = ((labels == padding_value).cumsum(dim=1) == 1)
+    # Detect the sequence lengths
+    seq_lengths = padding_start.nonzero()[:, 1]
+    if len(seq_lengths) &lt; labels.shape[0]:
+        # Assign the maximum sequence length to the sequences that aren&#39;t padded
+        all_zero_seq_len = (padding_start.sum(dim=1) == 0) * labels.shape[1]
+        all_zero_seq_len[all_zero_seq_len == 0] = seq_lengths
+        seq_lengths = all_zero_seq_len
+    return seq_lengths
 
 
 def find_row_contains_word(df, feature, words):
@@ -319,7 +376,7 @@ def get_element_from_split(orig_string, n, separator=&#39;|&#39;, till_the_end=F
 <span>def <span class="ident">dataframe_missing_values</span></span>(<span>df, column=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Returns a dataframe with the percentages of missing values of every column
+<div class="desc"><p>Returns a dataframe with the percentages of missing values of every column
 of the original dataframe.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -336,7 +393,7 @@ the percentage of missing values in the specified column.</dd>
 <dt><strong><code>col_percent_missing</code></strong> :&ensp;<code>float</code></dt>
 <dd>If the "column" argument is provided, the function only returns a float
 corresponfing to the percentage of missing values in the specified column.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -380,7 +437,7 @@ corresponfing to the percentage of missing values in the specified column.</dd>
 <span>def <span class="ident">find_col_idx</span></span>(<span>df, feature)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Find the index that corresponds to a given feature's column number on
+<div class="desc"><p>Find the index that corresponds to a given feature's column number on
 a dataframe.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -393,13 +450,13 @@ a dataframe.</p>
 <dl>
 <dt><strong><code>idx</code></strong> :&ensp;<code>int</code></dt>
 <dd>Index where the specified feature appears in the dataframe.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def find_col_idx(df, feature):
-    &#39;&#39;&#39;Find the index that corresponds to a given feature&#39;s column number on 
+    &#39;&#39;&#39;Find the index that corresponds to a given feature&#39;s column number on
     a dataframe.
 
     Parameters
@@ -420,7 +477,7 @@ a dataframe.</p>
 <span>def <span class="ident">find_row_contains_word</span></span>(<span>df, feature, words)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Find if each row in a specified dataframe string feature contains some
+<div class="desc"><p>Find if each row in a specified dataframe string feature contains some
 word from a list.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -437,7 +494,7 @@ contain any of the specified words.</dd>
 <dt><strong><code>row_contains_word</code></strong> :&ensp;<code>pandas.Series</code> or <code>dask.Series</code></dt>
 <dd>Boolean series indicating for each row of the dataframe if its specified
 feature contains any of the words that the user is looking for.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -479,11 +536,62 @@ feature contains any of the words that the user is looking for.</dd>
     return row_contains_word</code></pre>
 </details>
 </dd>
+<dt id="data_utils.search_explore.find_seq_len"><code class="name flex">
+<span>def <span class="ident">find_seq_len</span></span>(<span>labels, padding_value=999999)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Find the lengths of the sequences based on the padding values present in
+a labels tensor.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>labels</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>PyTorch tensor containing the data on which the subject's index will be
+searched for.</dd>
+<dt><strong><code>padding_value</code></strong> :&ensp;<code>numeric</code>, default <code>999999</code></dt>
+<dd>Value to use in the padding, to fill the sequences.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>seq_lengths</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>List of sequence lengths, relative to the input data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_seq_len(labels, padding_value=999999):
+    &#39;&#39;&#39;Find the lengths of the sequences based on the padding values present in
+    a labels tensor.
+
+    Parameters
+    ----------
+    labels : torch.Tensor
+        PyTorch tensor containing the data on which the subject&#39;s index will be
+        searched for.
+    padding_value : numeric, default 999999
+        Value to use in the padding, to fill the sequences.
+
+    Returns
+    -------
+    seq_lengths : torch.Tensor
+        List of sequence lengths, relative to the input data.&#39;&#39;&#39;
+    # Find when in each sequence the padding starts
+    padding_start = ((labels == padding_value).cumsum(dim=1) == 1)
+    # Detect the sequence lengths
+    seq_lengths = padding_start.nonzero()[:, 1]
+    if len(seq_lengths) &lt; labels.shape[0]:
+        # Assign the maximum sequence length to the sequences that aren&#39;t padded
+        all_zero_seq_len = (padding_start.sum(dim=1) == 0) * labels.shape[1]
+        all_zero_seq_len[all_zero_seq_len == 0] = seq_lengths
+        seq_lengths = all_zero_seq_len
+    return seq_lengths</code></pre>
+</details>
+</dd>
 <dt id="data_utils.search_explore.find_subject_idx"><code class="name flex">
 <span>def <span class="ident">find_subject_idx</span></span>(<span>data, subject_id, subject_id_col=0)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Find the index that corresponds to a given subject in a data tensor.</p>
+<div class="desc"><p>Find the index that corresponds to a given subject in a data tensor.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>data</code></strong> :&ensp;<code>torch.Tensor</code></dt>
@@ -500,7 +608,7 @@ identifiers.</dd>
 <dl>
 <dt><strong><code>idx</code></strong> :&ensp;<code>int</code></dt>
 <dd>Index where the specified subject appears in the data tensor.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -531,7 +639,7 @@ identifiers.</dd>
 <span>def <span class="ident">find_val_idx</span></span>(<span>data, value, column=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Find the index that corresponds to a given unique value in a data tensor.</p>
+<div class="desc"><p>Find the index that corresponds to a given unique value in a data tensor.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>data</code></strong> :&ensp;<code>torch.Tensor</code></dt>
@@ -546,7 +654,7 @@ be searched for.</dd>
 <dl>
 <dt><strong><code>idx</code></strong> :&ensp;<code>int</code></dt>
 <dd>Index where the specified value appears in the data tensor.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -568,24 +676,34 @@ be searched for.</dd>
     -------
     idx : int
         Index where the specified value appears in the data tensor.&#39;&#39;&#39;
-    if len(data.size()) == 1:
-        return (data == value).nonzero().item()
+    if len(data.shape) == 1:
+        val = (data == value).nonzero().squeeze()
     elif column is not None:
-        if len(data.size()) == 2:
-            return (data[:, column] == value).nonzero().item()
-        elif len(data.size()) == 3:
-            return (data[:, :, column] == value).nonzero().item()
+        if len(data.shape) == 2:
+            val = (data[:, column] == value).nonzero().squeeze()
+        elif len(data.shape) == 3:
+            val = (data[:, :, column] == value).nonzero().squeeze()
         else:
-            raise Exception(f&#39;ERROR: Currently this method only supports up to tree-dimensional data. User submitted data with {len(data.size())} dimensions.&#39;)
+            raise Exception(f&#39;ERROR: Currently this method only supports up to tree-dimensional data. User submitted data with {len(data.shape)} dimensions.&#39;)
     else:
-        raise Exception(&#39;ERROR: If multidimensional data is being used, the column to search for must be specified in the `column` parameter.&#39;)</code></pre>
+        raise Exception(&#39;ERROR: If multidimensional data is being used, the column to search for must be specified in the `column` parameter.&#39;)
+    if len(val.shape) &gt; 1 or len(val) &gt; 1:
+        # Convert to a NumPy array
+        return val.numpy()
+    else:
+        if val.shape[0] == 0:
+            # No results found
+            return None
+        else:
+            # Convert to a Python scalar
+            return val.item()</code></pre>
 </details>
 </dd>
 <dt id="data_utils.search_explore.get_element"><code class="name flex">
 <span>def <span class="ident">get_element</span></span>(<span>x, n, till_the_end=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Try to get an element from a list. Useful for nagging apply and map
+<div class="desc"><p>Try to get an element from a list. Useful for nagging apply and map
 dataframe operations.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -601,7 +719,7 @@ be fetched. Otherwise, the method only returns the n'th element.</dd>
 <dl>
 <dt><strong><code>y</code></strong> :&ensp;<code>anything</code></dt>
 <dd>Returns the n'th element of the list or NaN if it's not found.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -638,7 +756,7 @@ be fetched. Otherwise, the method only returns the n'th element.</dd>
 <span>def <span class="ident">get_element_from_split</span></span>(<span>orig_string, n, separator='|', till_the_end=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Split a string by a specified separator and return the n'th element of
+<div class="desc"><p>Split a string by a specified separator and return the n'th element of
 the obtained list of words.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -646,7 +764,7 @@ the obtained list of words.</p>
 <dd>Original string on which to apply the splitting and element retrieval.</dd>
 <dt><strong><code>n</code></strong> :&ensp;<code>int</code></dt>
 <dd>The index of the element to return from the post-split list of words.</dd>
-<dt><strong><code>separator</code></strong> :&ensp;<code>string</code>, default <code>'</code>|<code>'</code></dt>
+<dt><strong><code>separator</code></strong> :&ensp;<code>string</code>, default <code>'|'</code></dt>
 <dd>Symbol that concatenates each string's words, which will be used in the
 splitting.</dd>
 <dt><strong><code>till_the_end</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
@@ -657,7 +775,7 @@ be fetched. Otherwise, the method only returns the n'th element.</dd>
 <dl>
 <dt><strong><code>n_element</code></strong> :&ensp;<code>string</code></dt>
 <dd>The n'th element from the split string.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -694,17 +812,17 @@ be fetched. Otherwise, the method only returns the n'th element.</dd>
     return n_element</code></pre>
 </details>
 </dd>
-<dt id="data_utils.search_explore.is_one_hot_encoded_column"><code class="name flex">
-<span>def <span class="ident">is_one_hot_encoded_column</span></span>(<span>df, column, n_unique_values=None)</span>
+<dt id="data_utils.search_explore.is_boolean_column"><code class="name flex">
+<span>def <span class="ident">is_boolean_column</span></span>(<span>df, column, n_unique_values=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Checks if a given column is one hot encoded.</p>
+<div class="desc"><p>Checks if a given column is one hot encoded.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
 <dd>Dataframe that will be used, which contains the specified column.</dd>
 <dt><strong><code>column</code></strong> :&ensp;<code>string</code></dt>
-<dd>Name of the column that will be checked for one hot encoding.</dd>
+<dd>Name of the column that will be checked for boolean format.</dd>
 <dt><strong><code>n_unique_values</code></strong> :&ensp;<code>int</code>, default <code>None</code></dt>
 <dd>Number of the column's unique values. If not specified, it will
 be automatically calculated.</dd>
@@ -712,14 +830,14 @@ be automatically calculated.</dd>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>bool</code></dt>
-<dd>Returns true if the column is in one hot encoding format.
+<dd>Returns true if the column is in boolean format.
 Otherwise, returns false.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def is_one_hot_encoded_column(df, column, n_unique_values=None):
+<pre><code class="python">def is_boolean_column(df, column, n_unique_values=None):
     &#39;&#39;&#39;Checks if a given column is one hot encoded.
 
     Parameters
@@ -727,7 +845,7 @@ Otherwise, returns false.</dd>
     df : pandas.DataFrame or dask.DataFrame
         Dataframe that will be used, which contains the specified column.
     column : string
-        Name of the column that will be checked for one hot encoding.
+        Name of the column that will be checked for boolean format.
     n_unique_values : int, default None
         Number of the column&#39;s unique values. If not specified, it will
         be automatically calculated.
@@ -735,71 +853,92 @@ Otherwise, returns false.</dd>
     Returns
     -------
     bool
-        Returns true if the column is in one hot encoding format.
+        Returns true if the column is in boolean format.
         Otherwise, returns false.
     &#39;&#39;&#39;
+    if str(df[column].dtype) == &#39;boolean&#39;:
+        return True
     if n_unique_values is None:
         # Calculate the number of unique values
         n_unique_values = df[column].nunique()
         if isinstance(df, dd.DataFrame):
             # Make sure that the number of unique values are computed, in case we&#39;re using Dask
             n_unique_values = n_unique_values.compute()
-    # Check if it only has 2 possible values
-    if n_unique_values == 2:
+    # Check if it only has, at most, 2 possible values
+    if n_unique_values &lt;= 2:
         unique_values = df[column].unique()
         if isinstance(df, dd.DataFrame):
             # Make sure that the unique values are computed, in case we&#39;re using Dask
             unique_values = unique_values.compute()
+        # Remove NaNs from the list of unique values
+        unique_values = [val for val in unique_values if not utils.is_num_nan(val)]
         # Check if the possible values are all numeric
-        if all([isinstance(x, numbers.Number) for x in unique_values]):
+        if (all([isinstance(x, numbers.Number) for x in unique_values])
+        or all([isinstance(x, bool) or isinstance(x, np.bool_) for x in unique_values])):
             # Check if the only possible values are 0 and 1 (and ignore NaN&#39;s)
-            if (np.sort(list(set(np.nan_to_num(unique_values)))) == [0, 1]).all():
+            unique_values = list(set(np.nan_to_num(unique_values)))
+            unique_values.sort()
+            unique_values = [val for val in unique_values if str(val).lower() != &#39;nan&#39; ]
+            if ((n_unique_values == 2 and unique_values == [0, 1])
+            or (n_unique_values == 1 and unique_values == [0])
+            or (n_unique_values == 1 and unique_values == [1])):
                 return True
     return False</code></pre>
 </details>
 </dd>
-<dt id="data_utils.search_explore.list_one_hot_encoded_columns"><code class="name flex">
-<span>def <span class="ident">list_one_hot_encoded_columns</span></span>(<span>df)</span>
+<dt id="data_utils.search_explore.list_boolean_columns"><code class="name flex">
+<span>def <span class="ident">list_boolean_columns</span></span>(<span>df, search_by_dtypes=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Lists the columns in a dataframe which are in a one hot encoding format.</p>
+<div class="desc"><p>Lists the columns in a dataframe which are in a boolean format.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code></dt>
 <dd>Dataframe that will be used checked for one hot encoded columns.</dd>
+<dt><strong><code>search_by_dtypes</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>If set to True, the method will only look for boolean columns based on
+their data type. This is only reliable if all the columns' data types
+have been properly set.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>list</code> of <code>strings</code></dt>
 <dd>Returns a list of the column names which correspond to one hot encoded columns.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def list_one_hot_encoded_columns(df):
-    &#39;&#39;&#39;Lists the columns in a dataframe which are in a one hot encoding format.
+<pre><code class="python">def list_boolean_columns(df, search_by_dtypes=False):
+    &#39;&#39;&#39;Lists the columns in a dataframe which are in a boolean format.
 
     Parameters
     ----------
     df : pandas.DataFrame or dask.DataFrame
         Dataframe that will be used checked for one hot encoded columns.
+    search_by_dtypes : bool, default False
+        If set to True, the method will only look for boolean columns based on
+        their data type. This is only reliable if all the columns&#39; data types
+        have been properly set.
 
     Returns
     -------
     list of strings
         Returns a list of the column names which correspond to one hot encoded columns.
     &#39;&#39;&#39;
-    # Calculate the columns&#39; number of unique values
-    n_unique_values = df.nunique()
-    if isinstance(df, dd.DataFrame):
-        # Make sure that the number of unique values are computed, in case we&#39;re using Dask
-        n_unique_values = n_unique_values.compute()
-    if n_unique_values.min() &gt; 2:
-        # If there are no columns with just 2 unique values, then there are no binary columns
-        return []
+    if search_by_dtypes is True:
+        return [col for col in df.columns if str(df[col].dtype) == &#39;boolean&#39; or df[col].dtype == &#39;UInt8&#39;]
     else:
-        return [col for col in df.columns if is_one_hot_encoded_column(df, col, n_unique_values[col])]</code></pre>
+        # Calculate the columns&#39; number of unique values
+        n_unique_values = df.nunique()
+        if isinstance(df, dd.DataFrame):
+            # Make sure that the number of unique values are computed, in case we&#39;re using Dask
+            n_unique_values = n_unique_values.compute()
+        if n_unique_values.min() &gt; 2:
+            # If there are no columns with just 2 unique values, then there are no binary columns
+            return []
+        else:
+            return [col for col in df.columns if is_boolean_column(df, col, n_unique_values[col])]</code></pre>
 </details>
 </dd>
 </dl>
@@ -823,21 +962,20 @@ Otherwise, returns false.</dd>
 <li><code><a title="data_utils.search_explore.dataframe_missing_values" href="#data_utils.search_explore.dataframe_missing_values">dataframe_missing_values</a></code></li>
 <li><code><a title="data_utils.search_explore.find_col_idx" href="#data_utils.search_explore.find_col_idx">find_col_idx</a></code></li>
 <li><code><a title="data_utils.search_explore.find_row_contains_word" href="#data_utils.search_explore.find_row_contains_word">find_row_contains_word</a></code></li>
+<li><code><a title="data_utils.search_explore.find_seq_len" href="#data_utils.search_explore.find_seq_len">find_seq_len</a></code></li>
 <li><code><a title="data_utils.search_explore.find_subject_idx" href="#data_utils.search_explore.find_subject_idx">find_subject_idx</a></code></li>
 <li><code><a title="data_utils.search_explore.find_val_idx" href="#data_utils.search_explore.find_val_idx">find_val_idx</a></code></li>
 <li><code><a title="data_utils.search_explore.get_element" href="#data_utils.search_explore.get_element">get_element</a></code></li>
 <li><code><a title="data_utils.search_explore.get_element_from_split" href="#data_utils.search_explore.get_element_from_split">get_element_from_split</a></code></li>
-<li><code><a title="data_utils.search_explore.is_one_hot_encoded_column" href="#data_utils.search_explore.is_one_hot_encoded_column">is_one_hot_encoded_column</a></code></li>
-<li><code><a title="data_utils.search_explore.list_one_hot_encoded_columns" href="#data_utils.search_explore.list_one_hot_encoded_columns">list_one_hot_encoded_columns</a></code></li>
+<li><code><a title="data_utils.search_explore.is_boolean_column" href="#data_utils.search_explore.is_boolean_column">is_boolean_column</a></code></li>
+<li><code><a title="data_utils.search_explore.list_boolean_columns" href="#data_utils.search_explore.list_boolean_columns">list_boolean_columns</a></code></li>
 </ul>
 </li>
 </ul>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

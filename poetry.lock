@@ -144,6 +144,17 @@ cpu_logging = ["psutil (>=5.6.3)"]
 
 [[package]]
 category = "main"
+description = "Config file reading, writing and validation."
+name = "configobj"
+optional = false
+python-versions = "*"
+version = "5.0.6"
+
+[package.dependencies]
+six = "*"
+
+[[package]]
+category = "main"
 description = "A Python framework for building reactive web-apps. Developed by Plotly."
 name = "dash"
 optional = false
@@ -644,7 +655,7 @@ description = "Auto-generate API documentation for Python projects."
 name = "pdoc3"
 optional = false
 python-versions = ">= 3.5"
-version = "0.7.4"
+version = "0.9.1"
 
 [package.dependencies]
 mako = "*"
@@ -1151,7 +1162,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools"]
 
 [metadata]
-content-hash = "3b6d4dbe28e256e9bee66d7e32873e0ac7a80baee6ae8e3f8197019c56e202ae"
+content-hash = "13dc388059602e074d4f064f9e11178e082d16b48a9738804a91de92e335a495"
 python-versions = "^3.6.1"
 
 [metadata.files]
@@ -1206,6 +1217,9 @@ comet-git-pure = [
 comet-ml = [
     {file = "comet_ml-3.1.12-py2.py3-none-any.whl", hash = "sha256:636fdf8021bb4e0f124bbdae4475afa8b878a1603c88c172e0cc50e8551996ad"},
     {file = "comet_ml-3.1.12.tar.gz", hash = "sha256:4cc7e626af23c082e4697c3119b2a8a5ddf77eb7d78b083d4eaa861622bac5d0"},
+]
+configobj = [
+    {file = "configobj-5.0.6.tar.gz", hash = "sha256:a2f5650770e1c87fb335af19a9b7eb73fc05ccf22144eb68db7d00cd2bcb0902"},
 ]
 dash = [
     {file = "dash-1.14.0.tar.gz", hash = "sha256:7a55e2f5381bf3323873a9b5e7dbb8112a5c8c5e7fe7e554bda2ed9d3f3e04fc"},
@@ -1487,7 +1501,7 @@ pandas = [
     {file = "pandas-1.0.3.tar.gz", hash = "sha256:32f42e322fb903d0e189a4c10b75ba70d90958cc4f66a1781ed027f1a1d14586"},
 ]
 pdoc3 = [
-    {file = "pdoc3-0.7.4.tar.gz", hash = "sha256:1a9393d6b1e8c2976c0e1a8d0b897ba5e5ea9515058470422cf57ee54293ab05"},
+    {file = "pdoc3-0.9.1.tar.gz", hash = "sha256:e1848d5485b8dd4662272f83bb5f7df4a68e0a5d76c87be30327977777168894"},
 ]
 pdocs = [
     {file = "pdocs-1.0.1-py3-none-any.whl", hash = "sha256:9c0d24fdc0e0c537be8f2418edb4f1075da46a0d749b17ea20b74e7e60124f49"},

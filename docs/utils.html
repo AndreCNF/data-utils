@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.7.2" />
+<meta name="generator" content="pdoc 0.9.1" />
 <title>data_utils.utils API documentation</title>
 <meta name="description" content="" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -30,6 +32,14 @@ import numpy as np                                      # NumPy to handle numeri
 from tqdm.auto import tqdm                              # tqdm allows to track code execution progress
 import numbers                                          # numbers allows to check if data is numeric
 import warnings                                         # Print warnings for bad practices
+import itertools                                        # Flatten lists
+import data_utils as du
+
+# Pandas to handle the data in dataframes
+if du.use_modin is True:
+    import modin.pandas as pd
+else:
+    import pandas as pd
 
 # Methods
 
@@ -52,7 +62,7 @@ def apply_dict_convertion(x, conv_dict, nan_value=0):
     &#39;&#39;&#39;
     # Check if it&#39;s a missing value (NaN)
     if isinstance(x, numbers.Number):
-        if np.isnan(x):
+        if is_num_nan(x):
             return nan_value
     # Must be a convertable value
     else:
@@ -73,6 +83,192 @@ def invert_dict(x):
         Inverted dictionary
     &#39;&#39;&#39;
     return {v: k for k, v in x.items()}
+
+
+def reverse(data):
+    &#39;&#39;&#39;Reverse the order of a tensor or list.
+
+    Parameters
+    ----------
+    data : torch.Tensor or list
+        PyTorch tensor or list to revert.
+
+    Returns
+    -------
+    data : torch.Tensor or list
+        Reversed tensor or list.
+    &#39;&#39;&#39;
+    return data[::-1]
+
+
+def replace_dict_strings(dct, str_to_replace=&#39;0&#39;, new_str=&#39;_&#39;, replace_keys=True,
+                         replace_vals=True, inplace=False):
+    &#39;&#39;&#39;Replace strings in a dictionary, in keys and/or values, with a new,
+    desired string.
+
+    Parameters
+    ----------
+    dct : dict
+        Dictionary that will have its keys and/or values modified.
+    str_to_replace : str, default &#39;0&#39;
+        String to replace with a new one.
+    new_str : str, default &#39;_&#39;
+        String to replace the old one.
+    replace_keys : bool, default True
+        If set to True, the dictionary&#39;s keys will have their strings edited
+        according to the string replacement set by the user.
+    replace_values : bool, default True
+        If set to True, the dictionary&#39;s values will have their strings edited
+        according to the string replacement set by the user.
+    inplace : bool, default False
+        If set to True, the original dictionary will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dictionary.
+
+    Returns
+    -------
+    data_dct : dict:
+        Inverted dictionary
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_dct = dct.copy()
+    else:
+        # Use the original dataframes
+        data_dct = dct
+    if replace_keys is True:
+        for key in dct.keys():
+            # Replace undesired string with the new one
+            new_key = str(key).replace(str_to_replace, new_str)
+            if new_key != key:
+                # Remove the old key and replace with the new one
+                dct[new_key] = dct.pop(key)
+    if replace_vals is True:
+        for key, val in dct.items():
+            # Replace undesired string with the new one
+            new_val = str(val).replace(str_to_replace, new_str)
+            if new_val != val:
+                # Replace the old value with the new one, in the same key
+                dct[key] = new_val
+    return data_dct
+
+
+def merge_dicts(dict1, dict2=None):
+    &#39;&#39;&#39;Merge two or more dictionaries into one. The second dictionary can
+    overwrite the first one if there are overlapping keys.
+
+    Parameters
+    ----------
+    dict1 : dict or list of dicts
+        Dictionary 1 that will be merged with dictionary 2 or list of
+        dictionaries that will be merged.
+    dict2 : dict, default None
+        Dictionary 2 that will be merged with dictionary 1. If not specified,
+        the user must define a list of dictionaries in parameter `dict1` to merge.
+
+    Returns
+    -------
+    dict3 : dict
+        New dictionary resulting from the merge.
+    &#39;&#39;&#39;
+    if isinstance(dict1, dict):
+        if dict2 is not None:
+            if isinstance(dict2, dict):
+                # Find if there are any overlapping keys
+                dict1_keys = set(dict1.keys())
+                dict2_keys = set(dict2.keys())
+                overlap_keys = dict1_keys.intersection(dict2_keys)
+                for key in overlap_keys:
+                    if ((isinstance(dict1[key], list) or isinstance(dict1[key], set))
+                    or (isinstance(dict2[key], list) or isinstance(dict2[key], set))):
+                        # Merge the lists
+                        dict1[key] = set(dict1[key]) | set(dict2[key])
+                        if isinstance(dict2[key], list):
+                            dict1[key] = list(dict1[key])
+                        dict2[key] = dict1[key]
+                    else:
+                        warnings.warn(f&#39;Found an overlapping key {key} when merging two dictionaries which, as it doesn\&#39;t point to a list or a set, can\&#39;t be merged. As such, the value from the dictionary on the right will be kept.&#39;)
+                # Merge the two input dictionaries
+                return {**dict1, **dict2}
+            else:
+                raise Exception(f&#39;ERROR: When `dict1` is specified as a single dictionary, the second argument `dict2` must also be a dictionary. Instead, received `dict2` of type {type(dict2)}.&#39;)
+        else:
+            raise Exception(f&#39;ERROR: When `dict1` is specified as a single dictionary, the second argument `dict2` must also be set.&#39;)
+    elif isinstance(dict1, list) and dict2 is None:
+        # Initialize the new dictionary with the first one on the list
+        new_dict = dict1[0]
+        for i in range(len(dict1)):
+            try:
+                dict2 = dict1[i+1]
+                # Find if there are any overlapping keys
+                new_dict_keys = set(new_dict.keys())
+                dict2_keys = set(dict2.keys())
+                overlap_keys = new_dict_keys.intersection(dict2_keys)
+                for key in overlap_keys:
+                    if ((isinstance(new_dict[key], list) or isinstance(new_dict[key], set))
+                    or (isinstance(dict2[key], list) or isinstance(dict2[key], set))):
+                        # Merge the lists
+                        new_dict[key] = set(new_dict[key]) | set(dict2[key])
+                        if isinstance(dict2[key], list):
+                            new_dict[key] = list(new_dict[key])
+                        dict2[key] = new_dict[key]
+                    else:
+                        warnings.warn(f&#39;Found an overlapping key {key} when merging two dictionaries which, as it doesn\&#39;t point to a list or a set, can\&#39;t be merged. As such, the value from the dictionary on the right will be kept.&#39;)
+                # Try to merge with the next dictionary, if there is any
+                new_dict = {**new_dict, **dict2}
+            except:
+                break
+        return new_dict
+    else:
+        return Exception(f&#39;ERROR: The first parameter `dict1` must be set as either a dictionary or a list of dictionaries. Instead, received `dict1` of type {type(dict1)}.&#39;)
+
+
+def merge_lists(lists):
+    &#39;&#39;&#39;Merge two or more lists into one.
+
+    Parameters
+    ----------
+    lists : list of lists
+        List containing all the lists that we want to merge.
+
+    Returns
+    -------
+    lists : lists
+        New list with all the input lists flatten in a single list.
+    &#39;&#39;&#39;
+    return list(itertools.chain.from_iterable(lists))
+
+
+def remove_from_list(data, to_remove, update_idx=False):
+    &#39;&#39;&#39;Remove values from a list, with the option to update the remaining values
+    everytime one is removed.
+
+    Parameters
+    ----------
+    data : list
+        Data list to update by removing specified values.
+    to_remove : list or int or float or str
+        Values to remove from the list.
+    update_idx : bool, default False
+
+    Returns
+    -------
+    data : list
+        Updated data list.
+    &#39;&#39;&#39;
+    if isinstance(to_remove, int) or isinstance(to_remove, float) or isinstance(to_remove, str):
+        # Make sure that the values to remove are in a list format, even if it&#39;s just one
+        to_remove = [to_remove]
+    # Check if we need to update the values, in case they&#39;ll be used as indices
+    update_idx = all([isinstance(val, int) for val in to_remove]) and update_idx is True
+    for val in to_remove:
+        data.remove(val)
+        if update_idx is True:
+            for i in range(len(data)):
+                if data[i] &gt; val:
+                    # Update value (which could be an index) to decrease its value
+                    data[i] -= 1
+    return data
 
 
 def is_definitely_string(x):
@@ -100,6 +296,49 @@ def is_definitely_string(x):
         return isinstance(x, str)
 
 
+def is_num_nan(x):
+    &#39;&#39;&#39;Indicates if a number corresponds to a missing value.
+
+    Parameters
+    ----------
+    x : int or float or string
+        A numeric value that will be compared with possible missing value
+        representations.
+
+    Returns
+    -------
+    boolean
+        Returns a boolean, being it True if the number corresponds to a missing
+        value representation or False if it doesn&#39;t.
+    &#39;&#39;&#39;
+    str_val = str(x).lower()
+    if str_val == &#39;nan&#39; or str_val == &#39;&lt;na&gt;&#39;:
+        return True
+    else:
+        return False
+
+
+def is_integer(x):
+    &#39;&#39;&#39;Indicates if a number is an integer.
+
+    Parameters
+    ----------
+    x : int or float or string
+        A numeric value that will be checked if it&#39;s an integer.
+
+    Returns
+    -------
+    boolean
+        Returns a boolean, being it True if the number corresponds to an integer
+        or False if it doesn&#39;t.
+    &#39;&#39;&#39;
+    try:
+        float(x)
+    except ValueError:
+        return False
+    return float(x).is_integer()
+
+
 def is_string_nan(x, specific_nan_strings=[]):
     &#39;&#39;&#39;Indicates if a string corresponds to a missing value.
 
@@ -120,7 +359,7 @@ def is_string_nan(x, specific_nan_strings=[]):
     &#39;&#39;&#39;
     # Only considering strings for the missing values search
     if isinstance(x, str):
-        # Considering the possibility of just 3 more random extra characters 
+        # Considering the possibility of just 3 more random extra characters
         # in NaN-like strings
         if ((&#39;other&#39; in x.lower() and len(x) &lt; 9)
             or (&#39;null&#39; in x.lower() and len(x) &lt; 7)
@@ -179,51 +418,147 @@ def in_ipynb():
         return False
 
 
-def iterations_loop(x, see_progress=True):
+def iterations_loop(x, see_progress=True, desc=None, leave=True):
     &#39;&#39;&#39;Determine if a progress bar is shown or not.&#39;&#39;&#39;
     if see_progress is True:
         # Use a progress bar
-        return tqdm(x)
+        return tqdm(x, desc=desc, leave=leave)
     else:
         # Don&#39;t show any progress bar if see_progress is False
         return x
 
 
-def set_bar_color(values, ids, seq_len, threshold=0,
-                  neg_color=&#39;rgba(30,136,229,1)&#39;, pos_color=&#39;rgba(255,13,87,1)&#39;):
-    &#39;&#39;&#39;Determine each bar&#39;s color in a bar chart, according to the values being
-    plotted and the predefined threshold.
+def convert_dtypes(df, dtypes=None, inplace=False):
+    &#39;&#39;&#39;Converts a dataframe&#39;s data types to the desired ones.
 
     Parameters
     ----------
-    values : numpy.Array
-        Array containing the values to be plotted.
-    ids : int or list of ints
-        ID or list of ID&#39;s that select which time series / sequences to use in
-        the color selection.
-    seq_len : int or list of ints
-        Single or multiple sequence lengths, which represent the true, unpadded
-        size of the input sequences.
-    threshold : int or float, default 0
-        Value to use as a threshold in the plot&#39;s color selection. In other
-        words, values that exceed this threshold will have one color while the
-        remaining have a different one, as specified in the parameters.
-    pos_color : string
-        Color to use in the bars corresponding to threshold exceeding values.
-    neg_color : string
-        Color to use in the bars corresponding to values bellow the threshold.
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.DataFrame
+        Original dataframe which will be converted.
+    dtypes : dict, default None
+        Dictionary that indicates the desired dtype for each column.
+        e.g. {&#39;Var1&#39;: &#39;float64&#39;, &#39;Var2&#39;: &#39;UInt8&#39;, &#39;Var3&#39;: str}
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
 
     Returns
     -------
-    colors : list of strings
-        Resulting bar colors list.&#39;&#39;&#39;
-    if type(ids) is list:
-        # Create a list of lists, with the colors for each sequences&#39; instances
-        return [[pos_color if val &gt; 0 else neg_color for val in values[id, :seq_len]]
-                for id in ids]
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.dataframe.DataFrame
+        Converted dataframe, in the desired data type.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
     else:
-        # Create a single list, with the colors for the sequence&#39;s instances
-        return [pos_color if val &gt; 0 else neg_color for val in values[ids, :seq_len]]</code></pre>
+        # Use the original dataframes
+        data_df = df
+    # Only use the dictionary keys that correspond to column names in the current dataframe
+    dtype_dict = dict()
+    df_columns = list(data_df.columns)
+    for key, val in dtypes.items():
+        if key in df_columns:
+            dtype_dict[key] = dtypes[key]
+        elif key.lower() in df_columns:
+            dtype_dict[key.lower()] = dtypes[key]
+    try:
+        # Set the desired dtypes
+        data_df = data_df.astype(dtype_dict)
+    except:
+        warnings.warn(&#39;Failed to assign the desired data types. Replacing all &lt;NA&gt; values with Numpy NaN and trying again.&#39;)
+        # Replace the &#39;&lt;NA&gt;&#39; objects with NumPy&#39;s NaN
+        data_df = data_df.applymap(lambda x: x if not is_num_nan(x) else np.nan)
+        # Set the desired dtypes
+        data_df = data_df.astype(dtype_dict)
+    return data_df
+
+
+def convert_dataframe(df, to=&#39;pandas&#39;, return_library=True, dtypes=None):
+    &#39;&#39;&#39;Converts a dataframe to the desired dataframe library format.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.DataFrame
+        Original dataframe which will be converted.
+    to : string, default &#39;pandas&#39;
+        The data library to which format the dataframe will be converted to.
+    return_library : bool, default True
+        If set to True, the new dataframe library is also returned as an output.
+    dtypes : dict, default None
+        Dictionary that indicates the desired dtype for each column.
+        e.g. {&#39;Var1&#39;: &#39;float64&#39;, &#39;Var2&#39;: &#39;UInt8&#39;, &#39;Var3&#39;: str}
+
+    Returns
+    -------
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.dataframe.DataFrame
+        Converted dataframe, in the desired type.
+
+    If return_library == True:
+
+    new_pd : pandas or modin.pandas
+        The dataframe library to which the input dataframe is converted to.
+    &#39;&#39;&#39;
+    lib = str(to).lower()
+    if lib == &#39;pandas&#39;:
+        import pandas as new_pd
+    elif lib == &#39;modin&#39;:
+        import modin.pandas as new_pd
+    else:
+        raise Exception(f&#39;ERROR: Currently, convertion to a dataframe of type {to} is not supported. Availabale options are &#34;pandas&#34; and &#34;modin&#34;.&#39;)
+    converted_df = new_pd.DataFrame(data=df.to_numpy(), columns=df.columns)
+    du.set_pandas_library(lib)
+    if dtypes is None:
+        # Infer adequate dtypes for the dataframe&#39;s columns
+        converted_df = converted_df.infer_objects()
+    else:
+        # Set the desired dtypes
+        converted_df = convert_dtypes(converted_df, dtypes=dtypes, inplace=True)
+    if return_library is True:
+        return converted_df, new_pd
+    else:
+        return converted_df
+
+
+def convert_pyarrow_dtypes(df, inplace=False):
+    &#39;&#39;&#39;Converts a dataframe&#39;s data types to a pyarrow supported version.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.DataFrame
+        Original dataframe which will have its data types converted.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
+
+    Returns
+    -------
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.dataframe.DataFrame
+        Converted dataframe, in pyarrow compatible data types.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
+    else:
+        # Use the original dataframes
+        data_df = df
+    # Create a columns data type dictionary
+    dtype_dict = dict(data_df.dtypes)
+    # Replace the pyarrow incompatible data types with similar, compatible ones
+    for key, val in dtype_dict.items():
+        val = str(val)
+        if (val == &#39;UInt8&#39; or val == &#39;UInt16&#39; or val == &#39;UInt32&#39;
+        or val == &#39;Int8&#39; or val == &#39;Int16&#39; or val == &#39;Int32&#39;
+        or val == &#39;boolean&#39;):
+            dtype_dict[key] = &#39;float32&#39;
+        elif val == &#39;UInt64&#39; or val == &#39;Int64&#39;:
+            dtype_dict[key] = &#39;float64&#39;
+        elif val == &#39;string&#39;:
+            dtype_dict[key] = str
+    # Apply the new data types
+    data_df = data_df.astype(dtype_dict)
+    return data_df</code></pre>
 </details>
 </section>
 <section>
@@ -237,7 +572,7 @@ def set_bar_color(values, ids, seq_len, threshold=0,
 <span>def <span class="ident">apply_dict_convertion</span></span>(<span>x, conv_dict, nan_value=0)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Safely apply a convertion through a dictionary.</p>
+<div class="desc"><p>Safely apply a convertion through a dictionary.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>x</code></strong> :&ensp;<code>anything</code></dt>
@@ -251,7 +586,7 @@ def set_bar_color(values, ids, seq_len, threshold=0,
 <dl>
 <dt><strong><code>x</code></strong> :&ensp;<code>anything</code></dt>
 <dd>Converted object.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -275,18 +610,230 @@ def set_bar_color(values, ids, seq_len, threshold=0,
     &#39;&#39;&#39;
     # Check if it&#39;s a missing value (NaN)
     if isinstance(x, numbers.Number):
-        if np.isnan(x):
+        if is_num_nan(x):
             return nan_value
     # Must be a convertable value
     else:
         return conv_dict[x]</code></pre>
 </details>
 </dd>
+<dt id="data_utils.utils.convert_dataframe"><code class="name flex">
+<span>def <span class="ident">convert_dataframe</span></span>(<span>df, to='pandas', return_library=True, dtypes=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts a dataframe to the desired dataframe library format.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code> or <code>modin.pandas.DataFrame</code></dt>
+<dd>Original dataframe which will be converted.</dd>
+<dt><strong><code>to</code></strong> :&ensp;<code>string</code>, default <code>'pandas'</code></dt>
+<dd>The data library to which format the dataframe will be converted to.</dd>
+<dt><strong><code>return_library</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
+<dd>If set to True, the new dataframe library is also returned as an output.</dd>
+<dt><strong><code>dtypes</code></strong> :&ensp;<code>dict</code>, default <code>None</code></dt>
+<dd>Dictionary that indicates the desired dtype for each column.
+e.g. {'Var1': 'float64', 'Var2': 'UInt8', 'Var3': str}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code> or <code>modin.pandas.dataframe.DataFrame</code></dt>
+<dd>Converted dataframe, in the desired type.</dd>
+<dt><code>If return_library == True:</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>new_pd</code></strong> :&ensp;<code>pandas</code> or <code>modin.pandas</code></dt>
+<dd>The dataframe library to which the input dataframe is converted to.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def convert_dataframe(df, to=&#39;pandas&#39;, return_library=True, dtypes=None):
+    &#39;&#39;&#39;Converts a dataframe to the desired dataframe library format.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.DataFrame
+        Original dataframe which will be converted.
+    to : string, default &#39;pandas&#39;
+        The data library to which format the dataframe will be converted to.
+    return_library : bool, default True
+        If set to True, the new dataframe library is also returned as an output.
+    dtypes : dict, default None
+        Dictionary that indicates the desired dtype for each column.
+        e.g. {&#39;Var1&#39;: &#39;float64&#39;, &#39;Var2&#39;: &#39;UInt8&#39;, &#39;Var3&#39;: str}
+
+    Returns
+    -------
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.dataframe.DataFrame
+        Converted dataframe, in the desired type.
+
+    If return_library == True:
+
+    new_pd : pandas or modin.pandas
+        The dataframe library to which the input dataframe is converted to.
+    &#39;&#39;&#39;
+    lib = str(to).lower()
+    if lib == &#39;pandas&#39;:
+        import pandas as new_pd
+    elif lib == &#39;modin&#39;:
+        import modin.pandas as new_pd
+    else:
+        raise Exception(f&#39;ERROR: Currently, convertion to a dataframe of type {to} is not supported. Availabale options are &#34;pandas&#34; and &#34;modin&#34;.&#39;)
+    converted_df = new_pd.DataFrame(data=df.to_numpy(), columns=df.columns)
+    du.set_pandas_library(lib)
+    if dtypes is None:
+        # Infer adequate dtypes for the dataframe&#39;s columns
+        converted_df = converted_df.infer_objects()
+    else:
+        # Set the desired dtypes
+        converted_df = convert_dtypes(converted_df, dtypes=dtypes, inplace=True)
+    if return_library is True:
+        return converted_df, new_pd
+    else:
+        return converted_df</code></pre>
+</details>
+</dd>
+<dt id="data_utils.utils.convert_dtypes"><code class="name flex">
+<span>def <span class="ident">convert_dtypes</span></span>(<span>df, dtypes=None, inplace=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts a dataframe's data types to the desired ones.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code> or <code>modin.pandas.DataFrame</code></dt>
+<dd>Original dataframe which will be converted.</dd>
+<dt><strong><code>dtypes</code></strong> :&ensp;<code>dict</code>, default <code>None</code></dt>
+<dd>Dictionary that indicates the desired dtype for each column.
+e.g. {'Var1': 'float64', 'Var2': 'UInt8', 'Var3': str}</dd>
+<dt><strong><code>inplace</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>If set to True, the original dataframe will be used and modified
+directly. Otherwise, a copy will be created and returned, without
+changing the original dataframe.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code> or <code>modin.pandas.dataframe.DataFrame</code></dt>
+<dd>Converted dataframe, in the desired data type.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def convert_dtypes(df, dtypes=None, inplace=False):
+    &#39;&#39;&#39;Converts a dataframe&#39;s data types to the desired ones.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.DataFrame
+        Original dataframe which will be converted.
+    dtypes : dict, default None
+        Dictionary that indicates the desired dtype for each column.
+        e.g. {&#39;Var1&#39;: &#39;float64&#39;, &#39;Var2&#39;: &#39;UInt8&#39;, &#39;Var3&#39;: str}
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
+
+    Returns
+    -------
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.dataframe.DataFrame
+        Converted dataframe, in the desired data type.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
+    else:
+        # Use the original dataframes
+        data_df = df
+    # Only use the dictionary keys that correspond to column names in the current dataframe
+    dtype_dict = dict()
+    df_columns = list(data_df.columns)
+    for key, val in dtypes.items():
+        if key in df_columns:
+            dtype_dict[key] = dtypes[key]
+        elif key.lower() in df_columns:
+            dtype_dict[key.lower()] = dtypes[key]
+    try:
+        # Set the desired dtypes
+        data_df = data_df.astype(dtype_dict)
+    except:
+        warnings.warn(&#39;Failed to assign the desired data types. Replacing all &lt;NA&gt; values with Numpy NaN and trying again.&#39;)
+        # Replace the &#39;&lt;NA&gt;&#39; objects with NumPy&#39;s NaN
+        data_df = data_df.applymap(lambda x: x if not is_num_nan(x) else np.nan)
+        # Set the desired dtypes
+        data_df = data_df.astype(dtype_dict)
+    return data_df</code></pre>
+</details>
+</dd>
+<dt id="data_utils.utils.convert_pyarrow_dtypes"><code class="name flex">
+<span>def <span class="ident">convert_pyarrow_dtypes</span></span>(<span>df, inplace=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts a dataframe's data types to a pyarrow supported version.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code> or <code>modin.pandas.DataFrame</code></dt>
+<dd>Original dataframe which will have its data types converted.</dd>
+<dt><strong><code>inplace</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>If set to True, the original dataframe will be used and modified
+directly. Otherwise, a copy will be created and returned, without
+changing the original dataframe.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pandas.DataFrame</code> or <code>dask.DataFrame</code> or <code>modin.pandas.dataframe.DataFrame</code></dt>
+<dd>Converted dataframe, in pyarrow compatible data types.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def convert_pyarrow_dtypes(df, inplace=False):
+    &#39;&#39;&#39;Converts a dataframe&#39;s data types to a pyarrow supported version.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.DataFrame
+        Original dataframe which will have its data types converted.
+    inplace : bool, default False
+        If set to True, the original dataframe will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dataframe.
+
+    Returns
+    -------
+    df : pandas.DataFrame or dask.DataFrame or modin.pandas.dataframe.DataFrame
+        Converted dataframe, in pyarrow compatible data types.
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_df = df.copy()
+    else:
+        # Use the original dataframes
+        data_df = df
+    # Create a columns data type dictionary
+    dtype_dict = dict(data_df.dtypes)
+    # Replace the pyarrow incompatible data types with similar, compatible ones
+    for key, val in dtype_dict.items():
+        val = str(val)
+        if (val == &#39;UInt8&#39; or val == &#39;UInt16&#39; or val == &#39;UInt32&#39;
+        or val == &#39;Int8&#39; or val == &#39;Int16&#39; or val == &#39;Int32&#39;
+        or val == &#39;boolean&#39;):
+            dtype_dict[key] = &#39;float32&#39;
+        elif val == &#39;UInt64&#39; or val == &#39;Int64&#39;:
+            dtype_dict[key] = &#39;float64&#39;
+        elif val == &#39;string&#39;:
+            dtype_dict[key] = str
+    # Apply the new data types
+    data_df = data_df.astype(dtype_dict)
+    return data_df</code></pre>
+</details>
+</dd>
 <dt id="data_utils.utils.get_full_number_string"><code class="name flex">
 <span>def <span class="ident">get_full_number_string</span></span>(<span>x, decimal_digits=0)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Gets a full number's representation in a string.
+<div class="desc"><p>Gets a full number's representation in a string.
 Particularly useful when one has very large float values,
 possibly too big to be represented as an integer.</p>
 <h2 id="parameters">Parameters</h2>
@@ -304,7 +851,7 @@ decimals, by default.</dd>
 <dt><strong><code>x</code></strong> :&ensp;<code>string</code></dt>
 <dd>A numeric value that one wants to represent in a string,
 with all it's numbers visible.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -337,7 +884,7 @@ with all it's numbers visible.</dd>
 <span>def <span class="ident">in_ipynb</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Detect if code is running in a IPython notebook, such as in Jupyter Lab.</p></section>
+<div class="desc"><p>Detect if code is running in a IPython notebook, such as in Jupyter Lab.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -355,7 +902,7 @@ with all it's numbers visible.</dd>
 <span>def <span class="ident">invert_dict</span></span>(<span>x)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Invert a dictionary, switching its keys with its values.</p>
+<div class="desc"><p>Invert a dictionary, switching its keys with its values.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>x</code></strong> :&ensp;<code>dict</code></dt>
@@ -363,9 +910,9 @@ with all it's numbers visible.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>x</code></strong> :&ensp;<code>dict</code>:</dt>
+<dt><strong><code>x</code></strong> :&ensp;<code>dict:</code></dt>
 <dd>Inverted dictionary</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -390,7 +937,7 @@ with all it's numbers visible.</dd>
 <span>def <span class="ident">is_definitely_string</span></span>(<span>x)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Reports if a value is actually a real string or if it has some number in it.</p>
+<div class="desc"><p>Reports if a value is actually a real string or if it has some number in it.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>x</code></strong></dt>
@@ -401,7 +948,7 @@ with all it's numbers visible.</dd>
 <dt><code>boolean</code></dt>
 <dd>Returns a boolean, being it True if it really is a string or False if it's
 either numeric data or a string with a number inside.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -431,17 +978,101 @@ either numeric data or a string with a number inside.</dd>
         return isinstance(x, str)</code></pre>
 </details>
 </dd>
+<dt id="data_utils.utils.is_integer"><code class="name flex">
+<span>def <span class="ident">is_integer</span></span>(<span>x)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Indicates if a number is an integer.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>int</code> or <code>float</code> or <code>string</code></dt>
+<dd>A numeric value that will be checked if it's an integer.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>boolean</code></dt>
+<dd>Returns a boolean, being it True if the number corresponds to an integer
+or False if it doesn't.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_integer(x):
+    &#39;&#39;&#39;Indicates if a number is an integer.
+
+    Parameters
+    ----------
+    x : int or float or string
+        A numeric value that will be checked if it&#39;s an integer.
+
+    Returns
+    -------
+    boolean
+        Returns a boolean, being it True if the number corresponds to an integer
+        or False if it doesn&#39;t.
+    &#39;&#39;&#39;
+    try:
+        float(x)
+    except ValueError:
+        return False
+    return float(x).is_integer()</code></pre>
+</details>
+</dd>
+<dt id="data_utils.utils.is_num_nan"><code class="name flex">
+<span>def <span class="ident">is_num_nan</span></span>(<span>x)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Indicates if a number corresponds to a missing value.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>int</code> or <code>float</code> or <code>string</code></dt>
+<dd>A numeric value that will be compared with possible missing value
+representations.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>boolean</code></dt>
+<dd>Returns a boolean, being it True if the number corresponds to a missing
+value representation or False if it doesn't.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_num_nan(x):
+    &#39;&#39;&#39;Indicates if a number corresponds to a missing value.
+
+    Parameters
+    ----------
+    x : int or float or string
+        A numeric value that will be compared with possible missing value
+        representations.
+
+    Returns
+    -------
+    boolean
+        Returns a boolean, being it True if the number corresponds to a missing
+        value representation or False if it doesn&#39;t.
+    &#39;&#39;&#39;
+    str_val = str(x).lower()
+    if str_val == &#39;nan&#39; or str_val == &#39;&lt;na&gt;&#39;:
+        return True
+    else:
+        return False</code></pre>
+</details>
+</dd>
 <dt id="data_utils.utils.is_string_nan"><code class="name flex">
 <span>def <span class="ident">is_string_nan</span></span>(<span>x, specific_nan_strings=[])</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Indicates if a string corresponds to a missing value.</p>
+<div class="desc"><p>Indicates if a string corresponds to a missing value.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>x</code></strong> :&ensp;<code>string</code></dt>
 <dd>A string that will be compared with possible missing value
 representations.</dd>
-<dt><strong><code>specific_nan_strings</code></strong> :&ensp;<code>list</code> of <code>strings</code>, default []</dt>
+<dt><strong><code>specific_nan_strings</code></strong> :&ensp;<code>list</code> of <code>strings</code>, default <code>[]</code></dt>
 <dd>Parameter where the user can specify additional strings that
 should correspond to missing values.</dd>
 </dl>
@@ -450,7 +1081,7 @@ should correspond to missing values.</dd>
 <dt><code>boolean</code></dt>
 <dd>Returns a boolean, being it True if the string corresponds to a missing
 value representation or False if it doesn't.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -475,7 +1106,7 @@ value representation or False if it doesn't.</dd>
     &#39;&#39;&#39;
     # Only considering strings for the missing values search
     if isinstance(x, str):
-        # Considering the possibility of just 3 more random extra characters 
+        # Considering the possibility of just 3 more random extra characters
         # in NaN-like strings
         if ((&#39;other&#39; in x.lower() and len(x) &lt; 9)
             or (&#39;null&#39; in x.lower() and len(x) &lt; 7)
@@ -502,93 +1133,328 @@ value representation or False if it doesn't.</dd>
 </details>
 </dd>
 <dt id="data_utils.utils.iterations_loop"><code class="name flex">
-<span>def <span class="ident">iterations_loop</span></span>(<span>x, see_progress=True)</span>
+<span>def <span class="ident">iterations_loop</span></span>(<span>x, see_progress=True, desc=None, leave=True)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Determine if a progress bar is shown or not.</p></section>
+<div class="desc"><p>Determine if a progress bar is shown or not.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def iterations_loop(x, see_progress=True):
+<pre><code class="python">def iterations_loop(x, see_progress=True, desc=None, leave=True):
     &#39;&#39;&#39;Determine if a progress bar is shown or not.&#39;&#39;&#39;
     if see_progress is True:
         # Use a progress bar
-        return tqdm(x)
+        return tqdm(x, desc=desc, leave=leave)
     else:
         # Don&#39;t show any progress bar if see_progress is False
         return x</code></pre>
 </details>
 </dd>
-<dt id="data_utils.utils.set_bar_color"><code class="name flex">
-<span>def <span class="ident">set_bar_color</span></span>(<span>values, ids, seq_len, threshold=0, neg_color='rgba(30,136,229,1)', pos_color='rgba(255,13,87,1)')</span>
+<dt id="data_utils.utils.merge_dicts"><code class="name flex">
+<span>def <span class="ident">merge_dicts</span></span>(<span>dict1, dict2=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Determine each bar's color in a bar chart, according to the values being
-plotted and the predefined threshold.</p>
+<div class="desc"><p>Merge two or more dictionaries into one. The second dictionary can
+overwrite the first one if there are overlapping keys.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>values</code></strong> :&ensp;<code>numpy.Array</code></dt>
-<dd>Array containing the values to be plotted.</dd>
-<dt><strong><code>ids</code></strong> :&ensp;<code>int</code> or <code>list</code> of <code>ints</code></dt>
-<dd>ID or list of ID's that select which time series / sequences to use in
-the color selection.</dd>
-<dt><strong><code>seq_len</code></strong> :&ensp;<code>int</code> or <code>list</code> of <code>ints</code></dt>
-<dd>Single or multiple sequence lengths, which represent the true, unpadded
-size of the input sequences.</dd>
-<dt><strong><code>threshold</code></strong> :&ensp;<code>int</code> or <code>float</code>, default <code>0</code></dt>
-<dd>Value to use as a threshold in the plot's color selection. In other
-words, values that exceed this threshold will have one color while the
-remaining have a different one, as specified in the parameters.</dd>
-<dt><strong><code>pos_color</code></strong> :&ensp;<code>string</code></dt>
-<dd>Color to use in the bars corresponding to threshold exceeding values.</dd>
-<dt><strong><code>neg_color</code></strong> :&ensp;<code>string</code></dt>
-<dd>Color to use in the bars corresponding to values bellow the threshold.</dd>
+<dt><strong><code>dict1</code></strong> :&ensp;<code>dict</code> or <code>list</code> of <code>dicts</code></dt>
+<dd>Dictionary 1 that will be merged with dictionary 2 or list of
+dictionaries that will be merged.</dd>
+<dt><strong><code>dict2</code></strong> :&ensp;<code>dict</code>, default <code>None</code></dt>
+<dd>Dictionary 2 that will be merged with dictionary 1. If not specified,
+the user must define a list of dictionaries in parameter <code>dict1</code> to merge.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>colors</code></strong> :&ensp;<code>list</code> of <code>strings</code></dt>
-<dd>Resulting bar colors list.</dd>
-</dl></section>
+<dt><strong><code>dict3</code></strong> :&ensp;<code>dict</code></dt>
+<dd>New dictionary resulting from the merge.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def set_bar_color(values, ids, seq_len, threshold=0,
-                  neg_color=&#39;rgba(30,136,229,1)&#39;, pos_color=&#39;rgba(255,13,87,1)&#39;):
-    &#39;&#39;&#39;Determine each bar&#39;s color in a bar chart, according to the values being
-    plotted and the predefined threshold.
+<pre><code class="python">def merge_dicts(dict1, dict2=None):
+    &#39;&#39;&#39;Merge two or more dictionaries into one. The second dictionary can
+    overwrite the first one if there are overlapping keys.
 
     Parameters
     ----------
-    values : numpy.Array
-        Array containing the values to be plotted.
-    ids : int or list of ints
-        ID or list of ID&#39;s that select which time series / sequences to use in
-        the color selection.
-    seq_len : int or list of ints
-        Single or multiple sequence lengths, which represent the true, unpadded
-        size of the input sequences.
-    threshold : int or float, default 0
-        Value to use as a threshold in the plot&#39;s color selection. In other
-        words, values that exceed this threshold will have one color while the
-        remaining have a different one, as specified in the parameters.
-    pos_color : string
-        Color to use in the bars corresponding to threshold exceeding values.
-    neg_color : string
-        Color to use in the bars corresponding to values bellow the threshold.
+    dict1 : dict or list of dicts
+        Dictionary 1 that will be merged with dictionary 2 or list of
+        dictionaries that will be merged.
+    dict2 : dict, default None
+        Dictionary 2 that will be merged with dictionary 1. If not specified,
+        the user must define a list of dictionaries in parameter `dict1` to merge.
 
     Returns
     -------
-    colors : list of strings
-        Resulting bar colors list.&#39;&#39;&#39;
-    if type(ids) is list:
-        # Create a list of lists, with the colors for each sequences&#39; instances
-        return [[pos_color if val &gt; 0 else neg_color for val in values[id, :seq_len]]
-                for id in ids]
+    dict3 : dict
+        New dictionary resulting from the merge.
+    &#39;&#39;&#39;
+    if isinstance(dict1, dict):
+        if dict2 is not None:
+            if isinstance(dict2, dict):
+                # Find if there are any overlapping keys
+                dict1_keys = set(dict1.keys())
+                dict2_keys = set(dict2.keys())
+                overlap_keys = dict1_keys.intersection(dict2_keys)
+                for key in overlap_keys:
+                    if ((isinstance(dict1[key], list) or isinstance(dict1[key], set))
+                    or (isinstance(dict2[key], list) or isinstance(dict2[key], set))):
+                        # Merge the lists
+                        dict1[key] = set(dict1[key]) | set(dict2[key])
+                        if isinstance(dict2[key], list):
+                            dict1[key] = list(dict1[key])
+                        dict2[key] = dict1[key]
+                    else:
+                        warnings.warn(f&#39;Found an overlapping key {key} when merging two dictionaries which, as it doesn\&#39;t point to a list or a set, can\&#39;t be merged. As such, the value from the dictionary on the right will be kept.&#39;)
+                # Merge the two input dictionaries
+                return {**dict1, **dict2}
+            else:
+                raise Exception(f&#39;ERROR: When `dict1` is specified as a single dictionary, the second argument `dict2` must also be a dictionary. Instead, received `dict2` of type {type(dict2)}.&#39;)
+        else:
+            raise Exception(f&#39;ERROR: When `dict1` is specified as a single dictionary, the second argument `dict2` must also be set.&#39;)
+    elif isinstance(dict1, list) and dict2 is None:
+        # Initialize the new dictionary with the first one on the list
+        new_dict = dict1[0]
+        for i in range(len(dict1)):
+            try:
+                dict2 = dict1[i+1]
+                # Find if there are any overlapping keys
+                new_dict_keys = set(new_dict.keys())
+                dict2_keys = set(dict2.keys())
+                overlap_keys = new_dict_keys.intersection(dict2_keys)
+                for key in overlap_keys:
+                    if ((isinstance(new_dict[key], list) or isinstance(new_dict[key], set))
+                    or (isinstance(dict2[key], list) or isinstance(dict2[key], set))):
+                        # Merge the lists
+                        new_dict[key] = set(new_dict[key]) | set(dict2[key])
+                        if isinstance(dict2[key], list):
+                            new_dict[key] = list(new_dict[key])
+                        dict2[key] = new_dict[key]
+                    else:
+                        warnings.warn(f&#39;Found an overlapping key {key} when merging two dictionaries which, as it doesn\&#39;t point to a list or a set, can\&#39;t be merged. As such, the value from the dictionary on the right will be kept.&#39;)
+                # Try to merge with the next dictionary, if there is any
+                new_dict = {**new_dict, **dict2}
+            except:
+                break
+        return new_dict
     else:
-        # Create a single list, with the colors for the sequence&#39;s instances
-        return [pos_color if val &gt; 0 else neg_color for val in values[ids, :seq_len]]</code></pre>
+        return Exception(f&#39;ERROR: The first parameter `dict1` must be set as either a dictionary or a list of dictionaries. Instead, received `dict1` of type {type(dict1)}.&#39;)</code></pre>
+</details>
+</dd>
+<dt id="data_utils.utils.merge_lists"><code class="name flex">
+<span>def <span class="ident">merge_lists</span></span>(<span>lists)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Merge two or more lists into one.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>lists</code></strong> :&ensp;<code>list</code> of <code>lists</code></dt>
+<dd>List containing all the lists that we want to merge.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>lists</code></strong> :&ensp;<code>lists</code></dt>
+<dd>New list with all the input lists flatten in a single list.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def merge_lists(lists):
+    &#39;&#39;&#39;Merge two or more lists into one.
+
+    Parameters
+    ----------
+    lists : list of lists
+        List containing all the lists that we want to merge.
+
+    Returns
+    -------
+    lists : lists
+        New list with all the input lists flatten in a single list.
+    &#39;&#39;&#39;
+    return list(itertools.chain.from_iterable(lists))</code></pre>
+</details>
+</dd>
+<dt id="data_utils.utils.remove_from_list"><code class="name flex">
+<span>def <span class="ident">remove_from_list</span></span>(<span>data, to_remove, update_idx=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Remove values from a list, with the option to update the remaining values
+everytime one is removed.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>list</code></dt>
+<dd>Data list to update by removing specified values.</dd>
+<dt><strong><code>to_remove</code></strong> :&ensp;<code>list</code> or <code>int</code> or <code>float</code> or <code>str</code></dt>
+<dd>Values to remove from the list.</dd>
+<dt><strong><code>update_idx</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>list</code></dt>
+<dd>Updated data list.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove_from_list(data, to_remove, update_idx=False):
+    &#39;&#39;&#39;Remove values from a list, with the option to update the remaining values
+    everytime one is removed.
+
+    Parameters
+    ----------
+    data : list
+        Data list to update by removing specified values.
+    to_remove : list or int or float or str
+        Values to remove from the list.
+    update_idx : bool, default False
+
+    Returns
+    -------
+    data : list
+        Updated data list.
+    &#39;&#39;&#39;
+    if isinstance(to_remove, int) or isinstance(to_remove, float) or isinstance(to_remove, str):
+        # Make sure that the values to remove are in a list format, even if it&#39;s just one
+        to_remove = [to_remove]
+    # Check if we need to update the values, in case they&#39;ll be used as indices
+    update_idx = all([isinstance(val, int) for val in to_remove]) and update_idx is True
+    for val in to_remove:
+        data.remove(val)
+        if update_idx is True:
+            for i in range(len(data)):
+                if data[i] &gt; val:
+                    # Update value (which could be an index) to decrease its value
+                    data[i] -= 1
+    return data</code></pre>
+</details>
+</dd>
+<dt id="data_utils.utils.replace_dict_strings"><code class="name flex">
+<span>def <span class="ident">replace_dict_strings</span></span>(<span>dct, str_to_replace='0', new_str='_', replace_keys=True, replace_vals=True, inplace=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Replace strings in a dictionary, in keys and/or values, with a new,
+desired string.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>dct</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary that will have its keys and/or values modified.</dd>
+<dt><strong><code>str_to_replace</code></strong> :&ensp;<code>str</code>, default <code>'0'</code></dt>
+<dd>String to replace with a new one.</dd>
+<dt><strong><code>new_str</code></strong> :&ensp;<code>str</code>, default <code>'_'</code></dt>
+<dd>String to replace the old one.</dd>
+<dt><strong><code>replace_keys</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
+<dd>If set to True, the dictionary's keys will have their strings edited
+according to the string replacement set by the user.</dd>
+<dt><strong><code>replace_values</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
+<dd>If set to True, the dictionary's values will have their strings edited
+according to the string replacement set by the user.</dd>
+<dt><strong><code>inplace</code></strong> :&ensp;<code>bool</code>, default <code>False</code></dt>
+<dd>If set to True, the original dictionary will be used and modified
+directly. Otherwise, a copy will be created and returned, without
+changing the original dictionary.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>data_dct</code></strong> :&ensp;<code>dict:</code></dt>
+<dd>Inverted dictionary</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def replace_dict_strings(dct, str_to_replace=&#39;0&#39;, new_str=&#39;_&#39;, replace_keys=True,
+                         replace_vals=True, inplace=False):
+    &#39;&#39;&#39;Replace strings in a dictionary, in keys and/or values, with a new,
+    desired string.
+
+    Parameters
+    ----------
+    dct : dict
+        Dictionary that will have its keys and/or values modified.
+    str_to_replace : str, default &#39;0&#39;
+        String to replace with a new one.
+    new_str : str, default &#39;_&#39;
+        String to replace the old one.
+    replace_keys : bool, default True
+        If set to True, the dictionary&#39;s keys will have their strings edited
+        according to the string replacement set by the user.
+    replace_values : bool, default True
+        If set to True, the dictionary&#39;s values will have their strings edited
+        according to the string replacement set by the user.
+    inplace : bool, default False
+        If set to True, the original dictionary will be used and modified
+        directly. Otherwise, a copy will be created and returned, without
+        changing the original dictionary.
+
+    Returns
+    -------
+    data_dct : dict:
+        Inverted dictionary
+    &#39;&#39;&#39;
+    if not inplace:
+        # Make a copy of the data to avoid potentially unwanted changes to the original dataframe
+        data_dct = dct.copy()
+    else:
+        # Use the original dataframes
+        data_dct = dct
+    if replace_keys is True:
+        for key in dct.keys():
+            # Replace undesired string with the new one
+            new_key = str(key).replace(str_to_replace, new_str)
+            if new_key != key:
+                # Remove the old key and replace with the new one
+                dct[new_key] = dct.pop(key)
+    if replace_vals is True:
+        for key, val in dct.items():
+            # Replace undesired string with the new one
+            new_val = str(val).replace(str_to_replace, new_str)
+            if new_val != val:
+                # Replace the old value with the new one, in the same key
+                dct[key] = new_val
+    return data_dct</code></pre>
+</details>
+</dd>
+<dt id="data_utils.utils.reverse"><code class="name flex">
+<span>def <span class="ident">reverse</span></span>(<span>data)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reverse the order of a tensor or list.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>torch.Tensor</code> or <code>list</code></dt>
+<dd>PyTorch tensor or list to revert.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>torch.Tensor</code> or <code>list</code></dt>
+<dd>Reversed tensor or list.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reverse(data):
+    &#39;&#39;&#39;Reverse the order of a tensor or list.
+
+    Parameters
+    ----------
+    data : torch.Tensor or list
+        PyTorch tensor or list to revert.
+
+    Returns
+    -------
+    data : torch.Tensor or list
+        Reversed tensor or list.
+    &#39;&#39;&#39;
+    return data[::-1]</code></pre>
 </details>
 </dd>
 </dl>
@@ -610,22 +1476,29 @@ remaining have a different one, as specified in the parameters.</dd>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="data_utils.utils.apply_dict_convertion" href="#data_utils.utils.apply_dict_convertion">apply_dict_convertion</a></code></li>
+<li><code><a title="data_utils.utils.convert_dataframe" href="#data_utils.utils.convert_dataframe">convert_dataframe</a></code></li>
+<li><code><a title="data_utils.utils.convert_dtypes" href="#data_utils.utils.convert_dtypes">convert_dtypes</a></code></li>
+<li><code><a title="data_utils.utils.convert_pyarrow_dtypes" href="#data_utils.utils.convert_pyarrow_dtypes">convert_pyarrow_dtypes</a></code></li>
 <li><code><a title="data_utils.utils.get_full_number_string" href="#data_utils.utils.get_full_number_string">get_full_number_string</a></code></li>
 <li><code><a title="data_utils.utils.in_ipynb" href="#data_utils.utils.in_ipynb">in_ipynb</a></code></li>
 <li><code><a title="data_utils.utils.invert_dict" href="#data_utils.utils.invert_dict">invert_dict</a></code></li>
 <li><code><a title="data_utils.utils.is_definitely_string" href="#data_utils.utils.is_definitely_string">is_definitely_string</a></code></li>
+<li><code><a title="data_utils.utils.is_integer" href="#data_utils.utils.is_integer">is_integer</a></code></li>
+<li><code><a title="data_utils.utils.is_num_nan" href="#data_utils.utils.is_num_nan">is_num_nan</a></code></li>
 <li><code><a title="data_utils.utils.is_string_nan" href="#data_utils.utils.is_string_nan">is_string_nan</a></code></li>
 <li><code><a title="data_utils.utils.iterations_loop" href="#data_utils.utils.iterations_loop">iterations_loop</a></code></li>
-<li><code><a title="data_utils.utils.set_bar_color" href="#data_utils.utils.set_bar_color">set_bar_color</a></code></li>
+<li><code><a title="data_utils.utils.merge_dicts" href="#data_utils.utils.merge_dicts">merge_dicts</a></code></li>
+<li><code><a title="data_utils.utils.merge_lists" href="#data_utils.utils.merge_lists">merge_lists</a></code></li>
+<li><code><a title="data_utils.utils.remove_from_list" href="#data_utils.utils.remove_from_list">remove_from_list</a></code></li>
+<li><code><a title="data_utils.utils.replace_dict_strings" href="#data_utils.utils.replace_dict_strings">replace_dict_strings</a></code></li>
+<li><code><a title="data_utils.utils.reverse" href="#data_utils.utils.reverse">reverse</a></code></li>
 </ul>
 </li>
 </ul>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>
