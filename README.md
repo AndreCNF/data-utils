@@ -34,8 +34,8 @@ There are two ways to install Data Utils:
 
 * Install through pip
 
-Using pip, you can install with the following command:
-`pip install -e git+https://github.com/AndreCNF/data-utils.git`
+  Using pip, you can install with the following command:
+  `pip install -e git+https://github.com/AndreCNF/data-utils.git`
 
 ## Overview
 
