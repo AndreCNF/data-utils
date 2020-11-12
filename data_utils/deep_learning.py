@@ -502,7 +502,7 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
     # Check if the user wants to do inference directly on a PyTorch tensor
     if dataloader is None and data is not None:
         features, labels = data[0], data[1]
-        if is_custom is False or seq_final_outputs is True:
+        if is_custom is False or seq_final_outputs is True and model_type == 'multivariate_rnn':
             # Find the original sequence lengths
             seq_lengths = search_explore.find_seq_len(labels, padding_value=padding_value)
             # [TODO] Dynamically calculate and pad according to the current batch's maximum sequence length
@@ -639,7 +639,7 @@ def model_inference(model, dataloader=None, data=None, dataset=None,
             features, labels = features.squeeze(), labels.squeeze()
         # Turn off gradients, saves memory and computations
         with torch.no_grad():
-            if is_custom is False or seq_final_outputs is True:
+            if is_custom is False or seq_final_outputs is True and model_type == 'multivariate_rnn':
                 # Find the original sequence lengths
                 seq_lengths = search_explore.find_seq_len(labels, padding_value=padding_value)
                 # [TODO] Dynamically calculate and pad according to the current batch's maximum sequence length
@@ -986,7 +986,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
             if dataset is not None:
                 # Make sure that the data has the right amount of dimensions
                 features, labels = features.squeeze(), labels.squeeze()
-            if is_custom is False:
+            if is_custom is False and model_type == 'multivariate_rnn':
                 # Find the original sequence lengths
                 seq_lengths = search_explore.find_seq_len(labels, padding_value=padding_value)
                 # [TODO] Dynamically calculate and pad according to the current batch's maximum sequence length
@@ -1063,7 +1063,7 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
                     features, labels = features.squeeze(), labels.squeeze()
                 # Turn off gradients for validation, saves memory and computations
                 with torch.no_grad():
-                    if is_custom is False:
+                    if is_custom is False and model_type == 'multivariate_rnn':
                         # Find the original sequence lengths
                         seq_lengths = search_explore.find_seq_len(labels, padding_value=padding_value)
                         # [TODO] Dynamically calculate and pad according to the current batch's maximum sequence length

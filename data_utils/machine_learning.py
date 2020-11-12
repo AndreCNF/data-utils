@@ -159,9 +159,10 @@ def train(model, train_dataloader, val_dataloader, test_dataloader=None,
         return model
 
 
-def optimize_hyperparameters(Model, config_name, comet_ml_api_key,
-                             comet_ml_project_name, comet_ml_workspace, df=None,
-                             dataset=None, train_dataloader=None,
+def optimize_hyperparameters(Model, comet_ml_api_key,
+                             comet_ml_project_name, comet_ml_workspace, 
+                             config_name=None, config_dict=None,
+                             df=None, dataset=None, train_dataloader=None,
                              val_dataloader=None, test_dataloader=None,
                              n_inputs=None, id_column=None, label_column=None,
                              inst_column=None, id_columns_idx=None, n_outputs=1,
@@ -183,7 +184,13 @@ def optimize_hyperparameters(Model, config_name, comet_ml_api_key,
     ----------
     Model : torch.nn.Module or sklearn.* (any machine learning model)
         Class constructor for the desired machine learning model.
-    config_name : str
+    comet_ml_api_key : string
+        Comet.ml API key used when logging data to the platform.
+    comet_ml_project_name : string
+        Name of the comet.ml project used when logging data to the platform.
+    comet_ml_workspace : string
+        Name of the comet.ml workspace used when logging data to the platform.
+    config_name : str, default None
         Name of the configuration file, containing information about the
         parameters to optimize. This data is organized in a YAML format, akin to
         a dictionary object, where the optimization algorithm is set, each
@@ -191,12 +198,14 @@ def optimize_hyperparameters(Model, config_name, comet_ml_api_key,
         the order of (minimum value to explore in the optimization, maximum
         value to explore in the optimization, initial value to use), and the
         metric to be optimized.
-    comet_ml_api_key : string
-        Comet.ml API key used when logging data to the platform.
-    comet_ml_project_name : string
-        Name of the comet.ml project used when logging data to the platform.
-    comet_ml_workspace : string
-        Name of the comet.ml workspace used when logging data to the platform.
+    config_dict : dict, default None
+        Already loaded configuration file, containing information about the
+        parameters to optimize. This data is organized in a YAML format, akin to
+        a dictionary object, where the optimization algorithm is set, each
+        hyperparameter gets a key with its name, followed by a list of values in
+        the order of (minimum value to explore in the optimization, maximum
+        value to explore in the optimization, initial value to use), and the
+        metric to be optimized.
     df : pandas.DataFrame or dask.DataFrame, default None
         Dataframe containing all the data that will be used in the
         optimization's training processes.
@@ -318,9 +327,10 @@ def optimize_hyperparameters(Model, config_name, comet_ml_api_key,
             and comet_ml_project_name is not None
             and comet_ml_workspace is not None):
         raise Exception('ERROR: All necessary Comet.ml parameters (comet_ml_api_key, comet_ml_project_name, comet_ml_workspace) must be correctly specified. Otherwise, the parameter optimization won\'t work.')
-    # Load the hyperparameter optimization configuration file into a dictionary
-    config_file = open(f'{config_path}{config_name}', 'r')
-    config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
+    if config_dict is None:
+        # Load the hyperparameter optimization configuration file into a dictionary
+        config_file = open(f'{config_path}{config_name}', 'r')
+        config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
     # Get all the names of the hyperparameters that will be optimized
     params_names = list(config_dict['parameters'].keys())
     if array_param is not None:
@@ -370,7 +380,7 @@ def optimize_hyperparameters(Model, config_name, comet_ml_api_key,
                 dataset = datasets.Time_Series_Dataset(df, data, id_column=id_column,
                                                        ts_column=inst_column, seq_len_dict=seq_len_dict)
             elif model_type.lower() == 'mlp':
-                dataset = datasets.Tabular_Dataset(data, df)
+                dataset = datasets.Tabular_Dataset(df, data)
             else:
                 raise Exception(f'ERROR: Invalid model type. It must be "multivariate_rnn" or "mlp", not {model_type}.')
     if train_dataloader is None and val_dataloader is None and test_dataloader is None:
