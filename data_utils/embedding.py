@@ -124,7 +124,7 @@ def create_enum_dict(unique_values, nan_value=None, forbidden_digit=None):
 
 
 def enum_categorical_feature(df, feature, nan_value=None, clean_name=True,
-                             forbidden_digit=None, separator='0', apply_on_df=True):
+                             forbidden_digit=None, apply_on_df=True):
     '''Enumerate all categories in a specified categorical feature, while also
     attributing a specific number to NaN and other unknown values.
 
@@ -143,9 +143,6 @@ def enum_categorical_feature(df, feature, nan_value=None, clean_name=True,
     forbidden_digit : int, default None
         Digit that we want to prevent from appearing in any enumeration
         encoding.
-    separator : string, default '0'
-        Symbol that concatenates each string's words. As such, it can't appear
-        in a single category's string.
     apply_on_df : bool, default True
         If set to True, the original column of the dataframe will be converted
         to the new enumeration encoding.
@@ -161,7 +158,7 @@ def enum_categorical_feature(df, feature, nan_value=None, clean_name=True,
     '''
     if clean_name is True:
         # Clean the column's string values to have the same, standard format
-        df = data_processing.clean_categories_naming(df, feature, separator=separator)
+        df = data_processing.clean_categories_naming(df, feature)
     # Get the unique values of the cateforical feature
     unique_values = df[feature].unique()
     if isinstance(df, dd.DataFrame):

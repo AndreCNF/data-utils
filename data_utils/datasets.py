@@ -42,7 +42,7 @@ class Tabular_Dataset(Dataset):
         # Features
         self.X = arr[:, self.features_columns]
         # Labels
-        self.y = arr[:, self.label_column]
+        self.y = arr[:, self.label_column_num]
 
     def __getitem__(self, item):
         x_i = self.X[item]
